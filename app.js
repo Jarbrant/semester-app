@@ -1,15 +1,11 @@
 /*
 ==========================================
-SEMESTERPLANERING - GITHUB PAGES VERSION
+VERSION 2 - MER FUNKTIONER
 ==========================================
-
-Data lagras i localStorage:
-- employees
-- vacations
 */
 
 // ==========================================
-// 🔹 HÄMTA DATA
+// 🔹 DATA
 // ==========================================
 
 function getEmployees() {
@@ -21,7 +17,7 @@ function getVacations() {
 }
 
 // ==========================================
-// 👥 LÄGG TILL PERSONAL
+// 👥 PERSONAL
 // ==========================================
 
 function addEmployee() {
@@ -32,7 +28,7 @@ function addEmployee() {
 
     employees.push({
         id: Date.now(),
-        name: name
+        name
     });
 
     localStorage.setItem("employees", JSON.stringify(employees));
@@ -43,8 +39,16 @@ function addEmployee() {
     renderCalendar();
 }
 
+function deleteEmployee(id) {
+    let employees = getEmployees().filter(e => e.id != id);
+    localStorage.setItem("employees", JSON.stringify(employees));
+
+    loadEmployees();
+    renderCalendar();
+}
+
 // ==========================================
-// 📅 LÄGG TILL SEMESTER
+// 📅 SEMESTER
 // ==========================================
 
 function addVacation() {
@@ -56,11 +60,24 @@ function addVacation() {
 
     let vacations = getVacations();
 
+    // ⚠️ Konfliktregel (max 3 personer)
+    const overlap = vacations.filter(v =>
+        (start <= v.end && end >= v.start)
+    );
+
+    if (overlap.length >= 3) {
+        document.getElementById("warning").innerText =
+            "⚠️ För många är redan lediga denna period!";
+        return;
+    }
+
+    document.getElementById("warning").innerText = "";
+
     vacations.push({
         id: Date.now(),
         employee_id: empId,
-        start: start,
-        end: end
+        start,
+        end
     });
 
     localStorage.setItem("vacations", JSON.stringify(vacations));
@@ -68,8 +85,14 @@ function addVacation() {
     renderCalendar();
 }
 
+function deleteVacation(id) {
+    let vacations = getVacations().filter(v => v.id != id);
+    localStorage.setItem("vacations", JSON.stringify(vacations));
+    renderCalendar();
+}
+
 // ==========================================
-// 🔹 LADDA PERSONAL I UI
+// 🔹 UI LADDNING
 // ==========================================
 
 function loadEmployees() {
@@ -77,19 +100,27 @@ function loadEmployees() {
 
     const select = document.getElementById("employeeSelect");
     const filter = document.getElementById("filter");
+    const list = document.getElementById("employeeList");
 
     select.innerHTML = "";
     filter.innerHTML = '<option value="all">Visa alla</option>';
+    list.innerHTML = "";
 
     employees.forEach(emp => {
-        const option = `<option value="${emp.id}">${emp.name}</option>`;
-        select.innerHTML += option;
-        filter.innerHTML += option;
+        select.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
+        filter.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
+
+        list.innerHTML += `
+            <li>
+                ${emp.name}
+                <button onclick="deleteEmployee(${emp.id})">❌</button>
+            </li>
+        `;
     });
 }
 
 // ==========================================
-// 📅 RENDERA KALENDER
+// 📅 KALENDER
 // ==========================================
 
 let calendar;
@@ -103,25 +134,56 @@ function renderCalendar() {
         .filter(v => filter === "all" || v.employee_id == filter)
         .map(v => {
             const emp = employees.find(e => e.id == v.employee_id);
+
             return {
+                id: v.id,
                 title: emp ? emp.name : "Okänd",
                 start: v.start,
                 end: v.end
             };
         });
 
-    if (calendar) {
-        calendar.destroy();
-    }
+    if (calendar) calendar.destroy();
 
-    const calendarEl = document.getElementById("calendar");
-
-    calendar = new FullCalendar.Calendar(calendarEl, {
+    calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
         initialView: "dayGridMonth",
-        events: events
+        events: events,
+
+        // 🗑️ Klicka för att ta bort
+        eventClick: function(info) {
+            if (confirm("Ta bort denna semester?")) {
+                deleteVacation(info.event.id);
+            }
+        }
     });
 
     calendar.render();
+
+    renderVacationList();
+}
+
+// ==========================================
+// 📋 LISTA
+// ==========================================
+
+function renderVacationList() {
+    const employees = getEmployees();
+    const vacations = getVacations();
+    const list = document.getElementById("vacationList");
+
+    list.innerHTML = "";
+
+    vacations.forEach(v => {
+        const emp = employees.find(e => e.id == v.employee_id);
+
+        list.innerHTML += `
+            <li>
+                ${emp ? emp.name : "?"}:
+                ${v.start} → ${v.end}
+                <button onclick="deleteVacation(${v.id})">❌</button>
+            </li>
+        `;
+    });
 }
 
 // ==========================================
