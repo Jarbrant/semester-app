@@ -20,7 +20,7 @@ h1 {
     border-radius: 6px;
 }
 
-/* ACTION CARDS */
+/* CARDS */
 .actions {
     display: flex;
     gap: 20px;
@@ -71,7 +71,7 @@ h1 {
     margin: 20px auto;
 }
 
-/* CARD */
+/* LIST */
 .card {
     background: white;
     padding: 15px;
