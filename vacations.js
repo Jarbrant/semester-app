@@ -1,87 +1,68 @@
 // ==========================================
-// 📅 CALENDAR MODULE (PRO VERSION)
+// 📅 VACATIONS MODULE (PRO VERSION)
 // ==========================================
 
-let calendar = null;
-
-// 🎯 Rendera kalender
-window.renderCalendar = function () {
-    const calendarEl = document.getElementById("calendar");
+// ➕ Lägg till semester
+window.addVacation = function () {
+    const empSelect = document.getElementById("employeeSelect");
+    const startInput = document.getElementById("startDate");
+    const endInput = document.getElementById("endDate");
+    const warning = document.getElementById("warning");
 
     // säkerhetscheck
-    if (!calendarEl) {
-        console.error("Calendar element saknas");
+    if (!empSelect || !startInput || !endInput) {
+        console.error("Semester-inputs saknas i DOM");
         return;
     }
 
-    // säkerhetscheck
-    if (typeof FullCalendar === "undefined") {
-        console.error("FullCalendar är inte laddad");
+    const empId = empSelect.value;
+    const start = startInput.value;
+    const end = endInput.value;
+
+    // validering
+    if (!empId || !start || !end) {
+        alert("Fyll i alla fält");
         return;
     }
 
-    const employees = getEmployees();
+    if (start > end) {
+        alert("Startdatum kan inte vara efter slutdatum");
+        return;
+    }
+
     const vacations = getVacations();
 
-    const filterEl = document.getElementById("filter");
-    const filter = filterEl ? filterEl.value : "all";
+    // 🔥 konfliktkontroll (max 3 personer samtidigt)
+    const overlap = vacations.filter(v =>
+        start <= v.end && end >= v.start
+    );
 
-    // 🔥 skapa events
-    const events = vacations
-        .filter(v => filter === "all" || v.employee_id == filter)
-        .map(v => {
-            const emp = employees.find(e => e.id == v.employee_id);
-
-            return {
-                id: v.id,
-                title: emp ? emp.name : "Okänd",
-                start: v.start,
-                end: v.end,
-                allDay: true
-            };
-        });
-
-    // 🔄 destroy gamla kalendern
-    if (calendar) {
-        calendar.destroy();
-        calendar = null;
+    if (overlap.length >= 3) {
+        if (warning) {
+            warning.innerText = "⚠️ För många är redan lediga!";
+        }
+        return;
     }
 
-    // 🚀 skapa ny kalender
-    calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: "dayGridMonth",
-        height: 600,
+    // rensa varning
+    if (warning) warning.innerText = "";
 
-        locale: "sv",
-        firstDay: 1,
-
-        headerToolbar: {
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek"
-        },
-
-        events: events,
-
-        // 🗑️ klicka för att ta bort
-        eventClick: function (info) {
-            if (confirm("Ta bort denna semester?")) {
-                deleteVacation(info.event.id);
-            }
-        }
+    // spara
+    vacations.push({
+        id: Date.now(),
+        employee_id: empId,
+        start,
+        end
     });
-
-    calendar.render();
-};
-
-// ❌ Ta bort semester
-window.deleteVacation = function (id) {
-    let vacations = getVacations();
-
-    vacations = vacations.filter(v => v.id != id);
 
     saveVacations(vacations);
 
-    // uppdatera kalender
-    renderCalendar();
+    // rensa inputs
+    startInput.value = "";
+    endInput.value = "";
+
+    // uppdatera UI
+    if (typeof renderCalendar === "function") {
+        renderCalendar();
+    }
 };
