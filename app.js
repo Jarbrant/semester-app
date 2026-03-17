@@ -29,7 +29,10 @@ function saveVacations(data) {
     localStorage.setItem(getCurrentUser()+"_vacations", JSON.stringify(data));
 }
 
-// MODAL
+// ==========================================
+// 🔥 MODAL (FIXAD GLOBAL)
+// ==========================================
+
 function openModal(id) {
     const el = document.getElementById(id);
     if (el) el.style.display = "block";
@@ -39,7 +42,15 @@ function closeModal() {
     document.querySelectorAll(".modal").forEach(m => m.style.display = "none");
 }
 
-// PERSONAL
+// 👉 GÖR GLOBALA (VIKTIGT)
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.logout = logout;
+
+// ==========================================
+// 👥 PERSONAL
+// ==========================================
+
 function addEmployee() {
     let name = document.getElementById("employeeName").value;
     if (!name) return;
@@ -51,11 +62,19 @@ function addEmployee() {
     loadEmployees();
 }
 
-// SEMESTER
+// 👉 GLOBAL
+window.addEmployee = addEmployee;
+
+// ==========================================
+// 📅 SEMESTER
+// ==========================================
+
 function addVacation() {
     let empId = document.getElementById("employeeSelect").value;
     let start = document.getElementById("startDate").value;
     let end = document.getElementById("endDate").value;
+
+    if (!empId || !start || !end) return;
 
     let vacations = getVacations();
 
@@ -79,7 +98,13 @@ function addVacation() {
     renderCalendar();
 }
 
-// LOAD UI
+// 👉 GLOBAL
+window.addVacation = addVacation;
+
+// ==========================================
+// 🔹 UI
+// ==========================================
+
 function loadEmployees() {
     const employees = getEmployees();
 
@@ -97,7 +122,10 @@ function loadEmployees() {
     });
 }
 
-// CALENDAR
+// ==========================================
+// 📅 CALENDAR
+// ==========================================
+
 let calendar;
 
 function renderCalendar() {
@@ -134,15 +162,19 @@ function renderCalendar() {
     });
 
     calendar.render();
-
     renderVacationList();
 }
 
-// LIST
+// ==========================================
+// 📋 LISTA
+// ==========================================
+
 function renderVacationList() {
     const employees = getEmployees();
     const vacations = getVacations();
     const list = document.getElementById("vacationList");
+
+    if (!list) return;
 
     list.innerHTML = "";
 
@@ -157,7 +189,10 @@ function renderVacationList() {
     });
 }
 
-// INIT
+// ==========================================
+// 🚀 INIT
+// ==========================================
+
 window.onload = () => {
     loadEmployees();
     renderCalendar();
