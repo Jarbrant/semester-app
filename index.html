@@ -1,50 +1,51 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Planner</title>
-
-  <link rel="stylesheet" href="./styles.css">
-
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Semesterplaneraren</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-
-<div class="app">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <h1>🧠 Planner</h1>
-
-    <button id="add-employee-btn">+ Personal</button>
-    <button id="add-vacation-btn">+ Semester</button>
-
-    <select id="employee-filter"></select>
-
-    <button id="logout-btn">Logout</button>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-
-    <div id="calendar"></div>
-
-    <div class="list">
-      <h3>Semestrar</h3>
-      <div id="vacation-list"></div>
-    </div>
-
-  </main>
-
-</div>
-
-<!-- MODAL -->
-<div id="modal" class="modal"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-<script type="module" src="./app.js"></script>
-
+  <div id="login-modal" class="modal">
+    <form id="login-form" class="modal-content">
+      <h2>Logga in</h2>
+      <input type="text" id="username" placeholder="Användarnamn" required />
+      <button type="submit">Logga in</button>
+    </form>
+  </div>
+  <div id="app" class="hidden">
+    <header>
+      <h1>Semesterplaneraren</h1>
+      <button id="logout-btn">Logga ut</button>
+    </header>
+    <main>
+      <section id="employees-section">
+        <h2>Personal</h2>
+        <button id="add-employee-btn">+ Lägg till anställd</button>
+        <ul id="employee-list"></ul>
+      </section>
+      <section id="vacations-section">
+        <h2>Semestrar</h2>
+        <button id="add-vacation-btn">+ Lägg till semester</button>
+        <ul id="vacation-list"></ul>
+      </section>
+      <section id="calendar-section">
+        <h2>Kalender</h2>
+        <div>
+          <button id="month-view-btn">Månadsvy</button>
+          <button id="week-view-btn">Veckovy</button>
+          <select id="employee-filter">
+            <option value="">Alla anställda</option>
+          </select>
+        </div>
+        <div id="calendar"></div>
+      </section>
+    </main>
+  </div>
+  <div id="modal-backdrop" class="modal"></div>
+  <div id="employee-modal" class="modal"></div>
+  <div id="vacation-modal" class="modal"></div>
+  <script src="app.js"></script>
 </body>
 </html>
