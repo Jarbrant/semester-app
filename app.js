@@ -1,13 +1,4 @@
-/*
-==========================================
-VERSION 3 - LOGIN + PER USER DATA
-==========================================
-*/
-
-// ==========================================
 // 🔐 AUTH
-// ==========================================
-
 function getCurrentUser() {
     return localStorage.getItem("currentUser");
 }
@@ -17,87 +8,62 @@ function logout() {
     window.location.href = "login.html";
 }
 
-// Om inte inloggad → redirect
 if (!getCurrentUser()) {
     window.location.href = "login.html";
 }
 
-// ==========================================
-// 🔹 DATA (PER USER)
-// ==========================================
-
+// DATA
 function getEmployees() {
-    return JSON.parse(localStorage.getItem(getCurrentUser() + "_employees")) || [];
+    return JSON.parse(localStorage.getItem(getCurrentUser()+"_employees")) || [];
 }
 
 function saveEmployees(data) {
-    localStorage.setItem(getCurrentUser() + "_employees", JSON.stringify(data));
+    localStorage.setItem(getCurrentUser()+"_employees", JSON.stringify(data));
 }
 
 function getVacations() {
-    return JSON.parse(localStorage.getItem(getCurrentUser() + "_vacations")) || [];
+    return JSON.parse(localStorage.getItem(getCurrentUser()+"_vacations")) || [];
 }
 
 function saveVacations(data) {
-    localStorage.setItem(getCurrentUser() + "_vacations", JSON.stringify(data));
+    localStorage.setItem(getCurrentUser()+"_vacations", JSON.stringify(data));
 }
 
-// ==========================================
-// 👥 PERSONAL
-// ==========================================
+// MODAL
+function openModal(id) {
+    document.getElementById(id).style.display = "block";
+}
 
+function closeModal() {
+    document.querySelectorAll(".modal").forEach(m => m.style.display = "none");
+}
+
+// PERSONAL
 function addEmployee() {
-    const name = document.getElementById("employeeName").value;
+    let name = document.getElementById("employeeName").value;
     if (!name) return;
 
     let employees = getEmployees();
-
-    employees.push({
-        id: Date.now(),
-        name
-    });
+    employees.push({ id: Date.now(), name });
 
     saveEmployees(employees);
-
-    document.getElementById("employeeName").value = "";
-
     loadEmployees();
-    renderCalendar();
 }
 
-function deleteEmployee(id) {
-    let employees = getEmployees().filter(e => e.id != id);
-    saveEmployees(employees);
-
-    loadEmployees();
-    renderCalendar();
-}
-
-// ==========================================
-// 📅 SEMESTER
-// ==========================================
-
+// SEMESTER
 function addVacation() {
-    const empId = document.getElementById("employeeSelect").value;
-    const start = document.getElementById("startDate").value;
-    const end = document.getElementById("endDate").value;
-
-    if (!empId || !start || !end) return;
+    let empId = document.getElementById("employeeSelect").value;
+    let start = document.getElementById("startDate").value;
+    let end = document.getElementById("endDate").value;
 
     let vacations = getVacations();
 
-    // ⚠️ Konfliktregel (max 3 personer)
-    const overlap = vacations.filter(v =>
-        (start <= v.end && end >= v.start)
-    );
+    const overlap = vacations.filter(v => start <= v.end && end >= v.start);
 
     if (overlap.length >= 3) {
-        document.getElementById("warning").innerText =
-            "⚠️ För många är redan lediga denna period!";
+        document.getElementById("warning").innerText = "För många lediga!";
         return;
     }
-
-    document.getElementById("warning").innerText = "";
 
     vacations.push({
         id: Date.now(),
@@ -107,48 +73,25 @@ function addVacation() {
     });
 
     saveVacations(vacations);
-
     renderCalendar();
 }
 
-function deleteVacation(id) {
-    let vacations = getVacations().filter(v => v.id != id);
-    saveVacations(vacations);
-    renderCalendar();
-}
-
-// ==========================================
-// 🔹 UI LADDNING
-// ==========================================
-
+// UI
 function loadEmployees() {
     const employees = getEmployees();
-
     const select = document.getElementById("employeeSelect");
     const filter = document.getElementById("filter");
-    const list = document.getElementById("employeeList");
 
     select.innerHTML = "";
     filter.innerHTML = '<option value="all">Visa alla</option>';
-    list.innerHTML = "";
 
-    employees.forEach(emp => {
-        select.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
-        filter.innerHTML += `<option value="${emp.id}">${emp.name}</option>`;
-
-        list.innerHTML += `
-            <li>
-                ${emp.name}
-                <button onclick="deleteEmployee(${emp.id})">❌</button>
-            </li>
-        `;
+    employees.forEach(e => {
+        select.innerHTML += `<option value="${e.id}">${e.name}</option>`;
+        filter.innerHTML += `<option value="${e.id}">${e.name}</option>`;
     });
 }
 
-// ==========================================
-// 📅 KALENDER
-// ==========================================
-
+// CALENDAR
 let calendar;
 
 function renderCalendar() {
@@ -160,10 +103,9 @@ function renderCalendar() {
         .filter(v => filter === "all" || v.employee_id == filter)
         .map(v => {
             const emp = employees.find(e => e.id == v.employee_id);
-
             return {
                 id: v.id,
-                title: emp ? emp.name : "Okänd",
+                title: emp ? emp.name : "?",
                 start: v.start,
                 end: v.end
             };
@@ -174,47 +116,19 @@ function renderCalendar() {
     calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
         initialView: "dayGridMonth",
         events: events,
-
         eventClick: function(info) {
-            if (confirm("Ta bort denna semester?")) {
-                deleteVacation(info.event.id);
+            if (confirm("Ta bort?")) {
+                let vac = getVacations().filter(v => v.id != info.event.id);
+                saveVacations(vac);
+                renderCalendar();
             }
         }
     });
 
     calendar.render();
-
-    renderVacationList();
 }
 
-// ==========================================
-// 📋 LISTA
-// ==========================================
-
-function renderVacationList() {
-    const employees = getEmployees();
-    const vacations = getVacations();
-    const list = document.getElementById("vacationList");
-
-    list.innerHTML = "";
-
-    vacations.forEach(v => {
-        const emp = employees.find(e => e.id == v.employee_id);
-
-        list.innerHTML += `
-            <li>
-                ${emp ? emp.name : "?"}:
-                ${v.start} → ${v.end}
-                <button onclick="deleteVacation(${v.id})">❌</button>
-            </li>
-        `;
-    });
-}
-
-// ==========================================
-// 🚀 INIT
-// ==========================================
-
+// INIT
 window.onload = () => {
     loadEmployees();
     renderCalendar();
