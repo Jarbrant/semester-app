@@ -1,18 +1,1 @@
-<h1>Semesterplanering</h1>
 
-<a href="/add_employee">➕ Lägg till personal</a><br>
-<a href="/add_vacation">📅 Ansök semester</a>
-
-<h2>Personal</h2>
-<ul>
-{% for emp in employees %}
-    <li>{{ emp[1] }}</li>
-{% endfor %}
-</ul>
-
-<h2>Semester</h2>
-<ul>
-{% for v in vacations %}
-    <li>{{ v[1] }}: {{ v[2] }} → {{ v[3] }}</li>
-{% endfor %}
-</ul>
