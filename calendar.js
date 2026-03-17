@@ -1,44 +1,87 @@
-let calendar;
+// ==========================================
+// 📅 CALENDAR MODULE (PRO VERSION)
+// ==========================================
 
-window.renderCalendar = function() {
+let calendar = null;
+
+// 🎯 Rendera kalender
+window.renderCalendar = function () {
     const calendarEl = document.getElementById("calendar");
 
-    // 🛑 säkerhetscheck
+    // säkerhetscheck
     if (!calendarEl) {
         console.error("Calendar element saknas");
         return;
     }
 
-    // 🛑 säkerhetscheck
+    // säkerhetscheck
     if (typeof FullCalendar === "undefined") {
-        console.error("FullCalendar laddades inte");
+        console.error("FullCalendar är inte laddad");
         return;
     }
 
     const employees = getEmployees();
     const vacations = getVacations();
 
-    const filter = document.getElementById("filter")?.value || "all";
+    const filterEl = document.getElementById("filter");
+    const filter = filterEl ? filterEl.value : "all";
 
+    // 🔥 skapa events
     const events = vacations
         .filter(v => filter === "all" || v.employee_id == filter)
         .map(v => {
             const emp = employees.find(e => e.id == v.employee_id);
 
             return {
-                title: emp ? emp.name : "?",
+                id: v.id,
+                title: emp ? emp.name : "Okänd",
                 start: v.start,
-                end: v.end
+                end: v.end,
+                allDay: true
             };
         });
 
-    if (calendar) calendar.destroy();
+    // 🔄 destroy gamla kalendern
+    if (calendar) {
+        calendar.destroy();
+        calendar = null;
+    }
 
+    // 🚀 skapa ny kalender
     calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
         height: 600,
-        events: events
+
+        locale: "sv",
+        firstDay: 1,
+
+        headerToolbar: {
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,timeGridWeek"
+        },
+
+        events: events,
+
+        // 🗑️ klicka för att ta bort
+        eventClick: function (info) {
+            if (confirm("Ta bort denna semester?")) {
+                deleteVacation(info.event.id);
+            }
+        }
     });
 
     calendar.render();
+};
+
+// ❌ Ta bort semester
+window.deleteVacation = function (id) {
+    let vacations = getVacations();
+
+    vacations = vacations.filter(v => v.id != id);
+
+    saveVacations(vacations);
+
+    // uppdatera kalender
+    renderCalendar();
 };
