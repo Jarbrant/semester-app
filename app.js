@@ -31,7 +31,8 @@ function saveVacations(data) {
 
 // MODAL
 function openModal(id) {
-    document.getElementById(id).style.display = "block";
+    const el = document.getElementById(id);
+    if (el) el.style.display = "block";
 }
 
 function closeModal() {
@@ -65,6 +66,8 @@ function addVacation() {
         return;
     }
 
+    document.getElementById("warning").innerText = "";
+
     vacations.push({
         id: Date.now(),
         employee_id: empId,
@@ -76,11 +79,14 @@ function addVacation() {
     renderCalendar();
 }
 
-// UI
+// LOAD UI
 function loadEmployees() {
     const employees = getEmployees();
+
     const select = document.getElementById("employeeSelect");
     const filter = document.getElementById("filter");
+
+    if (!select || !filter) return;
 
     select.innerHTML = "";
     filter.innerHTML = '<option value="all">Visa alla</option>';
@@ -97,7 +103,9 @@ let calendar;
 function renderCalendar() {
     const employees = getEmployees();
     const vacations = getVacations();
-    const filter = document.getElementById("filter").value;
+
+    const filterEl = document.getElementById("filter");
+    const filter = filterEl ? filterEl.value : "all";
 
     const events = vacations
         .filter(v => filter === "all" || v.employee_id == filter)
@@ -126,6 +134,27 @@ function renderCalendar() {
     });
 
     calendar.render();
+
+    renderVacationList();
+}
+
+// LIST
+function renderVacationList() {
+    const employees = getEmployees();
+    const vacations = getVacations();
+    const list = document.getElementById("vacationList");
+
+    list.innerHTML = "";
+
+    vacations.forEach(v => {
+        const emp = employees.find(e => e.id == v.employee_id);
+
+        list.innerHTML += `
+            <li>
+                ${emp ? emp.name : "?"}: ${v.start} → ${v.end}
+            </li>
+        `;
+    });
 }
 
 // INIT
