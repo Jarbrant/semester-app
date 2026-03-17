@@ -1,41 +1,30 @@
-import { getVacations, getEmployees } from "./data.js";
+import { getAllVacations } from "./vacations.js";
+import { getAllEmployees } from "./employees.js";
 
 let calendar;
 
-export function renderCalendar() {
-  const calendarEl = document.getElementById("calendar");
+export function renderCalendar(filterId = null) {
+  const el = document.getElementById("calendar");
 
-  if (!calendarEl) return;
+  const vacations = getAllVacations();
+  const employees = getAllEmployees();
 
-  const vacations = getVacations();
-  const employees = getEmployees();
+  const events = vacations
+    .filter(v => !filterId || v.employeeId == filterId)
+    .map(v => {
+      const emp = employees.find(e => e.id == v.employeeId);
+      return {
+        title: emp?.name,
+        start: v.start,
+        end: v.end
+      };
+    });
 
-  const events = vacations.map(v => {
-    const emp = employees.find(e => e.id === v.employeeId);
+  if (calendar) calendar.destroy();
 
-    return {
-      title: emp ? emp.name : "Okänd",
-      start: v.start,
-      end: v.end,
-      backgroundColor: emp?.color || "#888",
-      borderColor: emp?.color || "#888"
-    };
-  });
-
-  if (calendar) {
-    calendar.destroy();
-  }
-
-  calendar = new FullCalendar.Calendar(calendarEl, {
+  calendar = new FullCalendar.Calendar(el, {
     initialView: "dayGridMonth",
-    height: "auto",
-    events,
-
-    headerToolbar: {
-      left: "prev,next today",
-      center: "title",
-      right: "dayGridMonth,timeGridWeek"
-    }
+    events
   });
 
   calendar.render();
