@@ -1,1 +1,27 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<div class="card">
+    <h2>🔐 Logga in</h2>
+
+    <input type="text" id="username" placeholder="Användarnamn">
+    <input type="password" id="password" placeholder="Lösenord">
+
+    <br><br>
+
+    <button onclick="login()">Logga in</button>
+    <button onclick="register()">Skapa konto</button>
+
+    <p id="message"></p>
+</div>
+
+<script src="auth.js"></script>
+
+</body>
+</html>
