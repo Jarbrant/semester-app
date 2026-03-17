@@ -1,6 +1,20 @@
 let calendar;
 
 window.renderCalendar = function() {
+    const calendarEl = document.getElementById("calendar");
+
+    // 🛑 säkerhetscheck
+    if (!calendarEl) {
+        console.error("Calendar element saknas");
+        return;
+    }
+
+    // 🛑 säkerhetscheck
+    if (typeof FullCalendar === "undefined") {
+        console.error("FullCalendar laddades inte");
+        return;
+    }
+
     const employees = getEmployees();
     const vacations = getVacations();
 
@@ -20,13 +34,11 @@ window.renderCalendar = function() {
 
     if (calendar) calendar.destroy();
 
-    calendar = new FullCalendar.Calendar(
-        document.getElementById("calendar"),
-        {
-            initialView: "dayGridMonth",
-            events
-        }
-    );
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        height: 600,
+        events: events
+    });
 
     calendar.render();
 };
