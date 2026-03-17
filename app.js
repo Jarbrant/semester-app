@@ -1,23 +1,37 @@
-// app.js (eller där din init ligger)
-
 import { initializeStorage } from "./data.js";
-import { renderEmployees } from "./employees.js";
+import { initEmployees, addEmployee } from "./employees.js";
 import { renderCalendar } from "./calendar.js";
+import { initModal } from "./ui.js";
 
 function initApp() {
   try {
-    // 1. Säkerställ att storage finns
     initializeStorage();
-
-    // 2. Rendera UI
-    renderEmployees();
+    initModal();
+    initEmployees();
     renderCalendar();
 
-    console.log("✅ App initialized");
-  } catch (error) {
-    console.error("❌ App failed to initialize:", error);
+    setupUI();
+
+    console.log("✅ App started");
+  } catch (err) {
+    console.error("❌ Init error:", err);
   }
 }
 
-// Kör när DOM är redo
+function setupUI() {
+  const btn = document.getElementById("add-employee");
+
+  btn.addEventListener("click", () => {
+    const name = document.getElementById("emp-name").value;
+    const phone = document.getElementById("emp-phone").value;
+
+    if (!name) return;
+
+    addEmployee(name, phone);
+
+    document.getElementById("emp-name").value = "";
+    document.getElementById("emp-phone").value = "";
+  });
+}
+
 window.addEventListener("DOMContentLoaded", initApp);
