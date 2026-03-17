@@ -1,33 +1,102 @@
+/* ==========================================
+   GRUND
+========================================== */
+
 body {
-    font-family: Arial;
-    background: #f5f5f5;
-    margin: 20px;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+    padding: 20px;
 }
+
+/* ==========================================
+   HEADER + LOGOUT
+========================================== */
 
 h1 {
     text-align: center;
+    margin-bottom: 30px;
 }
+
+/* 🔐 Logout knapp */
+button[onclick="logout()"] {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+/* ==========================================
+   CARDS (SEKTIONER)
+========================================== */
 
 .card {
     background: white;
     padding: 15px;
     margin: 15px auto;
     max-width: 900px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* ==========================================
+   INPUTS & BUTTONS
+========================================== */
+
+input, select {
+    padding: 6px;
+    margin: 5px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
 }
 
 button {
-    margin-top: 5px;
-    padding: 5px 10px;
+    padding: 6px 12px;
+    border: none;
+    background: #4CAF50;
+    color: white;
+    border-radius: 6px;
     cursor: pointer;
 }
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* ==========================================
+   LISTOR
+========================================== */
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    padding: 5px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ==========================================
+   KALENDER
+========================================== */
 
 #calendar {
     max-width: 900px;
     margin: 20px auto;
 }
 
+/* ==========================================
+   VARNING
+========================================== */
+
 #warning {
     color: red;
+    font-weight: bold;
 }
