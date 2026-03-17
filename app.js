@@ -1,4 +1,7 @@
+// ===============================
 // 🔐 AUTH
+// ===============================
+
 function getCurrentUser() {
     return localStorage.getItem("currentUser");
 }
@@ -8,71 +11,72 @@ function logout() {
     window.location.href = "login.html";
 }
 
-if (!getCurrentUser()) {
+// Kör auth endast på index
+if (!getCurrentUser() && window.location.pathname.includes("index")) {
     window.location.href = "login.html";
 }
 
-// DATA
+// ===============================
+// 💾 DATA
+// ===============================
+
 function getEmployees() {
-    return JSON.parse(localStorage.getItem(getCurrentUser()+"_employees")) || [];
+    return JSON.parse(localStorage.getItem(getCurrentUser() + "_employees")) || [];
 }
 
 function saveEmployees(data) {
-    localStorage.setItem(getCurrentUser()+"_employees", JSON.stringify(data));
+    localStorage.setItem(getCurrentUser() + "_employees", JSON.stringify(data));
 }
 
 function getVacations() {
-    return JSON.parse(localStorage.getItem(getCurrentUser()+"_vacations")) || [];
+    return JSON.parse(localStorage.getItem(getCurrentUser() + "_vacations")) || [];
 }
 
 function saveVacations(data) {
-    localStorage.setItem(getCurrentUser()+"_vacations", JSON.stringify(data));
+    localStorage.setItem(getCurrentUser() + "_vacations", JSON.stringify(data));
 }
 
-// ==========================================
-// 🔥 MODAL (FIXAD GLOBAL)
-// ==========================================
+// ===============================
+// 🪟 MODALS (GLOBAL SAFE)
+// ===============================
 
-function openModal(id) {
+window.openModal = function(id) {
     const el = document.getElementById(id);
     if (el) el.style.display = "block";
-}
+};
 
-function closeModal() {
+window.closeModal = function() {
     document.querySelectorAll(".modal").forEach(m => m.style.display = "none");
-}
+};
 
-// 👉 GÖR GLOBALA (VIKTIGT)
-window.openModal = openModal;
-window.closeModal = closeModal;
-window.logout = logout;
-
-// ==========================================
+// ===============================
 // 👥 PERSONAL
-// ==========================================
+// ===============================
 
-function addEmployee() {
-    let name = document.getElementById("employeeName").value;
+window.addEmployee = function() {
+    const input = document.getElementById("employeeName");
+    if (!input) return;
+
+    const name = input.value.trim();
     if (!name) return;
 
     let employees = getEmployees();
     employees.push({ id: Date.now(), name });
 
     saveEmployees(employees);
+    input.value = "";
+
     loadEmployees();
-}
+};
 
-// 👉 GLOBAL
-window.addEmployee = addEmployee;
-
-// ==========================================
+// ===============================
 // 📅 SEMESTER
-// ==========================================
+// ===============================
 
-function addVacation() {
-    let empId = document.getElementById("employeeSelect").value;
-    let start = document.getElementById("startDate").value;
-    let end = document.getElementById("endDate").value;
+window.addVacation = function() {
+    const empId = document.getElementById("employeeSelect")?.value;
+    const start = document.getElementById("startDate")?.value;
+    const end = document.getElementById("endDate")?.value;
 
     if (!empId || !start || !end) return;
 
@@ -81,11 +85,13 @@ function addVacation() {
     const overlap = vacations.filter(v => start <= v.end && end >= v.start);
 
     if (overlap.length >= 3) {
-        document.getElementById("warning").innerText = "För många lediga!";
+        const warn = document.getElementById("warning");
+        if (warn) warn.innerText = "För många lediga!";
         return;
     }
 
-    document.getElementById("warning").innerText = "";
+    const warn = document.getElementById("warning");
+    if (warn) warn.innerText = "";
 
     vacations.push({
         id: Date.now(),
@@ -96,14 +102,11 @@ function addVacation() {
 
     saveVacations(vacations);
     renderCalendar();
-}
+};
 
-// 👉 GLOBAL
-window.addVacation = addVacation;
-
-// ==========================================
+// ===============================
 // 🔹 UI
-// ==========================================
+// ===============================
 
 function loadEmployees() {
     const employees = getEmployees();
@@ -122,9 +125,9 @@ function loadEmployees() {
     });
 }
 
-// ==========================================
-// 📅 CALENDAR
-// ==========================================
+// ===============================
+// 📅 KALENDER
+// ===============================
 
 let calendar;
 
@@ -149,7 +152,10 @@ function renderCalendar() {
 
     if (calendar) calendar.destroy();
 
-    calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
+    const calEl = document.getElementById("calendar");
+    if (!calEl) return;
+
+    calendar = new FullCalendar.Calendar(calEl, {
         initialView: "dayGridMonth",
         events: events,
         eventClick: function(info) {
@@ -165,9 +171,9 @@ function renderCalendar() {
     renderVacationList();
 }
 
-// ==========================================
+// ===============================
 // 📋 LISTA
-// ==========================================
+// ===============================
 
 function renderVacationList() {
     const employees = getEmployees();
@@ -189,11 +195,11 @@ function renderVacationList() {
     });
 }
 
-// ==========================================
-// 🚀 INIT
-// ==========================================
+// ===============================
+// 🚀 INIT (SÄKER)
+// ===============================
 
-window.onload = () => {
+window.addEventListener("DOMContentLoaded", () => {
     loadEmployees();
     renderCalendar();
-};
+});
