@@ -1,110 +1,50 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Semesterplanering</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planner</title>
 
-    <!-- FullCalendar -->
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <link rel="stylesheet" href="./styles.css">
 
-    <!-- App CSS -->
-    <link rel="stylesheet" href="style.css">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 </head>
+
 <body>
 
-<header class="header">
-    <h1>📅 Semesterplanering</h1>
-    <button onclick="logout()" class="logout-btn">🚪 Logga ut</button>
-</header>
+<div class="app">
 
-<section class="actions">
-    <button class="action-card" onclick="openModal('employeeModal')">
-        👥 Lägg till personal
-    </button>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h1>🧠 Planner</h1>
 
-    <button class="action-card" onclick="openModal('vacationModal')">
-        📅 Lägg till semester
-    </button>
+    <button id="add-employee-btn">+ Personal</button>
+    <button id="add-vacation-btn">+ Semester</button>
 
-    <button class="action-card" onclick="openModal('filterModal')">
-        🔍 Filter
-    </button>
-</section>
+    <select id="employee-filter"></select>
 
-<main>
+    <button id="logout-btn">Logout</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
     <div id="calendar"></div>
-</main>
 
-<section class="card">
-    <h3>📋 Semesterlista</h3>
-    <ul id="vacationList"></ul>
-</section>
-
-<!-- ========================= -->
-<!-- MODALS -->
-<!-- ========================= -->
-
-<!-- 👥 PERSONAL -->
-<div id="employeeModal" class="modal">
-    <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
-
-        <h3>Lägg till personal</h3>
-
-        <input id="employeeName" placeholder="Namn">
-
-        <button onclick="addEmployee(); closeModal();">
-            Spara
-        </button>
+    <div class="list">
+      <h3>Semestrar</h3>
+      <div id="vacation-list"></div>
     </div>
+
+  </main>
+
 </div>
 
-<!-- 📅 SEMESTER -->
-<div id="vacationModal" class="modal">
-    <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
+<!-- MODAL -->
+<div id="modal" class="modal"></div>
 
-        <h3>Lägg till semester</h3>
-
-        <select id="employeeSelect"></select>
-
-        <input type="date" id="startDate">
-        <input type="date" id="endDate">
-
-        <button onclick="addVacation(); closeModal();">
-            Spara
-        </button>
-
-        <p id="warning"></p>
-    </div>
-</div>
-
-<!-- 🔍 FILTER (FIXAD!) -->
-<div id="filterModal" class="modal">
-    <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
-
-        <h3>Filter</h3>
-
-        <select id="filter" onchange="renderCalendar(); closeModal();">
-            <option value="all">Visa alla</option>
-        </select>
-    </div>
-</div>
-
-<!-- ========================= -->
-<!-- SCRIPTS -->
-<!-- ========================= -->
-
-<script src="data.js"></script>
-<script src="auth.js"></script>
-<script src="ui.js"></script>
-<script src="employees.js"></script>
-<script src="vacations.js"></script>
-<script src="calendar.js"></script>
-<script src="app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script type="module" src="./app.js"></script>
 
 </body>
 </html>
