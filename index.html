@@ -14,18 +14,10 @@
 </head>
 <body>
 
-<!-- ========================= -->
-<!-- HEADER -->
-<!-- ========================= -->
-
 <header class="header">
     <h1>📅 Semesterplanering</h1>
     <button onclick="logout()" class="logout-btn">🚪 Logga ut</button>
 </header>
-
-<!-- ========================= -->
-<!-- ACTIONS -->
-<!-- ========================= -->
 
 <section class="actions">
     <button class="action-card" onclick="openModal('employeeModal')">
@@ -41,17 +33,9 @@
     </button>
 </section>
 
-<!-- ========================= -->
-<!-- CALENDAR -->
-<!-- ========================= -->
-
 <main>
     <div id="calendar"></div>
 </main>
-
-<!-- ========================= -->
-<!-- LIST -->
-<!-- ========================= -->
 
 <section class="card">
     <h3>📋 Semesterlista</h3>
@@ -64,16 +48,12 @@
 
 <!-- 👥 PERSONAL -->
 <div id="employeeModal" class="modal">
-    <div class="modal-content" style="position: relative;">
+    <div class="modal-content">
         <button class="close" onclick="closeModal()">×</button>
 
         <h3>Lägg till personal</h3>
 
-        <input 
-            type="text" 
-            id="employeeName" 
-            placeholder="Namn"
-        >
+        <input id="employeeName" placeholder="Namn">
 
         <button onclick="addEmployee(); closeModal();">
             Spara
@@ -83,7 +63,7 @@
 
 <!-- 📅 SEMESTER -->
 <div id="vacationModal" class="modal">
-    <div class="modal-content" style="position: relative;">
+    <div class="modal-content">
         <button class="close" onclick="closeModal()">×</button>
 
         <h3>Lägg till semester</h3>
@@ -101,8 +81,8 @@
     </div>
 </div>
 
-<!-- 🔍 FILTER -->
-<div class="modal-content" style="position: relative;">
+<!-- 🔍 FILTER (FIXAD!) -->
+<div id="filterModal" class="modal">
     <div class="modal-content">
         <button class="close" onclick="closeModal()">×</button>
 
@@ -115,7 +95,7 @@
 </div>
 
 <!-- ========================= -->
-<!-- SCRIPTS (ORDER CRITICAL) -->
+<!-- SCRIPTS -->
 <!-- ========================= -->
 
 <script src="data.js"></script>
