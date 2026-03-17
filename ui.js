@@ -1,20 +1,32 @@
-// ==========================================
-// 🪟 UI / MODALS (PRO VERSION)
-// ==========================================
+// ui.js
+// Ansvar: Hantera modals (open/close + ESC + overlay click)
 
-window.openModal = function(id) {
-    const modal = document.getElementById(id);
+let modal = null;
 
-    if (!modal) {
-        console.error("Modal saknas:", id);
-        return;
-    }
+export function initModal() {
+  modal = document.getElementById("modal");
 
-    modal.classList.add("show");
-};
+  // Klick utanför = stäng
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
 
-window.closeModal = function() {
-    document.querySelectorAll(".modal").forEach(modal => {
-        modal.classList.remove("show");
-    });
-};
+  // ESC = stäng
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
+  });
+}
+
+export function openModal(contentHTML) {
+  modal.innerHTML = `
+    <div class="modal-content">
+      ${contentHTML}
+    </div>
+  `;
+  modal.classList.add("open");
+}
+
+export function closeModal() {
+  modal.classList.remove("open");
+  modal.innerHTML = "";
+}
