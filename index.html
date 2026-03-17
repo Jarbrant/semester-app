@@ -1,110 +1,79 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Semesterplanering</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Semesterplanerare</title>
 
-    <!-- FullCalendar -->
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <!-- FullCalendar -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
 
-    <!-- App CSS -->
-    <link rel="stylesheet" href="style.css">
+  <!-- Din CSS -->
+  <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
 
-<header class="header">
-    <h1>📅 Semesterplanering</h1>
-    <button onclick="logout()" class="logout-btn">🚪 Logga ut</button>
-</header>
+  <div class="app">
 
-<section class="actions">
-    <button class="action-card" onclick="openModal('employeeModal')">
-        👥 Lägg till personal
-    </button>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <h1 class="logo">🧠 Planner</h1>
 
-    <button class="action-card" onclick="openModal('vacationModal')">
-        📅 Lägg till semester
-    </button>
+      <nav class="nav">
+        <button class="nav-item active">Kalender</button>
+        <button class="nav-item">Personal</button>
+      </nav>
 
-    <button class="action-card" onclick="openModal('filterModal')">
-        🔍 Filter
-    </button>
-</section>
+      <div class="user-box">
+        <span>Inloggad:</span>
+        <strong id="user-name">-</strong>
+      </div>
+    </aside>
 
-<main>
-    <div id="calendar"></div>
-</main>
+    <!-- MAIN -->
+    <main class="main">
 
-<section class="card">
-    <h3>📋 Semesterlista</h3>
-    <ul id="vacationList"></ul>
-</section>
+      <!-- HEADER -->
+      <header class="header">
+        <h2>Semesterplanering</h2>
+      </header>
 
-<!-- ========================= -->
-<!-- MODALS -->
-<!-- ========================= -->
+      <!-- GRID -->
+      <div class="grid">
 
-<!-- 👥 PERSONAL -->
-<div id="employeeModal" class="modal">
-    <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
+        <!-- PERSONAL -->
+        <section class="card">
+          <h3>Personal</h3>
 
-        <h3>Lägg till personal</h3>
+          <div class="employee-form">
+            <input id="emp-name" placeholder="Namn" />
+            <input id="emp-phone" placeholder="Telefon" />
+            <button id="add-employee" class="button">Lägg till</button>
+          </div>
 
-        <input id="employeeName" placeholder="Namn">
+          <div id="employee-list"></div>
+        </section>
 
-        <button onclick="addEmployee(); closeModal();">
-            Spara
-        </button>
-    </div>
-</div>
+        <!-- KALENDER -->
+        <section class="card">
+          <h3>Kalender</h3>
+          <div id="calendar"></div>
+        </section>
 
-<!-- 📅 SEMESTER -->
-<div id="vacationModal" class="modal">
-    <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
+      </div>
 
-        <h3>Lägg till semester</h3>
+    </main>
 
-        <select id="employeeSelect"></select>
+  </div>
 
-        <input type="date" id="startDate">
-        <input type="date" id="endDate">
+  <!-- MODAL ROOT -->
+  <div id="modal" class="modal"></div>
 
-        <button onclick="addVacation(); closeModal();">
-            Spara
-        </button>
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
-        <p id="warning"></p>
-    </div>
-</div>
-
-<!-- 🔍 FILTER (FIXAD!) -->
-<div id="filterModal" class="modal">
-    <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
-
-        <h3>Filter</h3>
-
-        <select id="filter" onchange="renderCalendar(); closeModal();">
-            <option value="all">Visa alla</option>
-        </select>
-    </div>
-</div>
-
-<!-- ========================= -->
-<!-- SCRIPTS -->
-<!-- ========================= -->
-
-<script src="data.js"></script>
-<script src="auth.js"></script>
-<script src="ui.js"></script>
-<script src="employees.js"></script>
-<script src="vacations.js"></script>
-<script src="calendar.js"></script>
-<script src="app.js"></script>
+  <script type="module" src="./app.js"></script>
 
 </body>
 </html>
