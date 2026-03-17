@@ -1,65 +1,21 @@
-// data.js
-// Ansvar: Hantera all localStorage (employees + vacations)
-// Skalbar struktur så du kan bygga vidare senare
+const user = localStorage.getItem("user") || "default";
 
-const KEYS = {
-  employees: "employees",
-  vacations: "vacations"
-};
-
-// ===== EMPLOYEES =====
+function key(name) {
+  return `${user}_${name}`;
+}
 
 export function getEmployees() {
-  try {
-    return JSON.parse(localStorage.getItem(KEYS.employees)) || [];
-  } catch (error) {
-    console.error("Error reading employees:", error);
-    return [];
-  }
+  return JSON.parse(localStorage.getItem(key("employees"))) || [];
 }
 
-export function saveEmployees(employees) {
-  try {
-    localStorage.setItem(KEYS.employees, JSON.stringify(employees));
-  } catch (error) {
-    console.error("Error saving employees:", error);
-  }
+export function saveEmployees(data) {
+  localStorage.setItem(key("employees"), JSON.stringify(data));
 }
-
-// ===== VACATIONS =====
 
 export function getVacations() {
-  try {
-    return JSON.parse(localStorage.getItem(KEYS.vacations)) || [];
-  } catch (error) {
-    console.error("Error reading vacations:", error);
-    return [];
-  }
+  return JSON.parse(localStorage.getItem(key("vacations"))) || [];
 }
 
-export function saveVacations(vacations) {
-  try {
-    localStorage.setItem(KEYS.vacations, JSON.stringify(vacations));
-  } catch (error) {
-    console.error("Error saving vacations:", error);
-  }
-}
-
-// ===== GENERIC HELPERS (framtidssäkert) =====
-
-// Rensa all data (bra för debug)
-export function clearAllData() {
-  localStorage.removeItem(KEYS.employees);
-  localStorage.removeItem(KEYS.vacations);
-}
-
-// Reset med tomma arrays (om du vill initiera)
-export function initializeStorage() {
-  if (!localStorage.getItem(KEYS.employees)) {
-    saveEmployees([]);
-  }
-
-  if (!localStorage.getItem(KEYS.vacations)) {
-    saveVacations([]);
-  }
+export function saveVacations(data) {
+  localStorage.setItem(key("vacations"), JSON.stringify(data));
 }
