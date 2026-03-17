@@ -1,1 +1,26 @@
+<h1>Ansök semester</h1>
 
+<form method="POST">
+    Person:
+    <select name="employee_id">
+        {% for emp in employees %}
+            <option value="{{ emp[0] }}">{{ emp[1] }}</option>
+        {% endfor %}
+    </select>
+
+    <br><br>
+
+    Startdatum:
+    <input type="date" name="start_date">
+
+    <br><br>
+
+    Slutdatum:
+    <input type="date" name="end_date">
+
+    <br><br>
+
+    <button type="submit">Spara</button>
+</form>
+
+<a href="/">⬅ Tillbaka</a>
