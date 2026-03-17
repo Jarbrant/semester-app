@@ -1,19 +1,45 @@
 /*
 ==========================================
-VERSION 2 - MER FUNKTIONER
+VERSION 3 - LOGIN + PER USER DATA
 ==========================================
 */
 
 // ==========================================
-// 🔹 DATA
+// 🔐 AUTH
+// ==========================================
+
+function getCurrentUser() {
+    return localStorage.getItem("currentUser");
+}
+
+function logout() {
+    localStorage.removeItem("currentUser");
+    window.location.href = "login.html";
+}
+
+// Om inte inloggad → redirect
+if (!getCurrentUser()) {
+    window.location.href = "login.html";
+}
+
+// ==========================================
+// 🔹 DATA (PER USER)
 // ==========================================
 
 function getEmployees() {
-    return JSON.parse(localStorage.getItem("employees")) || [];
+    return JSON.parse(localStorage.getItem(getCurrentUser() + "_employees")) || [];
+}
+
+function saveEmployees(data) {
+    localStorage.setItem(getCurrentUser() + "_employees", JSON.stringify(data));
 }
 
 function getVacations() {
-    return JSON.parse(localStorage.getItem("vacations")) || [];
+    return JSON.parse(localStorage.getItem(getCurrentUser() + "_vacations")) || [];
+}
+
+function saveVacations(data) {
+    localStorage.setItem(getCurrentUser() + "_vacations", JSON.stringify(data));
 }
 
 // ==========================================
@@ -31,7 +57,7 @@ function addEmployee() {
         name
     });
 
-    localStorage.setItem("employees", JSON.stringify(employees));
+    saveEmployees(employees);
 
     document.getElementById("employeeName").value = "";
 
@@ -41,7 +67,7 @@ function addEmployee() {
 
 function deleteEmployee(id) {
     let employees = getEmployees().filter(e => e.id != id);
-    localStorage.setItem("employees", JSON.stringify(employees));
+    saveEmployees(employees);
 
     loadEmployees();
     renderCalendar();
@@ -80,14 +106,14 @@ function addVacation() {
         end
     });
 
-    localStorage.setItem("vacations", JSON.stringify(vacations));
+    saveVacations(vacations);
 
     renderCalendar();
 }
 
 function deleteVacation(id) {
     let vacations = getVacations().filter(v => v.id != id);
-    localStorage.setItem("vacations", JSON.stringify(vacations));
+    saveVacations(vacations);
     renderCalendar();
 }
 
@@ -149,7 +175,6 @@ function renderCalendar() {
         initialView: "dayGridMonth",
         events: events,
 
-        // 🗑️ Klicka för att ta bort
         eventClick: function(info) {
             if (confirm("Ta bort denna semester?")) {
                 deleteVacation(info.event.id);
