@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>Semesterplanering</title>
 
-    <!-- FullCalendar -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
@@ -14,25 +13,39 @@
 
 <h1>📅 Semesterplanering</h1>
 
-<div class="controls">
+<div class="card">
+    <h3>👥 Personal</h3>
     <input type="text" id="employeeName" placeholder="Namn">
-    <button onclick="addEmployee()">Lägg till personal</button>
+    <button onclick="addEmployee()">Lägg till</button>
 
-    <br><br>
+    <ul id="employeeList"></ul>
+</div>
+
+<div class="card">
+    <h3>📅 Lägg till semester</h3>
 
     <select id="employeeSelect"></select>
     <input type="date" id="startDate">
     <input type="date" id="endDate">
-    <button onclick="addVacation()">Lägg till semester</button>
 
-    <br><br>
+    <button onclick="addVacation()">Spara</button>
 
+    <p id="warning"></p>
+</div>
+
+<div class="card">
+    <h3>🔍 Filter</h3>
     <select id="filter" onchange="renderCalendar()">
         <option value="all">Visa alla</option>
     </select>
 </div>
 
 <div id="calendar"></div>
+
+<div class="card">
+    <h3>📋 Semesterlista</h3>
+    <ul id="vacationList"></ul>
+</div>
 
 <script src="app.js"></script>
 
