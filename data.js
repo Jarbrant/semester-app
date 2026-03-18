@@ -1,21 +1,23 @@
-const user = localStorage.getItem("user") || "default";
+/* ==========================================
+   💾 DATA LAGER (localStorage)
+========================================== */
 
-function key(name) {
-  return `${user}_${name}`;
+// 🔹 Hämta anställda
+function getEmployees() {
+    return JSON.parse(localStorage.getItem("employees")) || [];
 }
 
-export function getEmployees() {
-  return JSON.parse(localStorage.getItem(key("employees"))) || [];
+// 🔹 Spara anställda
+function saveEmployees(data) {
+    localStorage.setItem("employees", JSON.stringify(data));
 }
 
-export function saveEmployees(data) {
-  localStorage.setItem(key("employees"), JSON.stringify(data));
+// 🔹 Hämta semester
+function getVacations() {
+    return JSON.parse(localStorage.getItem("vacations")) || [];
 }
 
-export function getVacations() {
-  return JSON.parse(localStorage.getItem(key("vacations"))) || [];
-}
-
-export function saveVacations(data) {
-  localStorage.setItem(key("vacations"), JSON.stringify(data));
+// 🔹 Spara semester
+function saveVacations(data) {
+    localStorage.setItem("vacations", JSON.stringify(data));
 }
