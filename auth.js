@@ -1,55 +1,25 @@
-/*
-==========================================
-AUTH SYSTEM (ENKEL / SYMBOLISK)
-==========================================
-*/
+/* ==========================================
+   🔐 AUTH (ENKEL ROLLHANTERING)
+========================================== */
 
-// Hämta användare
-function getUsers() {
-    return JSON.parse(localStorage.getItem("users")) || [];
+// 🔹 Hämta användare
+function getCurrentUser() {
+    return JSON.parse(localStorage.getItem("user"));
 }
 
-// Spara användare
-function saveUsers(users) {
-    localStorage.setItem("users", JSON.stringify(users));
-}
+// 🔹 Logga in (demo)
+window.login = function(name, role) {
+    localStorage.setItem("user", JSON.stringify({ name, role }));
+};
 
-// 🔐 REGISTRERA
-function register() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
+// 🔹 Logga ut
+window.logout = function() {
+    localStorage.removeItem("user");
+    location.reload();
+};
 
-    if (!username || !password) return;
-
-    let users = getUsers();
-
-    if (users.find(u => u.username === username)) {
-        document.getElementById("message").innerText = "Användare finns redan!";
-        return;
-    }
-
-    users.push({ username, password });
-    saveUsers(users);
-
-    document.getElementById("message").innerText = "Konto skapat!";
-}
-
-// 🔐 LOGIN
-function login() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-
-    let users = getUsers();
-
-    const user = users.find(u => u.username === username && u.password === password);
-
-    if (!user) {
-        document.getElementById("message").innerText = "Fel login!";
-        return;
-    }
-
-    // Spara session
-    localStorage.setItem("currentUser", username);
-
-    window.location.href = "index.html";
+// 🔹 Kolla admin
+function isAdmin() {
+    const user = getCurrentUser();
+    return user && user.role === "admin";
 }
