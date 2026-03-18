@@ -1,16 +1,23 @@
-import { getVacations, saveVacations } from "./data.js";
+/* ==========================================
+   📅 VACATIONS
+========================================== */
 
-export function addVacation(v) {
-  const data = getVacations();
-  data.push(v);
-  saveVacations(data);
-}
+window.addVacation = function() {
+    const empId = document.getElementById("employeeSelect").value;
+    const start = document.getElementById("startDate").value;
+    const end = document.getElementById("endDate").value;
 
-export function deleteVacation(id) {
-  const data = getVacations().filter(v => v.id !== id);
-  saveVacations(data);
-}
+    if (!empId || !start || !end) return;
 
-export function getAllVacations() {
-  return getVacations();
-}
+    const vacations = getVacations();
+
+    vacations.push({
+        id: Date.now(),
+        employee_id: empId,
+        start,
+        end
+    });
+
+    saveVacations(vacations);
+    renderCalendar();
+};
