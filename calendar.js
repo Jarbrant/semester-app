@@ -1,31 +1,88 @@
-import { getAllVacations } from "./vacations.js";
-import { getAllEmployees } from "./employees.js";
+/* ==========================================
+   📅 CALENDAR (PRO VERSION)
+========================================== */
 
 let calendar;
 
-export function renderCalendar(filterId = null) {
-  const el = document.getElementById("calendar");
+window.renderCalendar = function() {
+    const employees = getEmployees();
+    const vacations = getVacations();
 
-  const vacations = getAllVacations();
-  const employees = getAllEmployees();
+    const filter = document.getElementById("filter")?.value || "all";
 
-  const events = vacations
-    .filter(v => !filterId || v.employeeId == filterId)
-    .map(v => {
-      const emp = employees.find(e => e.id == v.employeeId);
-      return {
-        title: emp?.name,
-        start: v.start,
-        end: v.end
-      };
+    const events = vacations
+        .filter(v => filter === "all" || v.employee_id == filter)
+        .map(v => {
+            const emp = employees.find(e => e.id == v.employee_id);
+
+            return {
+                id: v.id,
+                title: emp?.name || "?",
+                start: v.start,
+                end: v.end,
+                backgroundColor: emp?.color || "#1677ff"
+            };
+        });
+
+    if (calendar) calendar.destroy();
+
+    calendar = new FullCalendar.Calendar(
+        document.getElementById("calendar"),
+        {
+            initialView: "dayGridMonth",
+            editable: true, // 🔥 drag & drop
+
+            events: events,
+
+            // 🔥 DRAG & DROP UPDATE
+            eventDrop: function(info) {
+                updateVacation(info.event);
+            },
+
+            eventResize: function(info) {
+                updateVacation(info.event);
+            },
+
+            // 🔥 DELETE (ADMIN ONLY)
+            eventClick: function(info) {
+                if (!isAdmin()) {
+                    alert("Endast admin kan ta bort");
+                    return;
+                }
+
+                if (confirm("Ta bort?")) {
+                    deleteVacation(info.event.id);
+                }
+            }
+        }
+    );
+
+    calendar.render();
+};
+
+// 🔄 uppdatera efter drag
+function updateVacation(event) {
+    let vacations = getVacations();
+
+    vacations = vacations.map(v => {
+        if (v.id == event.id) {
+            return {
+                ...v,
+                start: event.startStr,
+                end: event.endStr
+            };
+        }
+        return v;
     });
 
-  if (calendar) calendar.destroy();
+    saveVacations(vacations);
+}
 
-  calendar = new FullCalendar.Calendar(el, {
-    initialView: "dayGridMonth",
-    events
-  });
+// ❌ delete
+function deleteVacation(id) {
+    let vacations = getVacations();
+    vacations = vacations.filter(v => v.id != id);
 
-  calendar.render();
+    saveVacations(vacations);
+    renderCalendar();
 }
