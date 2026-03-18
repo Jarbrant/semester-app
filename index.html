@@ -16,35 +16,55 @@
 <body>
 
 <!-- ========================================== -->
-<!-- 🔝 HEADER -->
+<!-- 🔝 TOPBAR (SaaS style) -->
 <!-- ========================================== -->
 
-<header class="header">
-    <h1>📅 Semesterplaneraren</h1>
+<header class="topbar">
 
-    <!-- 🔴 Logout -->
-    <button class="logout-btn" onclick="logout()">
-        🚪 Logga ut
-    </button>
+    <!-- vänster -->
+    <div class="topbar-left">
+        📅 <span>Semesterplanerare</span>
+    </div>
+
+    <!-- mitten (framtida controls) -->
+    <div class="topbar-center" id="calendarControls"></div>
+
+    <!-- höger -->
+    <div class="topbar-right">
+
+        <!-- ➕ Ny semester -->
+        <button class="primary-btn" onclick="openModal('vacationModal')">
+            + Ny semester
+        </button>
+
+        <!-- 👤 användare (nice-to-have dropdown senare) -->
+        <div class="user-box">
+            <span id="currentUserName">Användare</span>
+        </div>
+
+        <!-- 🚪 logout -->
+        <button class="logout-btn" onclick="logout()">
+            Logga ut
+        </button>
+
+    </div>
+
 </header>
 
 <!-- ========================================== -->
-<!-- 🎯 ACTIONS (BOXAR) -->
+<!-- 🎯 ACTIONS -->
 <!-- ========================================== -->
 
 <section class="actions">
 
-    <!-- 👥 Personal -->
     <div class="action-card" onclick="openModal('employeeModal')">
         👥 Lägg till personal
     </div>
 
-    <!-- 📅 Semester -->
     <div class="action-card" onclick="openModal('vacationModal')">
         📅 Lägg till semester
     </div>
 
-    <!-- 🔍 Filter -->
     <div class="action-card" onclick="openModal('filterModal')">
         🔍 Filter
     </div>
@@ -52,7 +72,7 @@
 </section>
 
 <!-- ========================================== -->
-<!-- 📅 KALENDER (HUVUDFOKUS) -->
+<!-- 📅 KALENDER (MAIN FOCUS) -->
 <!-- ========================================== -->
 
 <main>
@@ -69,13 +89,17 @@
 </section>
 
 <!-- ========================================== -->
-<!-- 🪟 MODALS -->
+<!-- 🪟 MODALS (FIXED + SAFE STRUCTURE) -->
 <!-- ========================================== -->
+
+<!-- overlay (important for z-index fix) -->
+<div id="modalOverlay" class="modal-overlay" onclick="closeModal()"></div>
 
 <!-- 👥 PERSONAL -->
 <div id="employeeModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeModal()">×</span>
+
+        <button class="close" onclick="closeModal()">×</button>
 
         <h3>Lägg till personal</h3>
 
@@ -85,16 +109,18 @@
             placeholder="Namn"
         >
 
-        <button onclick="addEmployee(); closeModal();">
+        <button class="primary-btn" onclick="addEmployee(); closeModal();">
             Spara
         </button>
+
     </div>
 </div>
 
 <!-- 📅 SEMESTER -->
 <div id="vacationModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeModal()">×</span>
+
+        <button class="close" onclick="closeModal()">×</button>
 
         <h3>Lägg till semester</h3>
 
@@ -103,29 +129,32 @@
         <input type="date" id="startDate">
         <input type="date" id="endDate">
 
-        <button onclick="addVacation(); closeModal();">
+        <button class="primary-btn" onclick="addVacation(); closeModal();">
             Spara
         </button>
 
         <p id="warning"></p>
+
     </div>
 </div>
 
 <!-- 🔍 FILTER -->
 <div id="filterModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeModal()">×</span>
+
+        <button class="close" onclick="closeModal()">×</button>
 
         <h3>Filter</h3>
 
         <select id="filter" onchange="renderCalendar(); closeModal();">
             <option value="all">Visa alla</option>
         </select>
+
     </div>
 </div>
 
 <!-- ========================================== -->
-<!-- 📦 SCRIPT ORDER (MYCKET VIKTIGT) -->
+<!-- 📦 SCRIPTS -->
 <!-- ========================================== -->
 
 <script src="data.js"></script>
@@ -135,6 +164,22 @@
 <script src="vacations.js"></script>
 <script src="calendar.js"></script>
 <script src="app.js"></script>
+
+<!-- ========================================== -->
+<!-- 🧠 NICE TO HAVE (AUTO INIT) -->
+<!-- ========================================== -->
+
+<script>
+/* visar användarnamn i UI */
+document.addEventListener("DOMContentLoaded", () => {
+    const user = localStorage.getItem("currentUser");
+    const el = document.getElementById("currentUserName");
+
+    if (el && user) {
+        el.innerText = user;
+    }
+});
+</script>
 
 </body>
 </html>
