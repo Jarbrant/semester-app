@@ -1,14 +1,24 @@
-const modal = document.getElementById("modal");
+/* ==========================================
+   🪟 UI / MODALS
+========================================== */
 
-export function openModal(html) {
-  modal.innerHTML = `<div class="modal-box">${html}</div>`;
-  modal.classList.add("open");
-}
+window.openModal = function(id) {
+    document.getElementById(id)?.classList.add("show");
+};
 
-export function closeModal() {
-  modal.classList.remove("open");
-}
+window.closeModal = function() {
+    document.querySelectorAll(".modal")
+        .forEach(m => m.classList.remove("show"));
+};
 
-modal.addEventListener("click", (e) => {
-  if (e.target === modal) closeModal();
+// 🔥 Klick utanför = stäng
+window.addEventListener("click", (e) => {
+    document.querySelectorAll(".modal").forEach(m => {
+        if (e.target === m) m.classList.remove("show");
+    });
+});
+
+// 🔥 ESC = stäng
+window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
 });
