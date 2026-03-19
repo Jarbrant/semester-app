@@ -20,7 +20,6 @@
 <!-- ========================================== -->
 
 <header class="topbar">
-
     <div class="topbar-left">
         📅 <span>Semesterplanerare</span>
     </div>
@@ -29,7 +28,7 @@
 
     <div class="topbar-right">
 
-        <button class="primary-btn" onclick="openModal('vacationModal')">
+        <button class="primary-btn" id="openVacationBtn">
             + Ny semester
         </button>
 
@@ -37,12 +36,11 @@
             <span id="currentUserName">Användare</span>
         </div>
 
-        <button class="logout-btn" onclick="logout()">
+        <button class="logout-btn" id="logoutBtn">
             Logga ut
         </button>
 
     </div>
-
 </header>
 
 <!-- ========================================== -->
@@ -50,13 +48,15 @@
 <!-- ========================================== -->
 
 <section class="actions">
-    <div class="action-card" onclick="openModal('employeeModal')">
+    <div class="action-card" id="openEmployeeModal">
         👥 Lägg till personal
     </div>
-    <div class="action-card" onclick="openModal('vacationModal')">
+
+    <div class="action-card" id="openVacationModal">
         📅 Lägg till semester
     </div>
-    <div class="action-card" onclick="openModal('filterModal')">
+
+    <div class="action-card" id="openFilterModal">
         🔍 Filter
     </div>
 </section>
@@ -82,45 +82,57 @@
 <!-- 🪟 MODALS -->
 <!-- ========================================== -->
 
-<div id="modalOverlay" class="modal-overlay" onclick="closeModal()"></div>
+<div id="modalOverlay" class="modal-overlay"></div>
 
 <!-- 👥 PERSONAL -->
 <div id="employeeModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
+        <button class="close" data-close>×</button>
         <h3>Lägg till personal</h3>
-        <p id="employeeWarning" style="color:#e11d48;font-size:15px"></p>
+
+        <p id="employeeWarning" class="warning"></p>
+
         <input type="text" id="employeeName" placeholder="Namn">
-        <button class="primary-btn" onclick="tryAddEmployee()">Spara</button>
+
+        <button class="primary-btn" id="saveEmployeeBtn">
+            Spara
+        </button>
     </div>
 </div>
 
 <!-- 📅 SEMESTER -->
 <div id="vacationModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
+        <button class="close" data-close>×</button>
         <h3>Lägg till semester</h3>
+
         <select id="employeeSelect"></select>
-        <input type="date" id="startDate" placeholder="YYYY-MM-DD">
-        <input type="date" id="endDate" placeholder="YYYY-MM-DD">
-        <button class="primary-btn" onclick="trySubmitVacation()">Spara</button>
-        <p id="warning"></p>
+
+        <input type="date" id="startDate">
+        <input type="date" id="endDate">
+
+        <button class="primary-btn" id="saveVacationBtn">
+            Spara
+        </button>
+
+        <p id="warning" class="warning"></p>
     </div>
 </div>
 
 <!-- 🔍 FILTER -->
 <div id="filterModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
+        <button class="close" data-close>×</button>
         <h3>Filter</h3>
-        <select id="filter" onchange="refreshCalendar(); closeModal();">
+
+        <select id="filter">
             <option value="all">Visa alla</option>
         </select>
     </div>
 </div>
 
 <!-- ========================================== -->
-<!-- 📦 SCRIPTS (KRITISK ORDNING) -->
+<!-- 📦 SCRIPTS -->
 <!-- ========================================== -->
 
 <!-- 🔹 CORE -->
@@ -132,41 +144,52 @@
 <script src="employees.js"></script>
 <script src="vacations.js"></script>
 
-<!-- 🔥 DEBUG (valfri men rekommenderad just nu) -->
-<script>
-    console.log("CORE + DATA loaded");
-</script>
-
-<!-- 🔥 FULLCALENDAR (MÅSTE KOMMA EFTER DATA) -->
+<!-- 🔹 CALENDAR -->
 <script src="calendar/calendar-events.js"></script>
 <script src="calendar/calendar-init.js"></script>
 
-<!-- 🔥 DEBUG -->
-<script>
-    console.log("Calendar modules loaded");
-</script>
-
-<!-- ❌ GAMMAL (ska EJ användas) -->
-<!-- <script src="calendar.js"></script> -->
-
-<!-- 🔹 APP INIT (ALLTID SIST) -->
+<!-- 🔹 APP INIT -->
 <script src="app.js"></script>
 
-<!-- 🔥 DEBUG -->
-<script>
-    console.log("App loaded");
-</script>
 <!-- ========================================== -->
-<!-- 🧠 USER NAME INIT -->
+<!-- 🔗 EVENT BINDING (RENARE ÄN INLINE onclick) -->
 <!-- ========================================== -->
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+
+    // 🔹 User name
     const user = localStorage.getItem("currentUser");
-    const el = document.getElementById("currentUserName");
-    if (el && user) {
-        el.innerText = user;
-    }
+    const userEl = document.getElementById("currentUserName");
+    if (userEl && user) userEl.innerText = user;
+
+    // 🔹 Buttons → modals
+    document.getElementById("openVacationBtn")?.addEventListener("click", () => openModal("vacationModal"));
+    document.getElementById("openEmployeeModal")?.addEventListener("click", () => openModal("employeeModal"));
+    document.getElementById("openVacationModal")?.addEventListener("click", () => openModal("vacationModal"));
+    document.getElementById("openFilterModal")?.addEventListener("click", () => openModal("filterModal"));
+
+    // 🔹 Close buttons
+    document.querySelectorAll("[data-close]").forEach(btn =>
+        btn.addEventListener("click", closeModal)
+    );
+
+    // 🔹 Overlay close
+    document.getElementById("modalOverlay")?.addEventListener("click", closeModal);
+
+    // 🔹 Save actions
+    document.getElementById("saveEmployeeBtn")?.addEventListener("click", tryAddEmployee);
+    document.getElementById("saveVacationBtn")?.addEventListener("click", trySubmitVacation);
+
+    // 🔹 Logout
+    document.getElementById("logoutBtn")?.addEventListener("click", logout);
+
+    // 🔹 Filter
+    document.getElementById("filter")?.addEventListener("change", () => {
+        refreshCalendar?.();
+        closeModal();
+    });
+
 });
 </script>
 
