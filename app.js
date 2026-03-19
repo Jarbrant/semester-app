@@ -3,8 +3,15 @@
 ========================================== */
 
 window.addEventListener("DOMContentLoaded", () => {
+
+    // 🔹 ladda data till UI
     loadEmployees();
-    renderCalendar();
+
+    // ❌ GAMMALT (ta bort)
+    // renderCalendar();
+
+    // ✅ NYTT – starta FullCalendar
+    initCalendar();
 
     const user = getCurrentUser();
 
