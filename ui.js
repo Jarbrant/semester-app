@@ -1,151 +1,106 @@
-// ================================
-// MODALLOGIK & FELHANTERING
-// ================================
+/* ==========================================
+   🧩 GROUP UI
+========================================== */
 
-// Öppna rätt modal
-window.openModal = function (id) {
-    document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
-
-    const modal = document.getElementById(id);
-    const overlay = document.getElementById("modalOverlay");
-    if (!modal || !overlay) return;
-
-    modal.classList.add("active");
-    overlay.style.display = "block";
-
-    // 🔥 FIX: refresh ENDAST här
-    if (id === "vacationModal") {
-        window.refreshEmployeeSelect?.();
-    }
-
-    // Reset fält
-    if (id === "employeeModal") {
-        document.getElementById("employeeName").value = "";
-        document.getElementById("employeeWarning").textContent = "";
-    }
-
-    if (id === "vacationModal") {
-        document.getElementById("warning").textContent = "";
-        document.getElementById("startDate").value = "";
-        document.getElementById("endDate").value = "";
-    }
-
-    const calendar = document.querySelector(".fc");
-    if (calendar) calendar.style.pointerEvents = "none";
-};
-
-// Stäng modal
-window.closeModal = function () {
-    document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
-
-    const overlay = document.getElementById("modalOverlay");
-    if (overlay) overlay.style.display = "none";
-
-    const calendar = document.querySelector(".fc");
-    if (calendar) calendar.style.pointerEvents = "auto";
-};
-
-// Overlay click
-document.getElementById("modalOverlay")?.addEventListener("click", closeModal);
-
-// ESC
-document.addEventListener("keydown", e => {
-    if (e.key === "Escape") closeModal();
-});
-
-// ================================
-// 🔥 KRITISK FIX FÖR DATEPICKER
-// ================================
-
-document.addEventListener("DOMContentLoaded", () => {
-    ["startDate", "endDate"].forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-
-        // STOPPA ENDAST CLICK (inte focus!)
-        el.addEventListener("click", (e) => {
-            e.stopPropagation();
-        });
-    });
-});
-
-// ================================
-// FORM LOGIK
-// ================================
-
-window.tryAddEmployee = function () {
-    const name = document.getElementById("employeeName")?.value.trim();
-    const warning = document.getElementById("employeeWarning");
+window.tryAddGroup = function () {
+    const name = document.getElementById("groupName")?.value.trim();
+    const color = document.getElementById("groupColor")?.value;
+    const limit = document.getElementById("groupLimit")?.value;
+    const warning = document.getElementById("groupWarning");
 
     if (!name) {
-        if (warning) warning.textContent = "Du måste ange ett namn!";
+        warning.textContent = "Ange gruppnamn";
         return;
     }
 
-    if (warning) warning.textContent = "";
+    addGroup(name, color, limit || 1);
 
-    addEmployee(name);
+    warning.textContent = "";
     closeModal();
 };
 
-window.trySubmitVacation = function () {
-    const emp = document.getElementById("employeeSelect")?.value;
-    const start = document.getElementById("startDate")?.value;
-    const end = document.getElementById("endDate")?.value;
-    const warning = document.getElementById("warning");
+/* ==========================================
+   🔽 GROUP SELECT
+========================================== */
 
-    if (!emp || !start || !end) {
-        if (warning) warning.textContent = "Fyll i alla fält!";
+window.refreshGroupSelect = function () {
+    const select = document.getElementById("employeeGroupSelect");
+    if (!select || typeof getGroups !== "function") return;
+
+    const groups = getGroups();
+
+    select.innerHTML = "";
+
+    groups.forEach(g => {
+        const opt = document.createElement("option");
+        opt.value = g.id;
+        opt.textContent = `${g.name} (max ${g.maxConcurrent})`;
+        select.appendChild(opt);
+    });
+
+    if (groups.length > 0) {
+        select.selectedIndex = 0;
+    }
+};
+
+/* ==========================================
+   👤 EMPLOYEE
+========================================== */
+
+window.tryAddEmployee = function () {
+    const name = document.getElementById("employeeName")?.value.trim();
+    const groupId = document.getElementById("employeeGroupSelect")?.value;
+    const warning = document.getElementById("employeeWarning");
+
+    if (!name) {
+        warning.textContent = "Du måste ange ett namn!";
         return;
     }
 
     warning.textContent = "";
 
-    addVacation();
+    addEmployee(name, groupId || null);
+
     closeModal();
 };
 
-// ================================
-// ENTER SHORTCUTS
-// ================================
+/* ==========================================
+   🪟 MODAL
+========================================== */
 
-document.getElementById("employeeName")?.addEventListener("keypress", function(e){
-    if(e.key === "Enter") window.tryAddEmployee();
-});
+window.openModal = function (id) {
+    document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
 
-document.getElementById("startDate")?.addEventListener("keypress", function(e){
-    if(e.key === "Enter") window.trySubmitVacation();
-});
+    const modal = document.getElementById(id);
+    const overlay = document.getElementById("modalOverlay");
 
-document.getElementById("endDate")?.addEventListener("keypress", function(e){
-    if(e.key === "Enter") window.trySubmitVacation();
-});
+    if (!modal || !overlay) return;
 
-document.getElementById("employeeSelect")?.addEventListener("keypress", function(e){
-    if(e.key === "Enter") window.trySubmitVacation();
-});
+    modal.classList.add("active");
+    overlay.style.display = "block";
 
-// ================================
-// EMPLOYEE SELECT
-// ================================
-
-window.refreshEmployeeSelect = function () {
-    if(!window.getEmployees) return;
-
-    const employees = window.getEmployees();
-    const select = document.getElementById("employeeSelect");
-
-    if(select){
-        select.innerHTML = "";
-
-        employees.forEach(emp => {
-            const opt = document.createElement("option");
-            opt.value = emp.id;
-            opt.textContent = emp.name;
-            select.appendChild(opt);
-        });
+    if (id === "employeeModal") {
+        refreshGroupSelect();
     }
 };
 
-// ❌ BORTTAGEN BUGG
-// document.querySelectorAll("[onclick*='vacationModal']")
+window.closeModal = function () {
+    document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
+
+    const overlay = document.getElementById("modalOverlay");
+    if (overlay) overlay.style.display = "none";
+};
+
+/* ==========================================
+   EVENTS
+========================================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    document.getElementById("modalOverlay")?.addEventListener("click", closeModal);
+
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape") closeModal();
+    });
+
+});
