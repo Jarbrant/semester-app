@@ -14,7 +14,7 @@ body {
 }
 
 /* ==========================================
-   🔝 TOPBAR (NY – SaaS STYLE)
+   🔝 TOPBAR
 ========================================== */
 
 .topbar {
@@ -41,38 +41,9 @@ body {
 
 /* 👤 user */
 .user-box {
-    position: relative;
     cursor: pointer;
     font-size: 14px;
     color: #555;
-}
-
-/* dropdown */
-.user-menu {
-    position: absolute;
-    top: 30px;
-    right: 0;
-
-    background: white;
-    border-radius: 10px;
-
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    padding: 10px;
-
-    min-width: 140px;
-}
-
-.user-menu div {
-    padding: 8px;
-    cursor: pointer;
-}
-
-.user-menu div:hover {
-    background: #f3f4f6;
-}
-
-.hidden {
-    display: none;
 }
 
 /* ==========================================
@@ -165,13 +136,10 @@ main {
     border-radius: 12px;
 
     box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-
-    position: relative;
-    z-index: 1;
 }
 
 /* ==========================================
-   📅 FULLCALENDAR MODERN LOOK
+   📅 FULLCALENDAR MODERN
 ========================================== */
 
 .fc {
@@ -179,7 +147,7 @@ main {
 }
 
 .fc-toolbar-title {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
 }
 
@@ -188,10 +156,12 @@ main {
     background: transparent !important;
     border: none !important;
     color: #374151 !important;
+    padding: 6px 10px !important;
 }
 
 .fc-button:hover {
     background: #f3f4f6 !important;
+    border-radius: 6px;
 }
 
 /* view switch */
@@ -204,6 +174,7 @@ main {
 .fc-button-active {
     background: #111827 !important;
     color: white !important;
+    border-radius: 6px !important;
 }
 
 /* dagar */
@@ -254,96 +225,109 @@ main {
 }
 
 /* ==========================================
-   🪟 MODALS (UPGRADED UX)
+   🪟 MODAL (MODERN)
 ========================================== */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(6px);
+    display: none;
+    z-index: 1000;
+}
 
 .modal {
     position: fixed;
-    inset: 0;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(3px);
-
-    z-index: 9999;
-
-    opacity: 0;
-    pointer-events: none;
-    transition: 0.2s;
-}
-
-.modal.show {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-/* box */
-.modal-content {
-    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
 
     background: white;
-    padding: 25px;
-
-    border-radius: 14px;
-    width: 340px;
+    border-radius: 16px;
+    width: 360px;
     max-width: 90%;
 
-    box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
 
-    transform: translateY(20px) scale(0.96);
-    transition: 0.25s;
+    opacity: 0;
+    z-index: 1001;
+    transition: all 0.2s ease;
 }
 
-.modal.show .modal-content {
-    transform: translateY(0) scale(1);
+.modal.active {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
 }
 
-/* inputs */
-.modal-content input,
-.modal-content select {
-    width: 100%;
-    padding: 12px;
-
-    margin: 10px 0;
-
-    border-radius: 8px;
-    border: 1px solid #ddd;
-
-    font-size: 14px;
+/* content */
+.modal-content {
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
-/* buttons */
-.modal-content button {
-    width: 100%;
-    padding: 12px;
-
-    border-radius: 8px;
-    border: none;
-
-    background: #2563eb;
-    color: white;
-
-    font-weight: 500;
-    cursor: pointer;
-}
-
-.modal-content button:hover {
-    background: #1e4fd1;
+/* titel */
+.modal h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
 }
 
 /* close */
-.close {
+.modal .close {
     position: absolute;
-    right: 12px;
-    top: 8px;
+    top: 12px;
+    right: 14px;
 
-    font-size: 18px;
-    color: #999;
+    border: none;
+    background: none;
+    font-size: 20px;
 
     cursor: pointer;
+    color: #666;
+}
+
+.modal .close:hover {
+    color: #000;
+}
+
+/* inputs */
+.modal input,
+.modal select {
+    width: 100%;
+    padding: 12px 14px;
+
+    border-radius: 10px;
+    border: 1px solid #ddd;
+
+    font-size: 14px;
+    background: #fafafa;
+
+    transition: all 0.15s ease;
+}
+
+.modal input:focus,
+.modal select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: white;
+
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+}
+
+/* button */
+.modal .primary-btn {
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+/* warning */
+#warning {
+    color: #e11d48;
+    font-size: 13px;
 }
 
 /* ==========================================
