@@ -4,7 +4,7 @@
 
 // Öppna vald modal
 window.openModal = function (id) {
-    // Stäng alla eventuella öppna modaler
+    // Stäng alla öppna modaler
     document.querySelectorAll('.modal').forEach(modal => {
         modal.classList.remove("active");
     });
@@ -13,20 +13,21 @@ window.openModal = function (id) {
     const overlay = document.getElementById("modalOverlay");
     if (!modal || !overlay) return;
 
-    // Aktivera modal + overlay
+    // === Patch: Dynamiskt HTML-innehåll för vacation-modal ===
+    if (id === "vacationModal") {
+        setVacationModalContent();
+        populateEmployeeSelect();
+        resetVacationModalFields();
+        setupVacationModalEventListeners();
+    }
+
     modal.classList.add("active");
     overlay.style.display = "block";
 
-    // Lås kalendern i bakgrunden så den ej får klick
+    // Lås kalendern i bakgrunden
     const calendar = document.querySelector(".fc");
     if (calendar) {
         calendar.style.pointerEvents = "none";
-    }
-
-    // Om modal är vacationModal, fyll select-box dynamiskt om du har employee-data på global nivå
-    if (id === "vacationModal") {
-        populateEmployeeSelect();
-        resetVacationModalFields();
     }
 };
 
@@ -45,15 +46,31 @@ window.closeModal = function () {
     }
 };
 
+// === Skapa semester-formulär i modalen dynamiskt ===
+function setVacationModalContent() {
+    const modal = document.getElementById("vacationModal");
+    if (modal && modal.innerHTML.trim() === "") {
+        modal.innerHTML = `
+          <div class="modal-content">
+            <button class="close" onclick="closeModal()">×</button>
+            <h3>Lägg till semester</h3>
+            <select id="employeeSelect"></select>
+            <input type="date" id="startDate" placeholder="YYYY-MM-DD">
+            <input type="date" id="endDate" placeholder="YYYY-MM-DD">
+            <button class="primary-btn" onclick="trySubmitVacation()">Spara</button>
+            <p id="warning"></p>
+          </div>
+        `;
+    }
+}
 
-// Hjälpfunktion: fyll select-boxen med aktuella anställda
+// === Fyll select-boxen med anställda ===
 function populateEmployeeSelect() {
-    // Antag att du har window.getEmployees() eller liknande funktion för att hämta personal
     if (!window.getEmployees) return;
     const employees = window.getEmployees();
     const select = document.getElementById("employeeSelect");
     if (select) {
-        select.innerHTML = ""; // Töm ev. gamla alternativ
+        select.innerHTML = "";
         employees.forEach(emp => {
             const opt = document.createElement("option");
             opt.value = emp.id;
@@ -63,17 +80,50 @@ function populateEmployeeSelect() {
     }
 }
 
-// Hjälpfunktion: nollställ fält i vacation-modal vid varje öppning
+// === Nollställ fält i vacation-modal vid öppning ===
 function resetVacationModalFields() {
     const start = document.getElementById("startDate");
     const end = document.getElementById("endDate");
     if (start) start.value = "";
     if (end) end.value = "";
-    // Nollställ varningsmeddelanden också om du vill
     const warning = document.getElementById("warning");
     if (warning) warning.textContent = "";
 }
 
+// === Rätta eventhantering i modal-formuläret ===
+function setupVacationModalEventListeners() {
+    // Förhindra bubbling
+    ["startDate", "endDate", "employeeSelect"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el._bubblePatched) {
+            el.addEventListener("mousedown", (e) => {
+                e.stopPropagation();
+            });
+            el._bubblePatched = true;
+        }
+    });
+    // Autofyll dagens datum vid fokus om tomt
+    document.getElementById("startDate")?.addEventListener("focus", (e) => {
+        if (!e.target.value) {
+            e.target.value = new Date().toISOString().slice(0, 10);
+        }
+    });
+    document.getElementById("endDate")?.addEventListener("focus", (e) => {
+        if (!e.target.value) {
+            e.target.value = new Date().toISOString().slice(0, 10);
+        }
+    });
+    // Enter för submit
+    ["employeeSelect", "startDate", "endDate"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el._enterHandlerPatched) {
+            el.addEventListener("keypress", function (e) {
+                if (e.key === "Enter") window.trySubmitVacation();
+            });
+            el._enterHandlerPatched = true;
+        }
+    });
+}
 
 // Stäng modal om man klickar på overlay
 document.getElementById("modalOverlay")?.addEventListener("click", () => {
@@ -87,35 +137,8 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
-
-// Fokusstyrning: lägg inte fokus på något direkt när modal öppnas.
-// Det gör browsern naturligt när användaren klickar/tabbar in själv.
-
-// Förhindra så att inga onödiga event-bubbling sker mellan datuminfälten/select
-["startDate", "endDate", "employeeSelect"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-        el.addEventListener("mousedown", (e) => {
-            e.stopPropagation();
-        });
-    }
-});
-
-// Extra: Fyll dagens datum automatiskt när datuminfälten får fokus (om tomt)
-document.getElementById("startDate")?.addEventListener("focus", (e) => {
-    if (!e.target.value) {
-        e.target.value = new Date().toISOString().slice(0, 10);
-    }
-});
-document.getElementById("endDate")?.addEventListener("focus", (e) => {
-    if (!e.target.value) {
-        e.target.value = new Date().toISOString().slice(0, 10);
-    }
-});
-
-
 /* =========================
-   VALIDERING (lika för både button och enter)
+   VALIDERING FÖR SUBMIT
 ========================= */
 window.trySubmitVacation = function () {
     const emp = document.getElementById("employeeSelect")?.value;
@@ -132,13 +155,3 @@ window.trySubmitVacation = function () {
         closeModal();
     }
 };
-
-// Support: Enter ska även submitta om du står i formuläret
-["employeeSelect", "startDate", "endDate"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-        el.addEventListener("keypress", function (e) {
-            if (e.key === "Enter") window.trySubmitVacation();
-        });
-    }
-});
