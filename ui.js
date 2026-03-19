@@ -1,44 +1,19 @@
 // ================================
-// INIT (VIKTIGT - ALLT EFTER DOM)
-// ================================
-document.addEventListener("DOMContentLoaded", () => {
-
-    // 🔥 FIX: stoppa bubbling ENDAST på click (inte focus)
-    ["startDate", "endDate"].forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-
-        el.addEventListener("click", (e) => {
-            e.stopPropagation();
-        });
-    });
-
-    // Overlay click
-    document.getElementById("modalOverlay")?.addEventListener("click", closeModal);
-
-    // ESC close
-    document.addEventListener("keydown", e => {
-        if (e.key === "Escape") closeModal();
-    });
-
-});
-
-// ================================
-// MODALLOGIK
+// MODALLOGIK & FELHANTERING
 // ================================
 
+// Öppna rätt modal
 window.openModal = function (id) {
     document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
 
     const modal = document.getElementById(id);
     const overlay = document.getElementById("modalOverlay");
-
     if (!modal || !overlay) return;
 
     modal.classList.add("active");
     overlay.style.display = "block";
 
-    // 🔥 Refresh employees korrekt
+    // 🔥 FIX: refresh ENDAST här
     if (id === "vacationModal") {
         window.refreshEmployeeSelect?.();
     }
@@ -55,11 +30,11 @@ window.openModal = function (id) {
         document.getElementById("endDate").value = "";
     }
 
-    // Disable calendar clicks
     const calendar = document.querySelector(".fc");
     if (calendar) calendar.style.pointerEvents = "none";
 };
 
+// Stäng modal
 window.closeModal = function () {
     document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
 
@@ -69,6 +44,30 @@ window.closeModal = function () {
     const calendar = document.querySelector(".fc");
     if (calendar) calendar.style.pointerEvents = "auto";
 };
+
+// Overlay click
+document.getElementById("modalOverlay")?.addEventListener("click", closeModal);
+
+// ESC
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeModal();
+});
+
+// ================================
+// 🔥 KRITISK FIX FÖR DATEPICKER
+// ================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    ["startDate", "endDate"].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        // STOPPA ENDAST CLICK (inte focus!)
+        el.addEventListener("click", (e) => {
+            e.stopPropagation();
+        });
+    });
+});
 
 // ================================
 // FORM LOGIK
@@ -83,7 +82,7 @@ window.tryAddEmployee = function () {
         return;
     }
 
-    warning.textContent = "";
+    if (warning) warning.textContent = "";
 
     addEmployee(name);
     closeModal();
@@ -96,7 +95,7 @@ window.trySubmitVacation = function () {
     const warning = document.getElementById("warning");
 
     if (!emp || !start || !end) {
-        warning.textContent = "Fyll i alla fält!";
+        if (warning) warning.textContent = "Fyll i alla fält!";
         return;
     }
 
@@ -110,38 +109,43 @@ window.trySubmitVacation = function () {
 // ENTER SHORTCUTS
 // ================================
 
-document.addEventListener("keydown", (e) => {
-    if (e.key !== "Enter") return;
+document.getElementById("employeeName")?.addEventListener("keypress", function(e){
+    if(e.key === "Enter") window.tryAddEmployee();
+});
 
-    const active = document.activeElement?.id;
+document.getElementById("startDate")?.addEventListener("keypress", function(e){
+    if(e.key === "Enter") window.trySubmitVacation();
+});
 
-    if (active === "employeeName") {
-        tryAddEmployee();
-    }
+document.getElementById("endDate")?.addEventListener("keypress", function(e){
+    if(e.key === "Enter") window.trySubmitVacation();
+});
 
-    if (["startDate", "endDate", "employeeSelect"].includes(active)) {
-        trySubmitVacation();
-    }
+document.getElementById("employeeSelect")?.addEventListener("keypress", function(e){
+    if(e.key === "Enter") window.trySubmitVacation();
 });
 
 // ================================
-// EMPLOYEE LIST
+// EMPLOYEE SELECT
 // ================================
 
 window.refreshEmployeeSelect = function () {
-    if (!window.getEmployees) return;
+    if(!window.getEmployees) return;
 
     const employees = window.getEmployees();
     const select = document.getElementById("employeeSelect");
 
-    if (!select) return;
+    if(select){
+        select.innerHTML = "";
 
-    select.innerHTML = "";
-
-    employees.forEach(emp => {
-        const opt = document.createElement("option");
-        opt.value = emp.id;
-        opt.textContent = emp.name;
-        select.appendChild(opt);
-    });
+        employees.forEach(emp => {
+            const opt = document.createElement("option");
+            opt.value = emp.id;
+            opt.textContent = emp.name;
+            select.appendChild(opt);
+        });
+    }
 };
+
+// ❌ BORTTAGEN BUGG
+// document.querySelectorAll("[onclick*='vacationModal']")
