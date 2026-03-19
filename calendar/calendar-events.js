@@ -2,23 +2,38 @@
    📅 MAPPA DATA → FULLCALENDAR EVENTS
 ========================================== */
 
+const defaultColors = [
+    "#3b82f6", "#22c55e", "#f59e0b",
+    "#ef4444", "#8b5cf6", "#06b6d4"
+];
+
+function getEmployeeColor(emp) {
+    if (emp?.color) return emp.color;
+
+    // fallback baserat på id
+    const index = parseInt(emp?.id || 0) % defaultColors.length;
+    return defaultColors[index];
+}
+
 window.getCalendarEvents = function () {
     const vacations = getVacations();
     const employees = getEmployees();
 
     return vacations.map(vac => {
 
-        // 🔍 hitta person
         const emp = employees.find(e => e.id == vac.employee_id);
+        const color = getEmployeeColor(emp);
 
         return {
+            id: vac.id, // 🔥 viktigt för delete
+
             title: emp ? emp.name : "Okänd",
 
             start: vac.start,
-            end: addOneDay(vac.end), // 🔥 viktigt (FullCalendar fix)
+            end: addOneDay(vac.end),
 
-            backgroundColor: emp?.color || "#3788d8",
-            borderColor: emp?.color || "#3788d8",
+            backgroundColor: color,
+            borderColor: color,
 
             allDay: true
         };
@@ -26,7 +41,7 @@ window.getCalendarEvents = function () {
 };
 
 /* ==========================================
-   🛠 FIX: FullCalendar tolkar end som exklusiv
+   🛠 FIX: FullCalendar end
 ========================================== */
 
 function addOneDay(dateStr) {
