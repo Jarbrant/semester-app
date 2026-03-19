@@ -147,21 +147,39 @@
 <!-- 📦 SCRIPTS (KRITISK ORDNING) -->
 <!-- ========================================== -->
 
+<!-- 🔹 CORE -->
 <script src="data.js"></script>
 <script src="auth.js"></script>
 <script src="ui.js"></script>
+
+<!-- 🔹 DATA LAYER -->
 <script src="employees.js"></script>
 <script src="vacations.js"></script>
 
-<!-- 🔥 FULLCALENDAR LOGIK -->
+<!-- 🔥 DEBUG (valfri men rekommenderad just nu) -->
+<script>
+    console.log("CORE + DATA loaded");
+</script>
+
+<!-- 🔥 FULLCALENDAR (MÅSTE KOMMA EFTER DATA) -->
 <script src="calendar/calendar-events.js"></script>
 <script src="calendar/calendar-init.js"></script>
 
-<!-- ❌ BORT -->
+<!-- 🔥 DEBUG -->
+<script>
+    console.log("Calendar modules loaded");
+</script>
+
+<!-- ❌ GAMMAL (ska EJ användas) -->
 <!-- <script src="calendar.js"></script> -->
 
+<!-- 🔹 APP INIT (ALLTID SIST) -->
 <script src="app.js"></script>
 
+<!-- 🔥 DEBUG -->
+<script>
+    console.log("App loaded");
+</script>
 <!-- ========================================== -->
 <!-- 🧠 USER NAME INIT -->
 <!-- ========================================== -->
