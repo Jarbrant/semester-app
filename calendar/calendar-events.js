@@ -1,37 +1,98 @@
 /* ==========================================
-   📅 EVENTS MED GROUP COLORS
+   📅 EVENTS MED GROUP COLORS (ROBUST VERSION)
+========================================== */
+
+// 🔒 Fallbacks (förhindrar att appen kraschar)
+if (typeof getGroups !== "function") {
+    window.getGroups = () => [];
+}
+
+if (typeof getEmployees !== "function") {
+    window.getEmployees = () => [];
+}
+
+if (typeof getVacations !== "function") {
+    window.getVacations = () => [];
+}
+
+/* ==========================================
+   🎨 HJÄLP: SÄKER FÄRGHANTERING
+========================================== */
+
+function getSafeColor(group) {
+    // fallback färg om något saknas
+    const defaultColor = "#3788d8";
+
+    if (!group) return defaultColor;
+
+    // säkerställ att color finns och är giltig string
+    if (typeof group.color === "string" && group.color.trim() !== "") {
+        return group.color;
+    }
+
+    return defaultColor;
+}
+
+/* ==========================================
+   📅 HUVUDFUNKTION
 ========================================== */
 
 window.getCalendarEvents = function () {
-    const vacations = getVacations();
-    const employees = getEmployees();
-    const groups = getGroups();
+    try {
+        const vacations = getVacations() || [];
+        const employees = getEmployees() || [];
+        const groups = getGroups() || [];
 
-    return vacations.map(vac => {
+        return vacations.map(vac => {
 
-        const emp = employees.find(e => e.id == vac.employee_id);
-        const group = groups.find(g => g.id == emp?.group_id);
+            // 🔍 hitta employee
+            const emp = employees.find(e => e.id == vac.employee_id);
 
-        const color = group?.color || "#3788d8";
+            // 🔍 hitta group (om finns)
+            const group = emp ? groups.find(g => g.id == emp.group_id) : null;
 
-        return {
-            id: vac.id,
-            title: emp ? emp.name : "Okänd",
+            // 🎨 färg
+            const color = getSafeColor(group);
 
-            start: vac.start,
-            end: addOneDay(vac.end),
+            return {
+                id: vac.id ?? Date.now(),
 
-            backgroundColor: color,
-            borderColor: color,
+                title: emp?.name || "Okänd",
 
-            allDay: true
-        };
-    });
+                start: vac.start,
+                end: addOneDaySafe(vac.end),
+
+                backgroundColor: color,
+                borderColor: color,
+
+                allDay: true
+            };
+        });
+
+    } catch (err) {
+        console.error("❌ getCalendarEvents error:", err);
+        return [];
+    }
 };
 
-function addOneDay(dateStr) {
-    const date = new Date(dateStr);
-    date.setDate(date.getDate() + 1);
+/* ==========================================
+   🛠 SÄKER DATE FIX
+========================================== */
 
-    return date.toISOString().split("T")[0];
+function addOneDaySafe(dateStr) {
+    if (!dateStr) return null;
+
+    try {
+        const date = new Date(dateStr);
+
+        if (isNaN(date)) return dateStr;
+
+        date.setDate(date.getDate() + 1);
+
+        return date.toISOString().split("T")[0];
+
+    } catch (err) {
+        console.warn("⚠️ date parsing failed:", dateStr);
+        return dateStr;
+    }
 }
