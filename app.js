@@ -1,24 +1,37 @@
 /* ==========================================
-   🚀 APP INIT
+   🚀 APP INIT (FIXAD)
 ========================================== */
 
 window.addEventListener("DOMContentLoaded", () => {
 
-    // 🔹 ladda data till UI
-    loadEmployees();
+    try {
 
-    // ❌ GAMMALT (ta bort)
-    // renderCalendar();
+        // ❌ BORTTAGEN (fanns inte längre)
+        // loadEmployees();
 
-    // ✅ NYTT – starta FullCalendar
-    initCalendar();
+        // ✅ Starta kalender
+        if (typeof initCalendar === "function") {
+            initCalendar();
+        } else {
+            console.error("❌ initCalendar saknas");
+        }
 
-    const user = getCurrentUser();
+        // 🔐 User handling
+        let user = null;
 
-    if (!user) {
-        // demo user
-        login("Admin", "admin");
+        if (typeof getCurrentUser === "function") {
+            user = getCurrentUser();
+        }
+
+        if (!user && typeof login === "function") {
+            login("Admin", "admin");
+            user = "Admin";
+        }
+
+        console.log("✅ App startad:", user);
+
+    } catch (err) {
+        console.error("💥 App crash:", err);
     }
 
-    console.log("App startad:", user);
 });
