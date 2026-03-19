@@ -1,25 +1,49 @@
 // ================================
-// MODALLOGIK & FELHANTERING
+// INIT (VIKTIGT - ALLT EFTER DOM)
+// ================================
+document.addEventListener("DOMContentLoaded", () => {
+
+    // 🔥 FIX: stoppa bubbling ENDAST på click (inte focus)
+    ["startDate", "endDate"].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        el.addEventListener("click", (e) => {
+            e.stopPropagation();
+        });
+    });
+
+    // Overlay click
+    document.getElementById("modalOverlay")?.addEventListener("click", closeModal);
+
+    // ESC close
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape") closeModal();
+    });
+
+});
+
+// ================================
+// MODALLOGIK
 // ================================
 
-// Öppna rätt modal
 window.openModal = function (id) {
-    // Stäng alla andra modaler
     document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
 
     const modal = document.getElementById(id);
     const overlay = document.getElementById("modalOverlay");
+
     if (!modal || !overlay) return;
 
     modal.classList.add("active");
     overlay.style.display = "block";
 
-    // 🔥 FIX: refresh ONLY här (inte via click selectors)
+    // 🔥 Refresh employees korrekt
     if (id === "vacationModal") {
         window.refreshEmployeeSelect?.();
     }
 
-    // Nolla fält i modaler
+    // Reset fält
     if (id === "employeeModal") {
         document.getElementById("employeeName").value = "";
         document.getElementById("employeeWarning").textContent = "";
@@ -31,12 +55,11 @@ window.openModal = function (id) {
         document.getElementById("endDate").value = "";
     }
 
-    // Lås kalendern i bakgrunden om FullCalendar används
+    // Disable calendar clicks
     const calendar = document.querySelector(".fc");
     if (calendar) calendar.style.pointerEvents = "none";
 };
 
-// Stäng alla modaler
 window.closeModal = function () {
     document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
 
@@ -47,31 +70,8 @@ window.closeModal = function () {
     if (calendar) calendar.style.pointerEvents = "auto";
 };
 
-// Klicka på overlay = stäng modal
-document.getElementById("modalOverlay")?.addEventListener("click", closeModal);
-
-// ESC = stäng
-document.addEventListener("keydown", e => {
-    if (e.key === "Escape") closeModal();
-});
-
 // ================================
-// 🔥 KRITISK FIX: STOPPA EVENT BUBBLING
-// ================================
-
-["startDate", "endDate"].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-
-    ["click", "focus"].forEach(evt => {
-        el.addEventListener(evt, e => {
-            e.stopPropagation();
-        });
-    });
-});
-
-// ================================
-// SÄKER & ANVÄNDARVÄNLIG Spara-funktion
+// FORM LOGIK
 // ================================
 
 window.tryAddEmployee = function () {
@@ -83,7 +83,7 @@ window.tryAddEmployee = function () {
         return;
     }
 
-    if (warning) warning.textContent = "";
+    warning.textContent = "";
 
     addEmployee(name);
     closeModal();
@@ -96,7 +96,7 @@ window.trySubmitVacation = function () {
     const warning = document.getElementById("warning");
 
     if (!emp || !start || !end) {
-        if (warning) warning.textContent = "Fyll i alla fält!";
+        warning.textContent = "Fyll i alla fält!";
         return;
     }
 
@@ -107,46 +107,41 @@ window.trySubmitVacation = function () {
 };
 
 // ================================
-// ENTER-KORTKOMMANDON
+// ENTER SHORTCUTS
 // ================================
 
-document.getElementById("employeeName")?.addEventListener("keypress", function(e){
-    if(e.key === "Enter") window.tryAddEmployee();
-});
+document.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
 
-document.getElementById("startDate")?.addEventListener("keypress", function(e){
-    if(e.key === "Enter") window.trySubmitVacation();
-});
+    const active = document.activeElement?.id;
 
-document.getElementById("endDate")?.addEventListener("keypress", function(e){
-    if(e.key === "Enter") window.trySubmitVacation();
-});
+    if (active === "employeeName") {
+        tryAddEmployee();
+    }
 
-document.getElementById("employeeSelect")?.addEventListener("keypress", function(e){
-    if(e.key === "Enter") window.trySubmitVacation();
+    if (["startDate", "endDate", "employeeSelect"].includes(active)) {
+        trySubmitVacation();
+    }
 });
 
 // ================================
-// FYLL ANSTÄLLDA-LISTAN
+// EMPLOYEE LIST
 // ================================
 
 window.refreshEmployeeSelect = function () {
-    if(!window.getEmployees) return;
+    if (!window.getEmployees) return;
 
     const employees = window.getEmployees();
     const select = document.getElementById("employeeSelect");
 
-    if(select){
-        select.innerHTML = "";
+    if (!select) return;
 
-        employees.forEach(emp => {
-            const opt = document.createElement("option");
-            opt.value = emp.id;
-            opt.textContent = emp.name;
-            select.appendChild(opt);
-        });
-    }
+    select.innerHTML = "";
+
+    employees.forEach(emp => {
+        const opt = document.createElement("option");
+        opt.value = emp.id;
+        opt.textContent = emp.name;
+        select.appendChild(opt);
+    });
 };
-
-// ❌ BORTTAGEN BUGGIG KOD:
-// document.querySelectorAll("[onclick*='vacationModal']")
