@@ -225,18 +225,25 @@ main {
 }
 
 /* ==========================================
-   🪟 MODAL (MODERN)
+   🪟 MODAL (PRODUCTION READY)
 ========================================== */
 
+/* 🔹 Overlay */
 .modal-overlay {
     position: fixed;
     inset: 0;
+
     background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(6px);
+
     display: none;
     z-index: 1000;
+
+    /* 🔥 tillåter klick (stänger modal) */
+    pointer-events: auto;
 }
 
+/* 🔹 Modal container */
 .modal {
     position: fixed;
     top: 50%;
@@ -252,15 +259,23 @@ main {
 
     opacity: 0;
     z-index: 1001;
+
     transition: all 0.2s ease;
+
+    /* 🔥 säkerställer att modalen alltid är klickbar */
+    pointer-events: auto;
 }
 
+/* 🔹 Active state */
 .modal.active {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
 }
 
-/* content */
+/* ==========================================
+   📦 CONTENT
+========================================== */
+
 .modal-content {
     padding: 28px;
     display: flex;
@@ -268,14 +283,20 @@ main {
     gap: 14px;
 }
 
-/* titel */
+/* ==========================================
+   📝 TITEL
+========================================== */
+
 .modal h3 {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
 }
 
-/* close */
+/* ==========================================
+   ❌ CLOSE BUTTON
+========================================== */
+
 .modal .close {
     position: absolute;
     top: 12px;
@@ -293,7 +314,10 @@ main {
     color: #000;
 }
 
-/* inputs */
+/* ==========================================
+   🔽 INPUTS
+========================================== */
+
 .modal input,
 .modal select {
     width: 100%;
@@ -317,19 +341,26 @@ main {
     box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
 }
 
-/* button */
+/* ==========================================
+   🔘 BUTTON
+========================================== */
+
 .modal .primary-btn {
     margin-top: 10px;
     padding: 12px;
+
     border-radius: 10px;
+    font-weight: 500;
 }
 
-/* warning */
+/* ==========================================
+   ⚠️ WARNING
+========================================== */
+
 #warning {
     color: #e11d48;
     font-size: 13px;
 }
-
 /* ==========================================
    📱 RESPONSIVE
 ========================================== */
