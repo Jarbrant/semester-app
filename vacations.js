@@ -19,5 +19,7 @@ window.addVacation = function() {
     });
 
     saveVacations(vacations);
-    renderCalendar();
+
+    // 🔥 uppdatera FullCalendar istället för gamla render
+    refreshCalendar();
 };
