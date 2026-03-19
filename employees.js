@@ -19,7 +19,9 @@ window.addEmployee = function() {
 
     saveEmployees(employees);
     loadEmployees();
-    renderCalendar();
+
+    // 🔥 uppdatera kalender
+    refreshCalendar();
 };
 
 // 🔹 fyll dropdown
