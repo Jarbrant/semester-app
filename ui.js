@@ -1,24 +1,24 @@
 /* ==========================================
-   🪟 UI / MODALS
+   🪟 MODAL HANDLING (FIXED FOR NEW CSS)
 ========================================== */
 
 window.openModal = function(id) {
-    document.getElementById(id)?.classList.add("show");
+    const modal = document.getElementById(id);
+    const overlay = document.getElementById("modalOverlay");
+
+    if (!modal || !overlay) return;
+
+    modal.classList.add("active");   // 🔥 ändrad
+    overlay.style.display = "block"; // 🔥 visa overlay
 };
 
 window.closeModal = function() {
-    document.querySelectorAll(".modal")
-        .forEach(m => m.classList.remove("show"));
+    const modals = document.querySelectorAll(".modal");
+    const overlay = document.getElementById("modalOverlay");
+
+    modals.forEach(m => m.classList.remove("active")); // 🔥 ändrad
+
+    if (overlay) {
+        overlay.style.display = "none";
+    }
 };
-
-// 🔥 Klick utanför = stäng
-window.addEventListener("click", (e) => {
-    document.querySelectorAll(".modal").forEach(m => {
-        if (e.target === m) m.classList.remove("show");
-    });
-});
-
-// 🔥 ESC = stäng
-window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeModal();
-});
