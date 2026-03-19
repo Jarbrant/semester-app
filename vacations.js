@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 VACATIONS (MED KONFLIKT-CHECK)
+   📅 VACATIONS (MED GROUP LOGIK)
 ========================================== */
 
 function hasConflict(empId, start, end) {
@@ -11,6 +11,30 @@ function hasConflict(empId, start, end) {
     );
 }
 
+function groupOverbooked(empId, start, end) {
+    const employees = getEmployees();
+    const groups = getGroups();
+    const vacations = getVacations();
+
+    const emp = employees.find(e => e.id == empId);
+    if (!emp || !emp.group_id) return false;
+
+    const group = groups.find(g => g.id == emp.group_id);
+    if (!group) return false;
+
+    let count = 0;
+
+    vacations.forEach(v => {
+        const e = employees.find(emp => emp.id == v.employee_id);
+        if (!e || e.group_id != group.id) return;
+
+        const overlap = !(end < v.start || start > v.end);
+        if (overlap) count++;
+    });
+
+    return count >= group.maxConcurrent;
+}
+
 window.addVacation = function() {
     const empId = document.getElementById("employeeSelect").value;
     const start = document.getElementById("startDate").value;
@@ -19,15 +43,17 @@ window.addVacation = function() {
 
     if (!empId || !start || !end) return;
 
-    // 🔥 Konflikt-check
     if (hasConflict(empId, start, end)) {
-        if (warning) {
-            warning.textContent = "⚠️ Denna person har redan semester i detta intervall!";
-        }
+        warning.textContent = "⚠️ Personen har redan semester här!";
         return;
     }
 
-    if (warning) warning.textContent = "";
+    if (groupOverbooked(empId, start, end)) {
+        warning.textContent = "⚠️ För många i gruppen är lediga!";
+        return;
+    }
+
+    warning.textContent = "";
 
     const vacations = getVacations();
 
@@ -39,13 +65,8 @@ window.addVacation = function() {
     });
 
     saveVacations(vacations);
-
     refreshCalendar();
 };
-
-/* ==========================================
-   ❌ DELETE
-========================================== */
 
 window.removeVacation = function(id) {
     let vacations = getVacations();
