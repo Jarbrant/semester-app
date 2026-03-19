@@ -35,9 +35,6 @@ window.initCalendar = function () {
 
         dateClick: function(info) {
 
-            console.log("Klick på datum:", info.dateStr);
-
-            // 🔥 sätt datum i modal
             const startInput = document.getElementById("startDate");
             const endInput = document.getElementById("endDate");
 
@@ -46,8 +43,22 @@ window.initCalendar = function () {
                 endInput.value = info.dateStr;
             }
 
-            // 🔥 öppna modal
             openModal("vacationModal");
+        },
+
+        /* ==========================================
+           🖱 KLICK PÅ EVENT
+        ========================================== */
+
+        eventClick: function(info) {
+
+            const confirmed = confirm(
+                `Ta bort semester för ${info.event.title}?`
+            );
+
+            if (!confirmed) return;
+
+            removeVacation(info.event.id);
         }
 
     });
