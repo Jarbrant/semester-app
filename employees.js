@@ -1,43 +1,37 @@
 /* ==========================================
-   👥 EMPLOYEES
+   👤 EMPLOYEES (MED GROUP SUPPORT)
 ========================================== */
 
-window.addEmployee = function() {
-    const name = document.getElementById("employeeName").value.trim();
-    if (!name) return;
+const EMP_KEY = "employees";
 
+window.getEmployees = function () {
+    return JSON.parse(localStorage.getItem(EMP_KEY)) || [];
+};
+
+window.saveEmployees = function (emps) {
+    localStorage.setItem(EMP_KEY, JSON.stringify(emps));
+};
+
+window.addEmployee = function (name, groupId = null) {
     const employees = getEmployees();
-
-    // 🎨 slumpfärg per person
-    const color = "#" + Math.floor(Math.random()*16777215).toString(16);
 
     employees.push({
         id: Date.now(),
         name,
-        color
+        group_id: groupId
     });
 
     saveEmployees(employees);
-    loadEmployees();
-
-    // 🔥 uppdatera kalender
-    refreshCalendar();
 };
 
-// 🔹 fyll dropdown
-window.loadEmployees = function() {
+window.updateEmployee = function (id, name, groupId) {
     const employees = getEmployees();
 
-    const select = document.getElementById("employeeSelect");
-    const filter = document.getElementById("filter");
+    const emp = employees.find(e => e.id == id);
+    if (!emp) return;
 
-    if (!select || !filter) return;
+    emp.name = name;
+    emp.group_id = groupId;
 
-    select.innerHTML = "";
-    filter.innerHTML = '<option value="all">Alla</option>';
-
-    employees.forEach(e => {
-        select.innerHTML += `<option value="${e.id}">${e.name}</option>`;
-        filter.innerHTML += `<option value="${e.id}">${e.name}</option>`;
-    });
+    saveEmployees(employees);
 };
