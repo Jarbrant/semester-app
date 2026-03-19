@@ -2,25 +2,17 @@
    📅 FULLCALENDAR INIT
 ========================================== */
 
-let calendar; // global referens
+let calendar;
 
 window.initCalendar = function () {
     const calendarEl = document.getElementById("calendar");
 
     calendar = new FullCalendar.Calendar(calendarEl, {
 
-        /* ==========================================
-           🧠 BASINSTÄLLNINGAR
-        ========================================== */
-
         initialView: "dayGridMonth",
-        firstDay: 1, // 🔥 måndag
+        firstDay: 1,
         locale: "sv",
         height: "auto",
-
-        /* ==========================================
-           🧭 NAVIGATION & VYER
-        ========================================== */
 
         headerToolbar: {
             left: "prev,next today",
@@ -35,11 +27,28 @@ window.initCalendar = function () {
             list: "Lista"
         },
 
+        events: getCalendarEvents(),
+
         /* ==========================================
-           📅 EVENTS
+           🖱 KLICK PÅ DAG
         ========================================== */
 
-        events: getCalendarEvents()
+        dateClick: function(info) {
+
+            console.log("Klick på datum:", info.dateStr);
+
+            // 🔥 sätt datum i modal
+            const startInput = document.getElementById("startDate");
+            const endInput = document.getElementById("endDate");
+
+            if (startInput && endInput) {
+                startInput.value = info.dateStr;
+                endInput.value = info.dateStr;
+            }
+
+            // 🔥 öppna modal
+            openModal("vacationModal");
+        }
 
     });
 
@@ -47,7 +56,7 @@ window.initCalendar = function () {
 };
 
 /* ==========================================
-   🔄 UPPDATERA EVENTS
+   🔄 REFRESH
 ========================================== */
 
 window.refreshCalendar = function () {
