@@ -1,21 +1,26 @@
 /* ==========================================
-   🧩 GROUP UI
+   🧩 GROUP UI (ROBUST)
 ========================================== */
 
 window.tryAddGroup = function () {
-    const name = document.getElementById("groupName")?.value.trim();
+    const name = document.getElementById("groupName")?.value?.trim();
     const color = document.getElementById("groupColor")?.value;
     const limit = document.getElementById("groupLimit")?.value;
     const warning = document.getElementById("groupWarning");
 
     if (!name) {
-        warning.textContent = "Ange gruppnamn";
+        if (warning) warning.textContent = "Ange gruppnamn";
         return;
     }
 
-    addGroup(name, color, limit || 1);
+    if (typeof addGroup === "function") {
+        addGroup(name, color, limit || 1);
+    } else {
+        console.error("❌ addGroup saknas");
+    }
 
-    warning.textContent = "";
+    if (warning) warning.textContent = "";
+
     closeModal();
 };
 
@@ -25,11 +30,25 @@ window.tryAddGroup = function () {
 
 window.refreshGroupSelect = function () {
     const select = document.getElementById("employeeGroupSelect");
-    if (!select || typeof getGroups !== "function") return;
+    if (!select) return;
+
+    if (typeof getGroups !== "function") {
+        console.warn("⚠️ getGroups saknas");
+        select.innerHTML = "";
+        return;
+    }
 
     const groups = getGroups();
 
     select.innerHTML = "";
+
+    if (!groups.length) {
+        const opt = document.createElement("option");
+        opt.textContent = "Inga grupper";
+        opt.value = "";
+        select.appendChild(opt);
+        return;
+    }
 
     groups.forEach(g => {
         const opt = document.createElement("option");
@@ -38,9 +57,7 @@ window.refreshGroupSelect = function () {
         select.appendChild(opt);
     });
 
-    if (groups.length > 0) {
-        select.selectedIndex = 0;
-    }
+    select.selectedIndex = 0;
 };
 
 /* ==========================================
@@ -48,24 +65,54 @@ window.refreshGroupSelect = function () {
 ========================================== */
 
 window.tryAddEmployee = function () {
-    const name = document.getElementById("employeeName")?.value.trim();
+    const name = document.getElementById("employeeName")?.value?.trim();
     const groupId = document.getElementById("employeeGroupSelect")?.value;
     const warning = document.getElementById("employeeWarning");
 
     if (!name) {
-        warning.textContent = "Du måste ange ett namn!";
+        if (warning) warning.textContent = "Du måste ange ett namn!";
         return;
     }
 
-    warning.textContent = "";
+    if (warning) warning.textContent = "";
 
-    addEmployee(name, groupId || null);
+    if (typeof addEmployee === "function") {
+        addEmployee(name, groupId || null);
+    } else {
+        console.error("❌ addEmployee saknas");
+    }
 
     closeModal();
 };
 
 /* ==========================================
-   🪟 MODAL
+   📅 VACATION (behåll kompatibilitet)
+========================================== */
+
+window.trySubmitVacation = function () {
+    const emp = document.getElementById("employeeSelect")?.value;
+    const start = document.getElementById("startDate")?.value;
+    const end = document.getElementById("endDate")?.value;
+    const warning = document.getElementById("warning");
+
+    if (!emp || !start || !end) {
+        if (warning) warning.textContent = "Fyll i alla fält!";
+        return;
+    }
+
+    if (warning) warning.textContent = "";
+
+    if (typeof addVacation === "function") {
+        addVacation();
+    } else {
+        console.error("❌ addVacation saknas");
+    }
+
+    closeModal();
+};
+
+/* ==========================================
+   🪟 MODAL (STABIL)
 ========================================== */
 
 window.openModal = function (id) {
@@ -74,13 +121,21 @@ window.openModal = function (id) {
     const modal = document.getElementById(id);
     const overlay = document.getElementById("modalOverlay");
 
-    if (!modal || !overlay) return;
+    if (!modal || !overlay) {
+        console.warn("⚠️ Modal eller overlay saknas:", id);
+        return;
+    }
 
     modal.classList.add("active");
     overlay.style.display = "block";
 
+    // 🔥 Refresh beroende på modal
     if (id === "employeeModal") {
         refreshGroupSelect();
+    }
+
+    if (id === "vacationModal" && typeof refreshEmployeeSelect === "function") {
+        refreshEmployeeSelect();
     }
 };
 
@@ -92,13 +147,15 @@ window.closeModal = function () {
 };
 
 /* ==========================================
-   EVENTS
+   EVENTS (SAFE INIT)
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
 
+    // Overlay click
     document.getElementById("modalOverlay")?.addEventListener("click", closeModal);
 
+    // ESC close
     document.addEventListener("keydown", e => {
         if (e.key === "Escape") closeModal();
     });
