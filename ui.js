@@ -34,15 +34,20 @@ window.closeModal = function() {
 };
 
 /* ==========================================
-   📅 SIMPLE DATE HANDLING
+   📅 SIMPLE DATE HANDLING — Patchad!
 ========================================== */
 
-// klick på input → fyll dagens datum om tomt
-document.addEventListener("click", (e) => {
-    if (e.target.id === "startDate" || e.target.id === "endDate") {
-        if (!e.target.value) {
-            const today = new Date().toISOString().split("T")[0];
-            e.target.value = today;
-        }
+// Byt ut "click" mot "focus" event — så det bara händer vid riktig entry.
+document.getElementById("startDate")?.addEventListener("focus", (e) => {
+    if (!e.target.value) {
+        const today = new Date().toISOString().split("T")[0];
+        e.target.value = today;
+    }
+});
+
+document.getElementById("endDate")?.addEventListener("focus", (e) => {
+    if (!e.target.value) {
+        const today = new Date().toISOString().split("T")[0];
+        e.target.value = today;
     }
 });
