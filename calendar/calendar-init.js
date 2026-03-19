@@ -2,12 +2,11 @@
    📅 FULLCALENDAR INIT
 ========================================== */
 
-let calendar; // global så vi kan uppdatera senare
+let calendar; // global referens
 
 window.initCalendar = function () {
     const calendarEl = document.getElementById("calendar");
 
-    // 🔥 skapa kalender
     calendar = new FullCalendar.Calendar(calendarEl, {
 
         /* ==========================================
@@ -15,11 +14,8 @@ window.initCalendar = function () {
         ========================================== */
 
         initialView: "dayGridMonth",
-
-        firstDay: 1, // 🔥 MÅNDAG
-
+        firstDay: 1, // 🔥 måndag
         locale: "sv",
-
         height: "auto",
 
         /* ==========================================
@@ -40,12 +36,23 @@ window.initCalendar = function () {
         },
 
         /* ==========================================
-           📅 EVENTS (tomt just nu)
+           📅 EVENTS
         ========================================== */
 
-        events: []
+        events: getCalendarEvents()
 
     });
 
     calendar.render();
+};
+
+/* ==========================================
+   🔄 UPPDATERA EVENTS
+========================================== */
+
+window.refreshCalendar = function () {
+    if (!calendar) return;
+
+    calendar.removeAllEvents();
+    calendar.addEventSource(getCalendarEvents());
 };
