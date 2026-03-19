@@ -6,21 +6,31 @@
 window.openModal = function (id) {
     // Stäng alla andra modaler
     document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
+
     const modal = document.getElementById(id);
     const overlay = document.getElementById("modalOverlay");
     if (!modal || !overlay) return;
+
     modal.classList.add("active");
     overlay.style.display = "block";
+
+    // 🔥 FIX: refresh ONLY här (inte via click selectors)
+    if (id === "vacationModal") {
+        window.refreshEmployeeSelect?.();
+    }
+
     // Nolla fält i modaler
     if (id === "employeeModal") {
         document.getElementById("employeeName").value = "";
         document.getElementById("employeeWarning").textContent = "";
     }
+
     if (id === "vacationModal") {
         document.getElementById("warning").textContent = "";
         document.getElementById("startDate").value = "";
         document.getElementById("endDate").value = "";
     }
+
     // Lås kalendern i bakgrunden om FullCalendar används
     const calendar = document.querySelector(".fc");
     if (calendar) calendar.style.pointerEvents = "none";
@@ -29,8 +39,10 @@ window.openModal = function (id) {
 // Stäng alla modaler
 window.closeModal = function () {
     document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
+
     const overlay = document.getElementById("modalOverlay");
     if (overlay) overlay.style.display = "none";
+
     const calendar = document.querySelector(".fc");
     if (calendar) calendar.style.pointerEvents = "auto";
 };
@@ -44,18 +56,35 @@ document.addEventListener("keydown", e => {
 });
 
 // ================================
+// 🔥 KRITISK FIX: STOPPA EVENT BUBBLING
+// ================================
+
+["startDate", "endDate"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    ["click", "focus"].forEach(evt => {
+        el.addEventListener(evt, e => {
+            e.stopPropagation();
+        });
+    });
+});
+
+// ================================
 // SÄKER & ANVÄNDARVÄNLIG Spara-funktion
 // ================================
 
 window.tryAddEmployee = function () {
     const name = document.getElementById("employeeName")?.value.trim();
     const warning = document.getElementById("employeeWarning");
+
     if (!name) {
         if (warning) warning.textContent = "Du måste ange ett namn!";
         return;
     }
+
     if (warning) warning.textContent = "";
-    // Din ursprungliga addEmployee-funktion SKA ta emot namnet!
+
     addEmployee(name);
     closeModal();
 };
@@ -65,42 +94,51 @@ window.trySubmitVacation = function () {
     const start = document.getElementById("startDate")?.value;
     const end = document.getElementById("endDate")?.value;
     const warning = document.getElementById("warning");
+
     if (!emp || !start || !end) {
         if (warning) warning.textContent = "Fyll i alla fält!";
         return;
     }
+
     warning.textContent = "";
-    // Din ursprungliga addVacation-funktion
+
     addVacation();
     closeModal();
 };
 
 // ================================
-// ENTER-KORTKOMMANDON FÖR SNABBHET
+// ENTER-KORTKOMMANDON
 // ================================
 
 document.getElementById("employeeName")?.addEventListener("keypress", function(e){
     if(e.key === "Enter") window.tryAddEmployee();
 });
+
 document.getElementById("startDate")?.addEventListener("keypress", function(e){
     if(e.key === "Enter") window.trySubmitVacation();
 });
+
 document.getElementById("endDate")?.addEventListener("keypress", function(e){
     if(e.key === "Enter") window.trySubmitVacation();
 });
+
 document.getElementById("employeeSelect")?.addEventListener("keypress", function(e){
     if(e.key === "Enter") window.trySubmitVacation();
 });
 
 // ================================
-// FYLL ANSTÄLLDA-LISTAN VID ÖPPNING (om ni använder dynamisk personal)
+// FYLL ANSTÄLLDA-LISTAN
 // ================================
+
 window.refreshEmployeeSelect = function () {
     if(!window.getEmployees) return;
+
     const employees = window.getEmployees();
     const select = document.getElementById("employeeSelect");
+
     if(select){
         select.innerHTML = "";
+
         employees.forEach(emp => {
             const opt = document.createElement("option");
             opt.value = emp.id;
@@ -110,7 +148,5 @@ window.refreshEmployeeSelect = function () {
     }
 };
 
-// Kör refreshEmployeeSelect varje gång semester-modalen öppnas
-document.querySelectorAll("[onclick*='vacationModal']").forEach(btn =>
-    btn.addEventListener("click", window.refreshEmployeeSelect)
-);
+// ❌ BORTTAGEN BUGGIG KOD:
+// document.querySelectorAll("[onclick*='vacationModal']")
