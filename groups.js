@@ -1,5 +1,5 @@
 /* ==========================================
-   🧩 GROUPS (NYTT SYSTEM)
+   🧩 GROUPS
 ========================================== */
 
 const GROUPS_KEY = "groups";
@@ -18,13 +18,9 @@ window.addGroup = function (name, color, maxConcurrent) {
     groups.push({
         id: Date.now(),
         name,
-        color,
+        color: color || "#3b82f6",
         maxConcurrent: parseInt(maxConcurrent) || 1
     });
 
     saveGroups(groups);
-};
-
-window.getGroupById = function (id) {
-    return getGroups().find(g => g.id == id);
 };
