@@ -144,6 +144,8 @@ main {
 
 .fc {
     font-size: 14px;
+    position: relative;
+    z-index: 1; /* 🔥 kalender alltid under modal */
 }
 
 .fc-toolbar-title {
@@ -228,7 +230,6 @@ main {
    🪟 MODAL (PRODUCTION READY)
 ========================================== */
 
-/* 🔹 Overlay */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -239,11 +240,9 @@ main {
     display: none;
     z-index: 1000;
 
-    /* 🔥 tillåter klick (stänger modal) */
     pointer-events: auto;
 }
 
-/* 🔹 Modal container */
 .modal {
     position: fixed;
     top: 50%;
@@ -262,11 +261,9 @@ main {
 
     transition: all 0.2s ease;
 
-    /* 🔥 säkerställer att modalen alltid är klickbar */
     pointer-events: auto;
 }
 
-/* 🔹 Active state */
 .modal.active {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
@@ -283,20 +280,14 @@ main {
     gap: 14px;
 }
 
-/* ==========================================
-   📝 TITEL
-========================================== */
-
+/* titel */
 .modal h3 {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
 }
 
-/* ==========================================
-   ❌ CLOSE BUTTON
-========================================== */
-
+/* close */
 .modal .close {
     position: absolute;
     top: 12px;
@@ -330,8 +321,18 @@ main {
     background: #fafafa;
 
     transition: all 0.15s ease;
+
+    position: relative;
+    z-index: 1002; /* 🔥 över kalender */
 }
 
+/* 🔥 KRITISK FIX – datepicker */
+input[type="date"] {
+    position: relative;
+    z-index: 1003;
+}
+
+/* focus */
 .modal input:focus,
 .modal select:focus {
     outline: none;
@@ -361,6 +362,7 @@ main {
     color: #e11d48;
     font-size: 13px;
 }
+
 /* ==========================================
    📱 RESPONSIVE
 ========================================== */
