@@ -50,19 +50,15 @@
 <!-- ========================================== -->
 
 <section class="actions">
-
     <div class="action-card" onclick="openModal('employeeModal')">
         👥 Lägg till personal
     </div>
-
     <div class="action-card" onclick="openModal('vacationModal')">
         📅 Lägg till semester
     </div>
-
     <div class="action-card" onclick="openModal('filterModal')">
         🔍 Filter
     </div>
-
 </section>
 
 <!-- ========================================== -->
@@ -91,55 +87,35 @@
 <!-- 👥 PERSONAL -->
 <div id="employeeModal" class="modal">
     <div class="modal-content">
-
         <button class="close" onclick="closeModal()">×</button>
-
         <h3>Lägg till personal</h3>
-
+        <p id="employeeWarning" style="color:#e11d48;font-size:15px"></p>
         <input type="text" id="employeeName" placeholder="Namn">
-
-        <button class="primary-btn" onclick="addEmployee(); closeModal();">
-            Spara
-        </button>
-
+        <button class="primary-btn" onclick="tryAddEmployee()">Spara</button>
     </div>
 </div>
 
 <!-- 📅 SEMESTER -->
 <div id="vacationModal" class="modal">
     <div class="modal-content">
-
         <button class="close" onclick="closeModal()">×</button>
-
         <h3>Lägg till semester</h3>
-
         <select id="employeeSelect"></select>
-
-       <input type="date" id="startDate" placeholder="YYYY-MM-DD">
-       <input type="date" id="endDate" placeholder="YYYY-MM-DD">  
-
-        <button class="primary-btn" onclick="addVacation(); closeModal();">
-            Spara
-        </button>
-
+        <input type="date" id="startDate" placeholder="YYYY-MM-DD">
+        <input type="date" id="endDate" placeholder="YYYY-MM-DD">
+        <button class="primary-btn" onclick="trySubmitVacation()">Spara</button>
         <p id="warning"></p>
-
     </div>
 </div>
 
 <!-- 🔍 FILTER -->
 <div id="filterModal" class="modal">
     <div class="modal-content">
-
         <button class="close" onclick="closeModal()">×</button>
-
         <h3>Filter</h3>
-
-        <!-- ❗ OBS: renderCalendar bort -->
         <select id="filter" onchange="refreshCalendar(); closeModal();">
             <option value="all">Visa alla</option>
         </select>
-
     </div>
 </div>
 
@@ -188,7 +164,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const user = localStorage.getItem("currentUser");
     const el = document.getElementById("currentUserName");
-
     if (el && user) {
         el.innerText = user;
     }
