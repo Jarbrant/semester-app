@@ -5,105 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semesterplaneraren</title>
 
-    <!-- 📅 FullCalendar -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
-    <!-- 🎨 CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- ========================================== -->
-<!-- 🔝 TOPBAR -->
-<!-- ========================================== -->
-
 <header class="topbar">
-    <div class="topbar-left">
-        📅 <span>Semesterplanerare</span>
-    </div>
+    <div>📅 Semesterplanerare</div>
 
-    <div class="topbar-center" id="calendarControls"></div>
+    <button id="openVacationBtn">+ Ny semester</button>
 
-    <div class="topbar-right">
-
-        <button class="primary-btn" id="openVacationBtn">
-            + Ny semester
-        </button>
-
-        <div class="user-box">
-            <span id="currentUserName">Användare</span>
-        </div>
-
-        <button class="logout-btn" id="logoutBtn">
-            Logga ut
-        </button>
-
+    <div>
+        <span id="currentUserName"></span>
+        <button id="logoutBtn">Logga ut</button>
     </div>
 </header>
 
-<!-- ========================================== -->
-<!-- 🎯 ACTIONS -->
-<!-- ========================================== -->
-
 <section class="actions">
-    <div class="action-card" id="openEmployeeModal">
-        👥 Lägg till personal
-    </div>
-
-    <div class="action-card" id="openVacationModal">
-        📅 Lägg till semester
-    </div>
-
-    <div class="action-card" id="openFilterModal">
-        🔍 Filter
-    </div>
+    <div id="openEmployeeModal">👥 Lägg till personal</div>
+    <div id="openVacationModal">📅 Lägg till semester</div>
+    <div id="openFilterModal">🔍 Filter</div>
 </section>
-
-<!-- ========================================== -->
-<!-- 📅 KALENDER -->
-<!-- ========================================== -->
 
 <main>
     <div id="calendar"></div>
 </main>
 
-<!-- ========================================== -->
-<!-- 📋 LISTA -->
-<!-- ========================================== -->
-
-<section class="card">
+<section>
     <h3>📋 Semesterlista</h3>
     <ul id="vacationList"></ul>
 </section>
 
-<!-- ========================================== -->
-<!-- 🪟 MODALS -->
-<!-- ========================================== -->
-
+<!-- MODALS -->
 <div id="modalOverlay" class="modal-overlay"></div>
 
-<!-- 👥 PERSONAL -->
 <div id="employeeModal" class="modal">
     <div class="modal-content">
-        <button class="close" data-close>×</button>
+        <button data-close>×</button>
         <h3>Lägg till personal</h3>
-
-        <p id="employeeWarning" class="warning"></p>
-
-        <input type="text" id="employeeName" placeholder="Namn">
-
-        <button class="primary-btn" id="saveEmployeeBtn">
-            Spara
-        </button>
+        <p id="employeeWarning"></p>
+        <input type="text" id="employeeName">
+        <button id="saveEmployeeBtn">Spara</button>
     </div>
 </div>
 
-<!-- 📅 SEMESTER -->
 <div id="vacationModal" class="modal">
     <div class="modal-content">
-        <button class="close" data-close>×</button>
+        <button data-close>×</button>
         <h3>Lägg till semester</h3>
 
         <select id="employeeSelect"></select>
@@ -111,84 +62,51 @@
         <input type="date" id="startDate">
         <input type="date" id="endDate">
 
-        <button class="primary-btn" id="saveVacationBtn">
-            Spara
-        </button>
-
-        <p id="warning" class="warning"></p>
+        <button id="saveVacationBtn">Spara</button>
+        <p id="warning"></p>
     </div>
 </div>
 
-<!-- 🔍 FILTER -->
 <div id="filterModal" class="modal">
     <div class="modal-content">
-        <button class="close" data-close>×</button>
+        <button data-close>×</button>
         <h3>Filter</h3>
-
-        <select id="filter">
-            <option value="all">Visa alla</option>
-        </select>
+        <select id="filter"></select>
     </div>
 </div>
 
-<!-- ========================================== -->
-<!-- 📦 SCRIPTS -->
-<!-- ========================================== -->
-
-<!-- 🔹 CORE -->
+<!-- SCRIPTS -->
 <script src="data.js"></script>
 <script src="auth.js"></script>
 <script src="ui.js"></script>
-
-<!-- 🔹 DATA LAYER -->
 <script src="employees.js"></script>
 <script src="vacations.js"></script>
-
-<!-- 🔹 CALENDAR -->
 <script src="calendar/calendar-events.js"></script>
 <script src="calendar/calendar-init.js"></script>
-
-<!-- 🔹 APP INIT -->
 <script src="app.js"></script>
 
-<!-- ========================================== -->
-<!-- 🔗 EVENT BINDING (RENARE ÄN INLINE onclick) -->
-<!-- ========================================== -->
-
+<!-- INIT -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-    // 🔹 User name
     const user = localStorage.getItem("currentUser");
-    const userEl = document.getElementById("currentUserName");
-    if (userEl && user) userEl.innerText = user;
+    if (user) {
+        document.getElementById("currentUserName").innerText = user;
+    }
 
-    // 🔹 Buttons → modals
-    document.getElementById("openVacationBtn")?.addEventListener("click", () => openModal("vacationModal"));
-    document.getElementById("openEmployeeModal")?.addEventListener("click", () => openModal("employeeModal"));
-    document.getElementById("openVacationModal")?.addEventListener("click", () => openModal("vacationModal"));
-    document.getElementById("openFilterModal")?.addEventListener("click", () => openModal("filterModal"));
+    document.getElementById("openVacationBtn").onclick = () => openModal("vacationModal");
+    document.getElementById("openEmployeeModal").onclick = () => openModal("employeeModal");
+    document.getElementById("openVacationModal").onclick = () => openModal("vacationModal");
+    document.getElementById("openFilterModal").onclick = () => openModal("filterModal");
 
-    // 🔹 Close buttons
     document.querySelectorAll("[data-close]").forEach(btn =>
-        btn.addEventListener("click", closeModal)
+        btn.onclick = closeModal
     );
 
-    // 🔹 Overlay close
-    document.getElementById("modalOverlay")?.addEventListener("click", closeModal);
+    document.getElementById("saveEmployeeBtn").onclick = tryAddEmployee;
+    document.getElementById("saveVacationBtn").onclick = trySubmitVacation;
 
-    // 🔹 Save actions
-    document.getElementById("saveEmployeeBtn")?.addEventListener("click", tryAddEmployee);
-    document.getElementById("saveVacationBtn")?.addEventListener("click", trySubmitVacation);
-
-    // 🔹 Logout
-    document.getElementById("logoutBtn")?.addEventListener("click", logout);
-
-    // 🔹 Filter
-    document.getElementById("filter")?.addEventListener("change", () => {
-        refreshCalendar?.();
-        closeModal();
-    });
+    document.getElementById("logoutBtn").onclick = logout;
 
 });
 </script>
