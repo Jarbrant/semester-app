@@ -1,5 +1,5 @@
 /* ==========================================
-   🪟 MODAL HANDLING (PRODUCTION SAFE)
+   🪟 MODAL + DATE INPUT FIX
 ========================================== */
 
 window.openModal = function(id) {
@@ -11,7 +11,7 @@ window.openModal = function(id) {
     modal.classList.add("active");
     overlay.style.display = "block";
 
-    // 🔥 KRITISK FIX – stäng av kalendern
+    // 🔥 stäng av kalendern
     const calendar = document.querySelector(".fc");
     if (calendar) {
         calendar.style.pointerEvents = "none";
@@ -24,9 +24,7 @@ window.closeModal = function() {
 
     modals.forEach(m => m.classList.remove("active"));
 
-    if (overlay) {
-        overlay.style.display = "none";
-    }
+    if (overlay) overlay.style.display = "none";
 
     // 🔥 återaktivera kalendern
     const calendar = document.querySelector(".fc");
@@ -34,3 +32,17 @@ window.closeModal = function() {
         calendar.style.pointerEvents = "auto";
     }
 };
+
+/* ==========================================
+   📅 SIMPLE DATE HANDLING
+========================================== */
+
+// klick på input → fyll dagens datum om tomt
+document.addEventListener("click", (e) => {
+    if (e.target.id === "startDate" || e.target.id === "endDate") {
+        if (!e.target.value) {
+            const today = new Date().toISOString().split("T")[0];
+            e.target.value = today;
+        }
+    }
+});
