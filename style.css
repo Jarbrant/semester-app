@@ -227,7 +227,7 @@ main {
 }
 
 /* ==========================================
-   🪟 MODAL (PRODUCTION READY)
+   🪟 MODAL (FIXAD VERSION)
 ========================================== */
 
 .modal-overlay {
@@ -261,14 +261,15 @@ main {
 
     transition: all 0.2s ease;
 
-    pointer-events: auto;
+    pointer-events: none; /* 🔥 KRITISK FIX */
 }
 
 .modal.active {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
-}
 
+    pointer-events: auto; /* 🔥 KRITISK FIX */
+}
 /* ==========================================
    📦 CONTENT
 ========================================== */
