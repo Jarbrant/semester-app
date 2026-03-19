@@ -16,33 +16,27 @@
 <body>
 
 <!-- ========================================== -->
-<!-- 🔝 TOPBAR (SaaS style) -->
+<!-- 🔝 TOPBAR -->
 <!-- ========================================== -->
 
 <header class="topbar">
 
-    <!-- vänster -->
     <div class="topbar-left">
         📅 <span>Semesterplanerare</span>
     </div>
 
-    <!-- mitten (framtida controls) -->
     <div class="topbar-center" id="calendarControls"></div>
 
-    <!-- höger -->
     <div class="topbar-right">
 
-        <!-- ➕ Ny semester -->
         <button class="primary-btn" onclick="openModal('vacationModal')">
             + Ny semester
         </button>
 
-        <!-- 👤 användare (nice-to-have dropdown senare) -->
         <div class="user-box">
             <span id="currentUserName">Användare</span>
         </div>
 
-        <!-- 🚪 logout -->
         <button class="logout-btn" onclick="logout()">
             Logga ut
         </button>
@@ -72,7 +66,7 @@
 </section>
 
 <!-- ========================================== -->
-<!-- 📅 KALENDER (MAIN FOCUS) -->
+<!-- 📅 KALENDER -->
 <!-- ========================================== -->
 
 <main>
@@ -89,10 +83,9 @@
 </section>
 
 <!-- ========================================== -->
-<!-- 🪟 MODALS (FIXED + SAFE STRUCTURE) -->
+<!-- 🪟 MODALS -->
 <!-- ========================================== -->
 
-<!-- overlay (important for z-index fix) -->
 <div id="modalOverlay" class="modal-overlay" onclick="closeModal()"></div>
 
 <!-- 👥 PERSONAL -->
@@ -103,11 +96,7 @@
 
         <h3>Lägg till personal</h3>
 
-        <input 
-            type="text"
-            id="employeeName"
-            placeholder="Namn"
-        >
+        <input type="text" id="employeeName" placeholder="Namn">
 
         <button class="primary-btn" onclick="addEmployee(); closeModal();">
             Spara
@@ -146,7 +135,8 @@
 
         <h3>Filter</h3>
 
-        <select id="filter" onchange="renderCalendar(); closeModal();">
+        <!-- ❗ OBS: renderCalendar bort -->
+        <select id="filter" onchange="refreshCalendar(); closeModal();">
             <option value="all">Visa alla</option>
         </select>
 
@@ -154,7 +144,7 @@
 </div>
 
 <!-- ========================================== -->
-<!-- 📦 SCRIPTS -->
+<!-- 📦 SCRIPTS (KRITISK ORDNING) -->
 <!-- ========================================== -->
 
 <script src="data.js"></script>
@@ -162,15 +152,21 @@
 <script src="ui.js"></script>
 <script src="employees.js"></script>
 <script src="vacations.js"></script>
-<script src="calendar.js"></script>
+
+<!-- 🔥 FULLCALENDAR LOGIK -->
+<script src="calendar/calendar-events.js"></script>
+<script src="calendar/calendar-init.js"></script>
+
+<!-- ❌ BORT -->
+<!-- <script src="calendar.js"></script> -->
+
 <script src="app.js"></script>
 
 <!-- ========================================== -->
-<!-- 🧠 NICE TO HAVE (AUTO INIT) -->
+<!-- 🧠 USER NAME INIT -->
 <!-- ========================================== -->
 
 <script>
-/* visar användarnamn i UI */
 document.addEventListener("DOMContentLoaded", () => {
     const user = localStorage.getItem("currentUser");
     const el = document.getElementById("currentUserName");
