@@ -15,12 +15,8 @@
 
 <body>
 
-<!-- ========================================== -->
 <!-- 🔝 TOPBAR -->
-<!-- ========================================== -->
-
 <header class="topbar">
-
     <div class="topbar-left">
         📅 <span>Semesterplanerare</span>
     </div>
@@ -28,7 +24,6 @@
     <div class="topbar-center" id="calendarControls"></div>
 
     <div class="topbar-right">
-
         <button class="primary-btn" onclick="openModal('vacationModal')">
             + Ny semester
         </button>
@@ -40,58 +35,56 @@
         <button class="logout-btn" onclick="logout()">
             Logga ut
         </button>
-
     </div>
-
 </header>
 
-<!-- ========================================== -->
 <!-- 🎯 ACTIONS -->
-<!-- ========================================== -->
-
 <section class="actions">
     <div class="action-card" onclick="openModal('employeeModal')">
         👥 Lägg till personal
     </div>
+
     <div class="action-card" onclick="openModal('vacationModal')">
         📅 Lägg till semester
     </div>
+
     <div class="action-card" onclick="openModal('filterModal')">
         🔍 Filter
     </div>
+
+    <!-- 🧩 NY -->
+    <div class="action-card" onclick="openModal('groupModal')">
+        🧩 Skapa grupp
+    </div>
 </section>
 
-<!-- ========================================== -->
 <!-- 📅 KALENDER -->
-<!-- ========================================== -->
-
 <main>
     <div id="calendar"></div>
 </main>
 
-<!-- ========================================== -->
 <!-- 📋 LISTA -->
-<!-- ========================================== -->
-
 <section class="card">
     <h3>📋 Semesterlista</h3>
     <ul id="vacationList"></ul>
 </section>
 
-<!-- ========================================== -->
 <!-- 🪟 MODALS -->
-<!-- ========================================== -->
-
-<!-- 🔥 FIX: tog bort onclick här -->
 <div id="modalOverlay" class="modal-overlay"></div>
 
-<!-- 👥 PERSONAL -->
+<!-- 👤 PERSONAL -->
 <div id="employeeModal" class="modal">
     <div class="modal-content">
         <button class="close" onclick="closeModal()">×</button>
         <h3>Lägg till personal</h3>
-        <p id="employeeWarning" style="color:#e11d48;font-size:15px"></p>
+
+        <p id="employeeWarning" style="color:#e11d48"></p>
+
         <input type="text" id="employeeName" placeholder="Namn">
+
+        <!-- 🔥 GROUP SELECT -->
+        <select id="employeeGroupSelect"></select>
+
         <button class="primary-btn" onclick="tryAddEmployee()">Spara</button>
     </div>
 </div>
@@ -104,12 +97,12 @@
 
         <select id="employeeSelect"></select>
 
-        <!-- 🔥 FIX: ingen placeholder -->
         <input type="date" id="startDate">
         <input type="date" id="endDate">
 
         <button class="primary-btn" onclick="trySubmitVacation()">Spara</button>
-        <p id="warning"></p>
+
+        <p id="warning" style="color:#e11d48"></p>
     </div>
 </div>
 
@@ -118,50 +111,54 @@
     <div class="modal-content">
         <button class="close" onclick="closeModal()">×</button>
         <h3>Filter</h3>
+
         <select id="filter" onchange="refreshCalendar(); closeModal();">
             <option value="all">Visa alla</option>
         </select>
     </div>
 </div>
 
-<!-- ========================================== -->
+<!-- 🧩 GROUP MODAL -->
+<div id="groupModal" class="modal">
+    <div class="modal-content">
+        <button class="close" onclick="closeModal()">×</button>
+        <h3>Skapa grupp</h3>
+
+        <input type="text" id="groupName" placeholder="Gruppnamn">
+
+        <input type="color" id="groupColor" value="#3b82f6">
+
+        <input type="number" id="groupLimit" placeholder="Max samtidiga" min="1">
+
+        <button class="primary-btn" onclick="tryAddGroup()">Spara</button>
+
+        <p id="groupWarning" style="color:#e11d48"></p>
+    </div>
+</div>
+
 <!-- 📦 SCRIPTS (KRITISK ORDNING) -->
-<!-- ========================================== -->
 
 <script src="data.js"></script>
 <script src="auth.js"></script>
 <script src="ui.js"></script>
+
+<!-- 🔥 NY -->
+<script src="groups.js"></script>
+
 <script src="employees.js"></script>
 <script src="vacations.js"></script>
-
-<script>
-    console.log("CORE + DATA loaded");
-</script>
 
 <script src="calendar/calendar-events.js"></script>
 <script src="calendar/calendar-init.js"></script>
 
-<script>
-    console.log("Calendar modules loaded");
-</script>
-
 <script src="app.js"></script>
 
-<script>
-    console.log("App loaded");
-</script>
-
-<!-- ========================================== -->
-<!-- 🧠 USER NAME INIT -->
-<!-- ========================================== -->
-
+<!-- 🧠 USER INIT -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const user = localStorage.getItem("currentUser");
     const el = document.getElementById("currentUserName");
-    if (el && user) {
-        el.innerText = user;
-    }
+    if (el && user) el.innerText = user;
 });
 </script>
 
