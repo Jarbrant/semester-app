@@ -1,5 +1,5 @@
 /* ==========================================
-   🧩 GROUP UI (ROBUST)
+   🧩 GROUP UI (PRODUCTION)
 ========================================== */
 
 window.tryAddGroup = function () {
@@ -86,7 +86,46 @@ window.tryAddEmployee = function () {
 };
 
 /* ==========================================
-   📅 VACATION (behåll kompatibilitet)
+   📅 EMPLOYEE SELECT (FIX BUG)
+========================================== */
+
+window.refreshEmployeeSelect = function (filter = "") {
+    const select = document.getElementById("employeeSelect");
+    if (!select) return;
+
+    if (typeof getEmployees !== "function") {
+        console.error("❌ getEmployees saknas");
+        return;
+    }
+
+    const employees = getEmployees();
+
+    const filtered = employees.filter(emp =>
+        emp.name.toLowerCase().includes(filter.toLowerCase())
+    );
+
+    select.innerHTML = "";
+
+    if (!filtered.length) {
+        const opt = document.createElement("option");
+        opt.textContent = "Ingen match";
+        opt.value = "";
+        select.appendChild(opt);
+        return;
+    }
+
+    filtered.forEach(emp => {
+        const opt = document.createElement("option");
+        opt.value = emp.id;
+        opt.textContent = emp.name;
+        select.appendChild(opt);
+    });
+
+    select.selectedIndex = 0;
+};
+
+/* ==========================================
+   📅 VACATION
 ========================================== */
 
 window.trySubmitVacation = function () {
@@ -112,7 +151,7 @@ window.trySubmitVacation = function () {
 };
 
 /* ==========================================
-   🪟 MODAL (STABIL)
+   🪟 MODAL
 ========================================== */
 
 window.openModal = function (id) {
@@ -129,13 +168,16 @@ window.openModal = function (id) {
     modal.classList.add("active");
     overlay.style.display = "block";
 
-    // 🔥 Refresh beroende på modal
     if (id === "employeeModal") {
         refreshGroupSelect();
     }
 
-    if (id === "vacationModal" && typeof refreshEmployeeSelect === "function") {
+    if (id === "vacationModal") {
         refreshEmployeeSelect();
+
+        // 🔥 reset search field
+        const search = document.getElementById("employeeSearch");
+        if (search) search.value = "";
     }
 };
 
@@ -147,10 +189,18 @@ window.closeModal = function () {
 };
 
 /* ==========================================
-   EVENTS (SAFE INIT)
+   🔍 SEARCH (NY FEATURE)
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
+
+    const search = document.getElementById("employeeSearch");
+
+    if (search) {
+        search.addEventListener("input", () => {
+            refreshEmployeeSelect(search.value);
+        });
+    }
 
     // Overlay click
     document.getElementById("modalOverlay")?.addEventListener("click", closeModal);
