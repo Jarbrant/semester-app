@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 FULLCALENDAR INIT (PRODUCTION PATCHED)
+   📅 FULLCALENDAR INIT (MAX PRODUCTION)
 ========================================== */
 
 let calendar;
@@ -13,7 +13,6 @@ window.initCalendar = function () {
             return;
         }
 
-        // 🔥 Undvik dubbel init
         if (calendar) {
             calendar.destroy();
             calendar = null;
@@ -25,16 +24,12 @@ window.initCalendar = function () {
 
         calendar = new FullCalendar.Calendar(calendarEl, {
 
-            /* ==========================================
-               ⚙️ BASCONFIG
-            ========================================== */
-
             initialView: "dayGridMonth",
             firstDay: 1,
             locale: "sv",
             height: "auto",
 
-            /* 🔥 KRITISK FIX – gör att färger funkar */
+            /* 🔥 CRITICAL */
             eventDisplay: "block",
 
             headerToolbar: {
@@ -50,21 +45,10 @@ window.initCalendar = function () {
                 list: "Lista"
             },
 
-            /* ==========================================
-               📡 EVENTS (SAFE FETCH)
-            ========================================== */
-
             events: function (fetchInfo, successCallback) {
                 try {
                     const events = eventsFn();
-
-                    if (!Array.isArray(events)) {
-                        console.warn("⚠️ getCalendarEvents returnerade ej array");
-                        return successCallback([]);
-                    }
-
-                    successCallback(events);
-
+                    successCallback(Array.isArray(events) ? events : []);
                 } catch (err) {
                     console.error("❌ event fetch error:", err);
                     successCallback([]);
@@ -72,8 +56,35 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               🖱 KLICK PÅ DAG
+               🎨 FORCE RENDER FIX (THE MAGIC)
             ========================================== */
+
+            eventDidMount: function (info) {
+                try {
+                    const bg = info.event.backgroundColor;
+
+                    if (bg) {
+                        // 🔥 Force color on element
+                        info.el.style.backgroundColor = bg;
+                        info.el.style.borderColor = bg;
+
+                        // 🔥 Force color on wrapper (THIS fixes your bug)
+                        if (info.el.parentElement) {
+                            info.el.parentElement.style.backgroundColor = bg;
+                            info.el.parentElement.style.borderRadius = "999px";
+                        }
+                    }
+
+                    // Tooltip
+                    const tooltip = info.event.extendedProps?.tooltip;
+                    if (tooltip) {
+                        info.el.title = tooltip;
+                    }
+
+                } catch (err) {
+                    console.warn("⚠️ eventDidMount error:", err);
+                }
+            },
 
             dateClick: function (info) {
                 try {
@@ -85,18 +96,12 @@ window.initCalendar = function () {
                         endInput.value = info.dateStr;
                     }
 
-                    if (typeof openModal === "function") {
-                        openModal("vacationModal");
-                    }
+                    openModal?.("vacationModal");
 
                 } catch (err) {
                     console.warn("⚠️ dateClick error:", err);
                 }
             },
-
-            /* ==========================================
-               🗑 DELETE EVENT
-            ========================================== */
 
             eventClick: function (info) {
                 try {
@@ -105,64 +110,36 @@ window.initCalendar = function () {
                     const ok = confirm(`Ta bort semester för ${info.event.title}?`);
                     if (!ok) return;
 
-                    if (typeof removeVacation === "function") {
-                        removeVacation(info.event.id);
-                    }
+                    removeVacation?.(info.event.id);
 
                 } catch (err) {
                     console.warn("⚠️ eventClick error:", err);
                 }
             },
 
-            /* ==========================================
-               💡 TOOLTIP
-            ========================================== */
-
-            eventDidMount: function (info) {
-                try {
-                    const tooltip = info.event.extendedProps?.tooltip;
-
-                    if (tooltip) {
-                        info.el.title = tooltip;
-                    }
-
-                } catch (err) {
-                    console.warn("⚠️ tooltip error:", err);
-                }
-            },
-
-            /* ==========================================
-               ✨ UX – CURSOR
-            ========================================== */
-
             eventMouseEnter: function (info) {
-                try {
-                    info.el.style.cursor = "pointer";
-                } catch {}
+                info.el.style.cursor = "pointer";
             }
 
         });
 
         calendar.render();
 
-        console.log("✅ Calendar init klar");
+        console.log("✅ Calendar MAX init klar");
 
     } catch (err) {
         console.error("💥 Calendar crash:", err);
     }
 };
 
-
 /* ==========================================
-   🔄 REFRESH (PRODUCTION SAFE)
+   🔄 REFRESH
 ========================================== */
 
 window.refreshCalendar = function () {
     try {
         if (!calendar) return;
-
         calendar.refetchEvents();
-
     } catch (err) {
         console.error("💥 refreshCalendar error:", err);
     }
