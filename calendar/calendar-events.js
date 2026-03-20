@@ -1,36 +1,38 @@
 /* ==========================================
-   📅 EVENTS MED GROUP COLORS (ROBUST VERSION)
+   📅 EVENTS MED GROUP COLORS (PRO VERSION)
 ========================================== */
 
-// 🔒 Fallbacks (förhindrar att appen kraschar)
-if (typeof getGroups !== "function") {
-    window.getGroups = () => [];
-}
-
-if (typeof getEmployees !== "function") {
-    window.getEmployees = () => [];
-}
-
-if (typeof getVacations !== "function") {
-    window.getVacations = () => [];
-}
+// 🔒 Fallbacks (förhindrar crash)
+if (typeof getGroups !== "function") window.getGroups = () => [];
+if (typeof getEmployees !== "function") window.getEmployees = () => [];
+if (typeof getVacations !== "function") window.getVacations = () => [];
 
 /* ==========================================
-   🎨 HJÄLP: SÄKER FÄRGHANTERING
+   🎨 SÄKER FÄRG
 ========================================== */
 
 function getSafeColor(group) {
-    // fallback färg om något saknas
     const defaultColor = "#3788d8";
 
     if (!group) return defaultColor;
 
-    // säkerställ att color finns och är giltig string
     if (typeof group.color === "string" && group.color.trim() !== "") {
         return group.color;
     }
 
     return defaultColor;
+}
+
+/* ==========================================
+   🧠 NICE TO HAVE: TOOLTIP TEXT
+========================================== */
+
+function buildTooltip(emp, group, vac) {
+    return `
+👤 ${emp?.name || "Okänd"}
+🧩 ${group?.name || "Ingen grupp"}
+📅 ${vac.start} → ${vac.end}
+    `.trim();
 }
 
 /* ==========================================
@@ -45,28 +47,35 @@ window.getCalendarEvents = function () {
 
         return vacations.map(vac => {
 
-            // 🔍 hitta employee
             const emp = employees.find(e => e.id == vac.employee_id);
-
-            // 🔍 hitta group (om finns)
             const group = emp ? groups.find(g => g.id == emp.group_id) : null;
 
-            // 🎨 färg
             const color = getSafeColor(group);
 
+            // 🔥 DEBUG (kan tas bort sen)
+            // console.log("Event color:", color);
+
             return {
-              id: vac.id ?? Date.now(),
-              title: emp?.name || "Okänd",
-              start: vac.start,
-              end: addOneDaySafe(vac.end),
+                id: vac.id ?? Date.now(),
 
-             // 🔥 FULL FIX
-             color: color,
-             backgroundColor: color,
-             borderColor: color,
-             textColor: "#ffffff",
+                title: emp?.name || "Okänd",
 
-             allDay: true
+                start: vac.start,
+                end: addOneDaySafe(vac.end),
+
+                /* 🎨 FULLCOLOR FIX */
+                color: color,
+                backgroundColor: color,
+                borderColor: color,
+                textColor: "#ffffff",
+
+                allDay: true,
+
+                /* 💡 NICE TO HAVE */
+                extendedProps: {
+                    tooltip: buildTooltip(emp, group, vac),
+                    groupName: group?.name || null
+                }
             };
         });
 
@@ -77,7 +86,7 @@ window.getCalendarEvents = function () {
 };
 
 /* ==========================================
-   🛠 SÄKER DATE FIX
+   🛠 DATE FIX
 ========================================== */
 
 function addOneDaySafe(dateStr) {
@@ -85,7 +94,6 @@ function addOneDaySafe(dateStr) {
 
     try {
         const date = new Date(dateStr);
-
         if (isNaN(date)) return dateStr;
 
         date.setDate(date.getDate() + 1);
