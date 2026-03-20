@@ -178,7 +178,7 @@ main {
 }
 
 /* ==========================================
-   🎯 EVENTS (FULL FIX + PREMIUM)
+   🎯 EVENTS (FIXED + PREMIUM)
 ========================================== */
 
 .fc-event {
@@ -188,14 +188,13 @@ main {
     font-size: 11px;
     font-weight: 600;
 
-    /* 🔥 VIKTIGT: LÅT JS STYRA FÄRG */
-    background: none !important;
+    /* 🔥 FIX: låt FullCalendar styra färg */
+    background-color: inherit !important;
+    border-color: inherit !important;
 
     color: #fff !important;
 
-    /* 💎 PREMIUM LOOK */
     box-shadow: 0 3px 10px rgba(0,0,0,0.18);
-
     transition: all 0.15s ease;
 
     display: flex;
@@ -223,6 +222,30 @@ main {
 /* spacing */
 .fc-daygrid-event {
     margin-top: 2px;
+}
+
+/* 🔥 EXTRA: säkerställ att dayGrid respekterar färger */
+.fc-daygrid-event-dot {
+    display: none;
+}
+
+/* ==========================================
+   🌈 NICE TO HAVE (UX BOOST)
+========================================== */
+
+/* subtle glow per event */
+.fc-event {
+    backdrop-filter: blur(2px);
+}
+
+/* bättre stacking */
+.fc-daygrid-event-harness {
+    margin-bottom: 2px;
+}
+
+/* smooth hover */
+.fc-event {
+    will-change: transform;
 }
 
 /* ==========================================
