@@ -1,8 +1,8 @@
 /* ==========================================
-   📅 EVENTS MED GROUP COLORS (PRO VERSION)
+   📅 EVENTS MED GROUP COLORS (FINAL PRO)
 ========================================== */
 
-// 🔒 Fallbacks (förhindrar crash)
+// 🔒 Fallbacks
 if (typeof getGroups !== "function") window.getGroups = () => [];
 if (typeof getEmployees !== "function") window.getEmployees = () => [];
 if (typeof getVacations !== "function") window.getVacations = () => [];
@@ -24,19 +24,17 @@ function getSafeColor(group) {
 }
 
 /* ==========================================
-   🧠 NICE TO HAVE: TOOLTIP TEXT
+   🧠 TOOLTIP
 ========================================== */
 
 function buildTooltip(emp, group, vac) {
-    return `
-👤 ${emp?.name || "Okänd"}
+    return `👤 ${emp?.name || "Okänd"}
 🧩 ${group?.name || "Ingen grupp"}
-📅 ${vac.start} → ${vac.end}
-    `.trim();
+📅 ${vac.start} → ${vac.end}`;
 }
 
 /* ==========================================
-   📅 HUVUDFUNKTION
+   📅 EVENTS
 ========================================== */
 
 window.getCalendarEvents = function () {
@@ -50,10 +48,7 @@ window.getCalendarEvents = function () {
             const emp = employees.find(e => e.id == vac.employee_id);
             const group = emp ? groups.find(g => g.id == emp.group_id) : null;
 
-            const color = getSafeColor(group);
-
-            // 🔥 DEBUG (kan tas bort sen)
-            // console.log("Event color:", color);
+            const color = getSafeColor(group) || "#3788d8";
 
             return {
                 id: vac.id ?? Date.now(),
@@ -63,18 +58,21 @@ window.getCalendarEvents = function () {
                 start: vac.start,
                 end: addOneDaySafe(vac.end),
 
-                /* 🎨 FULLCOLOR FIX */
-                color: color,
+                /* 🔥 KRITISK FIX */
+                display: "block",
+
                 backgroundColor: color,
                 borderColor: color,
                 textColor: "#ffffff",
 
+                /* ❌ TA BORT color (skapar buggar) */
+
                 allDay: true,
 
-                /* 💡 NICE TO HAVE */
                 extendedProps: {
                     tooltip: buildTooltip(emp, group, vac),
-                    groupName: group?.name || null
+                    groupName: group?.name || null,
+                    employeeId: emp?.id || null
                 }
             };
         });
@@ -97,7 +95,6 @@ function addOneDaySafe(dateStr) {
         if (isNaN(date)) return dateStr;
 
         date.setDate(date.getDate() + 1);
-
         return date.toISOString().split("T")[0];
 
     } catch (err) {
