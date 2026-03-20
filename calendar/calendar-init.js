@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 FULLCALENDAR INIT (SAFE VERSION)
+   📅 FULLCALENDAR INIT (PRO VERSION)
 ========================================== */
 
 let calendar;
@@ -13,7 +13,12 @@ window.initCalendar = function () {
             return;
         }
 
-        // 🔥 fallback om getCalendarEvents saknas
+        // 🔥 undvik dubbel init
+        if (calendar) {
+            calendar.destroy();
+            calendar = null;
+        }
+
         const eventsFn = typeof getCalendarEvents === "function"
             ? getCalendarEvents
             : () => [];
@@ -38,7 +43,19 @@ window.initCalendar = function () {
                 list: "Lista"
             },
 
-            events: eventsFn(),
+            // 🔥 viktigt: använd function istället
+            events: function(fetchInfo, successCallback) {
+                try {
+                    successCallback(eventsFn());
+                } catch (err) {
+                    console.error("❌ event fetch error:", err);
+                    successCallback([]);
+                }
+            },
+
+            /* ==========================================
+               🖱 KLICK PÅ DAG
+            ========================================== */
 
             dateClick: function(info) {
                 const startInput = document.getElementById("startDate");
@@ -49,10 +66,12 @@ window.initCalendar = function () {
                     endInput.value = info.dateStr;
                 }
 
-                if (typeof openModal === "function") {
-                    openModal("vacationModal");
-                }
+                openModal?.("vacationModal");
             },
+
+            /* ==========================================
+               🗑 DELETE EVENT
+            ========================================== */
 
             eventClick: function(info) {
                 if (!info?.event?.id) return;
@@ -60,9 +79,27 @@ window.initCalendar = function () {
                 const ok = confirm(`Ta bort semester för ${info.event.title}?`);
                 if (!ok) return;
 
-                if (typeof removeVacation === "function") {
-                    removeVacation(info.event.id);
+                removeVacation?.(info.event.id);
+            },
+
+            /* ==========================================
+               💡 NICE: TOOLTIP
+            ========================================== */
+
+            eventDidMount: function(info) {
+                const tooltip = info.event.extendedProps?.tooltip;
+
+                if (tooltip) {
+                    info.el.title = tooltip;
                 }
+            },
+
+            /* ==========================================
+               ✨ NICE: HOVER EFFECT (cursor)
+            ========================================== */
+
+            eventMouseEnter: function(info) {
+                info.el.style.cursor = "pointer";
             }
 
         });
@@ -75,20 +112,14 @@ window.initCalendar = function () {
 };
 
 /* ==========================================
-   🔄 REFRESH (SAFE)
+   🔄 REFRESH (PRO VERSION)
 ========================================== */
 
 window.refreshCalendar = function () {
     try {
         if (!calendar) return;
 
-        calendar.removeAllEvents();
-
-        const eventsFn = typeof getCalendarEvents === "function"
-            ? getCalendarEvents
-            : () => [];
-
-        calendar.addEventSource(eventsFn());
+        calendar.refetchEvents(); // 🔥 bättre än remove/add
 
     } catch (err) {
         console.error("💥 refreshCalendar error:", err);
