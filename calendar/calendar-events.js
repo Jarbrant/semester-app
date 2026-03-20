@@ -55,17 +55,18 @@ window.getCalendarEvents = function () {
             const color = getSafeColor(group);
 
             return {
-                id: vac.id ?? Date.now(),
+              id: vac.id ?? Date.now(),
+              title: emp?.name || "Okänd",
+              start: vac.start,
+              end: addOneDaySafe(vac.end),
 
-                title: emp?.name || "Okänd",
+             // 🔥 FULL FIX
+             color: color,
+             backgroundColor: color,
+             borderColor: color,
+             textColor: "#ffffff",
 
-                start: vac.start,
-                end: addOneDaySafe(vac.end),
-
-                backgroundColor: color,
-                borderColor: color,
-
-                allDay: true
+             allDay: true
             };
         });
 
