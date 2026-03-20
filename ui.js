@@ -65,7 +65,7 @@ window.tryAddEmployee = function () {
 };
 
 /* ==========================================
-   🔄 EMPLOYEE LIST (EDIT/DELETE)
+   🔄 EMPLOYEE LIST
 ========================================== */
 
 window.renderEmployeeList = function () {
@@ -80,9 +80,7 @@ window.renderEmployeeList = function () {
         const li = document.createElement("li");
         li.style.cursor = "pointer";
         li.textContent = emp.name;
-
         li.onclick = () => openEditEmployee(emp.id);
-
         list.appendChild(li);
     });
 };
@@ -102,8 +100,8 @@ window.saveEmployeeEdit = function () {
     const name = document.getElementById("editEmployeeName").value;
 
     const employees = getEmployees();
-
     const emp = employees.find(e => e.id == id);
+
     if (emp) emp.name = name;
 
     saveEmployees(employees);
@@ -127,7 +125,7 @@ window.deleteEmployee = function () {
 };
 
 /* ==========================================
-   📅 EMPLOYEE SELECT + SEARCH
+   📅 EMPLOYEE SELECT + SEARCH (FIXAD)
 ========================================== */
 
 window.refreshEmployeeSelect = function (filter = "") {
@@ -142,31 +140,52 @@ window.refreshEmployeeSelect = function (filter = "") {
 
     select.innerHTML = "";
 
+    if (!filtered.length) {
+        const opt = document.createElement("option");
+        opt.textContent = "Ingen match";
+        opt.value = "";
+        select.appendChild(opt);
+        return;
+    }
+
     filtered.forEach(emp => {
         const opt = document.createElement("option");
         opt.value = emp.id;
         opt.textContent = emp.name;
         select.appendChild(opt);
     });
+
+    // 🔥 KRITISK FIX
+    select.selectedIndex = 0;
 };
 
 /* ==========================================
-   📅 VACATION
+   📅 VACATION (FIXAD)
 ========================================== */
 
 window.trySubmitVacation = function () {
-    const emp = document.getElementById("employeeSelect")?.value;
+    const select = document.getElementById("employeeSelect");
+    const emp = select?.value;
     const start = document.getElementById("startDate")?.value;
     const end = document.getElementById("endDate")?.value;
+    const warning = document.getElementById("warning");
 
-    if (!emp || !start || !end) return;
+    if (!emp || !start || !end) {
+        if (warning) warning.textContent = "Fyll i alla fält!";
+        return;
+    }
+
+    if (warning) warning.textContent = "";
+
+    console.log("Saving:", emp, start, end); // debug
 
     addVacation?.();
+
     closeModal();
 };
 
 /* ==========================================
-   🪟 MODAL
+   🪟 MODAL (FIXAD ORDNING)
 ========================================== */
 
 window.openModal = function (id) {
@@ -186,8 +205,12 @@ window.openModal = function (id) {
     }
 
     if (id === "vacationModal") {
-        refreshEmployeeSelect();
-        document.getElementById("employeeSearch").value = "";
+        // 🔥 FIX: reset search FÖRST
+        const search = document.getElementById("employeeSearch");
+        if (search) search.value = "";
+
+        // 🔥 SEN refresh
+        refreshEmployeeSelect("");
     }
 };
 
