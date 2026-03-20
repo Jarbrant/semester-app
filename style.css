@@ -190,7 +190,7 @@ main {
 }
 
 /* ==========================================
-   🎯 EVENTS (PILL STYLE)
+   🎯 EVENTS (FIXAD + BONUS)
 ========================================== */
 
 .fc-event {
@@ -202,16 +202,22 @@ main {
     font-size: 11px;
     font-weight: 500;
 
-    /* 🔥 LÅT JS SÄTTA FÄRG */
-    background: inherit !important;
+    /* 🔥 LÅT FULLCALENDAR SÄTTA FÄRG */
+    background-color: unset !important;
 
-    /* bättre kontrast */
+    /* vit text för kontrast */
     color: #fff !important;
+
+    /* 💎 BONUS: snygg depth */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+
+    transition: all 0.15s ease;
 }
 
-/* hover utan att sabba färgen */
+/* hover */
 .fc-event:hover {
     filter: brightness(0.9);
+    transform: translateY(-1px);
 }
 /* ==========================================
    📋 LISTA
