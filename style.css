@@ -21,10 +21,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-
     padding: 12px 24px;
     background: white;
-
     border-bottom: 1px solid #e5e7eb;
 }
 
@@ -39,7 +37,6 @@ body {
     gap: 12px;
 }
 
-/* 👤 user */
 .user-box {
     cursor: pointer;
     font-size: 14px;
@@ -53,13 +50,10 @@ body {
 .primary-btn {
     background: #2563eb;
     color: white;
-
     border: none;
     padding: 8px 14px;
-
     border-radius: 8px;
     cursor: pointer;
-
     font-size: 14px;
     transition: 0.2s;
 }
@@ -68,14 +62,11 @@ body {
     background: #1e4fd1;
 }
 
-/* 🔴 logout */
 .logout-btn {
     background: #ef4444;
     color: white;
-
     border: none;
     padding: 8px 12px;
-
     border-radius: 8px;
     cursor: pointer;
 }
@@ -91,27 +82,20 @@ body {
 .actions {
     display: flex;
     justify-content: center;
-
     gap: 20px;
     margin: 25px auto;
-
     max-width: 1100px;
 }
 
 .action-card {
     background: white;
-
     padding: 18px;
     border-radius: 12px;
-
     cursor: pointer;
     flex: 1;
-
     text-align: center;
     font-weight: 500;
-
     box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-
     transition: all 0.2s ease;
 }
 
@@ -121,43 +105,30 @@ body {
 }
 
 /* ==========================================
-   ✨ KALENDER UX BOOST
+   📅 KALENDER
 ========================================== */
 
-/* hover på dag */
-.fc-daygrid-day:hover {
-    background: #f9fafb;
-    cursor: pointer;
+main {
+    max-width: 1100px;
+    margin: auto;
 }
 
-/* bättre idag highlight */
-.fc-day-today {
-    background: linear-gradient(180deg, #eef6ff, #f8fbff) !important;
-}
-
-/* spacing mellan events */
-.fc-daygrid-event {
-    margin-top: 2px;
-}
-
-/* header spacing */
-.fc-header-toolbar {
-    margin-bottom: 10px !important;
-}
-
-/* lätt border */
 #calendar {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
     border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
 
 /* ==========================================
-   📅 FULLCALENDAR MODERN
+   📅 FULLCALENDAR
 ========================================== */
 
 .fc {
     font-size: 14px;
     position: relative;
-    z-index: 1; /* 🔥 kalender alltid under modal */
+    z-index: 1;
 }
 
 .fc-toolbar-title {
@@ -165,7 +136,6 @@ body {
     font-weight: 600;
 }
 
-/* knappar */
 .fc-button {
     background: transparent !important;
     border: none !important;
@@ -178,7 +148,6 @@ body {
     border-radius: 6px;
 }
 
-/* view switch */
 .fc-button-group {
     background: #f3f4f6;
     border-radius: 8px;
@@ -191,30 +160,35 @@ body {
     border-radius: 6px !important;
 }
 
-/* dagar */
+/* ==========================================
+   📅 DAGAR
+========================================== */
+
 .fc-daygrid-day {
     background: white;
 }
 
-/* idag */
+.fc-daygrid-day:hover {
+    background: #f9fafb;
+    cursor: pointer;
+}
+
 .fc-day-today {
-    background: #eef6ff !important;
+    background: linear-gradient(180deg, #eef6ff, #f8fbff) !important;
 }
 
 /* ==========================================
-   🎯 EVENTS (FIX + NEXT LEVEL)
+   🎯 EVENTS (FULL FIX + PREMIUM)
 ========================================== */
 
 .fc-event {
     border: none !important;
-
     border-radius: 999px !important;
     padding: 3px 10px;
-
     font-size: 11px;
     font-weight: 600;
 
-    /* 🔥 LÅT FULLCALENDAR STYRA FÄRG HELT */
+    /* 🔥 VIKTIGT: LÅT JS STYRA FÄRG */
     background: none !important;
 
     color: #fff !important;
@@ -234,43 +208,47 @@ body {
     transform: translateY(-1px) scale(1.02);
 }
 
-/* text fix */
+/* klick */
+.fc-event:active {
+    transform: scale(0.97);
+}
+
+/* text */
 .fc-event-title {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+/* spacing */
+.fc-daygrid-event {
+    margin-top: 2px;
+}
+
 /* ==========================================
    📋 LISTA
 ========================================== */
 
 .card {
     background: white;
-
     padding: 20px;
     margin: 30px auto;
-
     max-width: 1100px;
     border-radius: 12px;
-
     box-shadow: 0 6px 20px rgba(0,0,0,0.08);
 }
 
 /* ==========================================
-   🪟 MODAL (FIXAD VERSION)
+   🪟 MODAL
 ========================================== */
 
 .modal-overlay {
     position: fixed;
     inset: 0;
-
     background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(6px);
-
     display: none;
     z-index: 1000;
-
-    pointer-events: auto;
 }
 
 .modal {
@@ -278,31 +256,22 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0.95);
-
     background: white;
     border-radius: 16px;
     width: 360px;
     max-width: 90%;
-
     box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-
     opacity: 0;
     z-index: 1001;
-
     transition: all 0.2s ease;
-
-    pointer-events: none; /* 🔥 KRITISK FIX */
+    pointer-events: none;
 }
 
 .modal.active {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
-
-    pointer-events: auto; /* 🔥 KRITISK FIX */
+    pointer-events: auto;
 }
-/* ==========================================
-   📦 CONTENT
-========================================== */
 
 .modal-content {
     padding: 28px;
@@ -311,23 +280,19 @@ body {
     gap: 14px;
 }
 
-/* titel */
 .modal h3 {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
 }
 
-/* close */
 .modal .close {
     position: absolute;
     top: 12px;
     right: 14px;
-
     border: none;
     background: none;
     font-size: 20px;
-
     cursor: pointer;
     color: #666;
 }
@@ -344,32 +309,23 @@ body {
 .modal select {
     width: 100%;
     padding: 12px 14px;
-
     border-radius: 10px;
     border: 1px solid #ddd;
-
     font-size: 14px;
     background: #fafafa;
-
     transition: all 0.15s ease;
-
-    position: relative;
-    z-index: 1002; /* 🔥 över kalender */
+    z-index: 1002;
 }
 
-/* 🔥 KRITISK FIX – datepicker */
 input[type="date"] {
-    position: relative;
     z-index: 1003;
 }
 
-/* focus */
 .modal input:focus,
 .modal select:focus {
     outline: none;
     border-color: #3b82f6;
     background: white;
-
     box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
 }
 
@@ -380,7 +336,6 @@ input[type="date"] {
 .modal .primary-btn {
     margin-top: 10px;
     padding: 12px;
-
     border-radius: 10px;
     font-weight: 500;
 }
