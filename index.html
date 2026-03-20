@@ -52,7 +52,6 @@
         🔍 Filter
     </div>
 
-    <!-- 🧩 NY -->
     <div class="action-card" onclick="openModal('groupModal')">
         🧩 Skapa grupp
     </div>
@@ -81,11 +80,27 @@
         <p id="employeeWarning" style="color:#e11d48"></p>
 
         <input type="text" id="employeeName" placeholder="Namn">
-
-        <!-- 🔥 GROUP SELECT -->
         <select id="employeeGroupSelect"></select>
 
         <button class="primary-btn" onclick="tryAddEmployee()">Spara</button>
+
+        <!-- 🔥 NY: LISTA -->
+        <ul id="employeeList" style="margin-top:10px;"></ul>
+    </div>
+</div>
+
+<!-- ✏️ EDIT EMPLOYEE -->
+<div id="editEmployeeModal" class="modal">
+    <div class="modal-content">
+        <button class="close" onclick="closeModal()">×</button>
+        <h3>Redigera personal</h3>
+
+        <input type="hidden" id="editEmployeeId">
+
+        <input type="text" id="editEmployeeName" placeholder="Namn">
+
+        <button class="primary-btn" onclick="saveEmployeeEdit()">Spara</button>
+        <button class="logout-btn" onclick="deleteEmployee()">Ta bort</button>
     </div>
 </div>
 
@@ -95,7 +110,9 @@
         <button class="close" onclick="closeModal()">×</button>
         <h3>Lägg till semester</h3>
 
+        <!-- 🔍 SEARCH -->
         <input type="text" id="employeeSearch" placeholder="Sök person...">
+
         <select id="employeeSelect"></select>
 
         <input type="date" id="startDate">
@@ -126,9 +143,7 @@
         <h3>Skapa grupp</h3>
 
         <input type="text" id="groupName" placeholder="Gruppnamn">
-
         <input type="color" id="groupColor" value="#3b82f6">
-
         <input type="number" id="groupLimit" placeholder="Max samtidiga" min="1">
 
         <button class="primary-btn" onclick="tryAddGroup()">Spara</button>
@@ -142,10 +157,7 @@
 <script src="data.js"></script>
 <script src="auth.js"></script>
 <script src="ui.js"></script>
-
-<!-- 🔥 NY -->
 <script src="groups.js"></script>
-
 <script src="employees.js"></script>
 <script src="vacations.js"></script>
 
