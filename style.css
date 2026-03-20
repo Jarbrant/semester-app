@@ -178,38 +178,50 @@ main {
 }
 
 /* ==========================================
-   🎯 EVENTS (FIXED + PREMIUM)
+   🎯 EVENTS (FIXED FOR REAL)
 ========================================== */
 
+/* 🔥 CRITICAL: rätt nivå */
+.fc-daygrid-event-harness {
+    background: transparent !important;
+    margin-bottom: 3px;
+}
+
+/* 🔥 CRITICAL: låt JS färg slå igenom */
+.fc-daygrid-event-harness .fc-event {
+    background-color: unset !important;
+    border-color: unset !important;
+}
+
+/* 🎨 själva eventet */
 .fc-event {
     border: none !important;
     border-radius: 999px !important;
-    padding: 3px 10px;
+    padding: 4px 12px;
     font-size: 11px;
     font-weight: 600;
 
-    /* 🔥 FIX: låt FullCalendar styra färg */
-    background-color: inherit !important;
-    border-color: inherit !important;
-
     color: #fff !important;
-
-    box-shadow: 0 3px 10px rgba(0,0,0,0.18);
-    transition: all 0.15s ease;
 
     display: flex;
     align-items: center;
+    gap: 6px;
+
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    transition: all 0.15s ease;
+    backdrop-filter: blur(2px);
+    will-change: transform;
 }
 
 /* hover */
 .fc-event:hover {
-    filter: brightness(0.92);
-    transform: translateY(-1px) scale(1.02);
+    transform: translateY(-2px) scale(1.03);
+    filter: brightness(0.95);
 }
 
-/* klick */
+/* click */
 .fc-event:active {
-    transform: scale(0.97);
+    transform: scale(0.96);
 }
 
 /* text */
@@ -221,31 +233,12 @@ main {
 
 /* spacing */
 .fc-daygrid-event {
-    margin-top: 2px;
+    margin-top: 3px;
 }
 
-/* 🔥 EXTRA: säkerställ att dayGrid respekterar färger */
+/* remove dot mode */
 .fc-daygrid-event-dot {
     display: none;
-}
-
-/* ==========================================
-   🌈 NICE TO HAVE (UX BOOST)
-========================================== */
-
-/* subtle glow per event */
-.fc-event {
-    backdrop-filter: blur(2px);
-}
-
-/* bättre stacking */
-.fc-daygrid-event-harness {
-    margin-bottom: 2px;
-}
-
-/* smooth hover */
-.fc-event {
-    will-change: transform;
 }
 
 /* ==========================================
