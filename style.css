@@ -202,14 +202,17 @@ main {
     font-size: 11px;
     font-weight: 500;
 
-    background: #e5e7eb !important;
-    color: #111827 !important;
+    /* 🔥 LÅT JS SÄTTA FÄRG */
+    background: inherit !important;
+
+    /* bättre kontrast */
+    color: #fff !important;
 }
 
+/* hover utan att sabba färgen */
 .fc-event:hover {
-    background: #d1d5db !important;
+    filter: brightness(0.9);
 }
-
 /* ==========================================
    📋 LISTA
 ========================================== */
