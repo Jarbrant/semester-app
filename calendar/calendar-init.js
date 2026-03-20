@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 FULLCALENDAR INIT (PRO VERSION)
+   📅 FULLCALENDAR INIT (PRODUCTION PATCHED)
 ========================================== */
 
 let calendar;
@@ -13,7 +13,7 @@ window.initCalendar = function () {
             return;
         }
 
-        // 🔥 undvik dubbel init
+        // 🔥 Undvik dubbel init
         if (calendar) {
             calendar.destroy();
             calendar = null;
@@ -25,10 +25,17 @@ window.initCalendar = function () {
 
         calendar = new FullCalendar.Calendar(calendarEl, {
 
+            /* ==========================================
+               ⚙️ BASCONFIG
+            ========================================== */
+
             initialView: "dayGridMonth",
             firstDay: 1,
             locale: "sv",
             height: "auto",
+
+            /* 🔥 KRITISK FIX – gör att färger funkar */
+            eventDisplay: "block",
 
             headerToolbar: {
                 left: "prev,next today",
@@ -43,10 +50,21 @@ window.initCalendar = function () {
                 list: "Lista"
             },
 
-            // 🔥 viktigt: använd function istället
-            events: function(fetchInfo, successCallback) {
+            /* ==========================================
+               📡 EVENTS (SAFE FETCH)
+            ========================================== */
+
+            events: function (fetchInfo, successCallback) {
                 try {
-                    successCallback(eventsFn());
+                    const events = eventsFn();
+
+                    if (!Array.isArray(events)) {
+                        console.warn("⚠️ getCalendarEvents returnerade ej array");
+                        return successCallback([]);
+                    }
+
+                    successCallback(events);
+
                 } catch (err) {
                     console.error("❌ event fetch error:", err);
                     successCallback([]);
@@ -57,69 +75,93 @@ window.initCalendar = function () {
                🖱 KLICK PÅ DAG
             ========================================== */
 
-            dateClick: function(info) {
-                const startInput = document.getElementById("startDate");
-                const endInput = document.getElementById("endDate");
+            dateClick: function (info) {
+                try {
+                    const startInput = document.getElementById("startDate");
+                    const endInput = document.getElementById("endDate");
 
-                if (startInput && endInput) {
-                    startInput.value = info.dateStr;
-                    endInput.value = info.dateStr;
+                    if (startInput && endInput) {
+                        startInput.value = info.dateStr;
+                        endInput.value = info.dateStr;
+                    }
+
+                    if (typeof openModal === "function") {
+                        openModal("vacationModal");
+                    }
+
+                } catch (err) {
+                    console.warn("⚠️ dateClick error:", err);
                 }
-
-                openModal?.("vacationModal");
             },
 
             /* ==========================================
                🗑 DELETE EVENT
             ========================================== */
 
-            eventClick: function(info) {
-                if (!info?.event?.id) return;
+            eventClick: function (info) {
+                try {
+                    if (!info?.event?.id) return;
 
-                const ok = confirm(`Ta bort semester för ${info.event.title}?`);
-                if (!ok) return;
+                    const ok = confirm(`Ta bort semester för ${info.event.title}?`);
+                    if (!ok) return;
 
-                removeVacation?.(info.event.id);
-            },
+                    if (typeof removeVacation === "function") {
+                        removeVacation(info.event.id);
+                    }
 
-            /* ==========================================
-               💡 NICE: TOOLTIP
-            ========================================== */
-
-            eventDidMount: function(info) {
-                const tooltip = info.event.extendedProps?.tooltip;
-
-                if (tooltip) {
-                    info.el.title = tooltip;
+                } catch (err) {
+                    console.warn("⚠️ eventClick error:", err);
                 }
             },
 
             /* ==========================================
-               ✨ NICE: HOVER EFFECT (cursor)
+               💡 TOOLTIP
             ========================================== */
 
-            eventMouseEnter: function(info) {
-                info.el.style.cursor = "pointer";
+            eventDidMount: function (info) {
+                try {
+                    const tooltip = info.event.extendedProps?.tooltip;
+
+                    if (tooltip) {
+                        info.el.title = tooltip;
+                    }
+
+                } catch (err) {
+                    console.warn("⚠️ tooltip error:", err);
+                }
+            },
+
+            /* ==========================================
+               ✨ UX – CURSOR
+            ========================================== */
+
+            eventMouseEnter: function (info) {
+                try {
+                    info.el.style.cursor = "pointer";
+                } catch {}
             }
 
         });
 
         calendar.render();
 
+        console.log("✅ Calendar init klar");
+
     } catch (err) {
         console.error("💥 Calendar crash:", err);
     }
 };
 
+
 /* ==========================================
-   🔄 REFRESH (PRO VERSION)
+   🔄 REFRESH (PRODUCTION SAFE)
 ========================================== */
 
 window.refreshCalendar = function () {
     try {
         if (!calendar) return;
 
-        calendar.refetchEvents(); // 🔥 bättre än remove/add
+        calendar.refetchEvents();
 
     } catch (err) {
         console.error("💥 refreshCalendar error:", err);
