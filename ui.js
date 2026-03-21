@@ -1,5 +1,5 @@
 /* ==========================================
-   🧩 GROUP UI (FINAL PRO)
+   🧩 GROUP UI (FINAL PRO MAX)
 ========================================== */
 
 window.tryAddGroup = function () {
@@ -49,12 +49,13 @@ window.refreshGroupSelect = function () {
 };
 
 /* ==========================================
-   👤 EMPLOYEE ADD
+   👤 EMPLOYEE ADD (🔥 NY: semesterdagar)
 ========================================== */
 
 window.tryAddEmployee = function () {
     const name = document.getElementById("employeeName")?.value?.trim();
     const groupId = document.getElementById("employeeGroupSelect")?.value;
+    const vacationDays = document.getElementById("employeeVacationDays")?.value;
     const warning = document.getElementById("employeeWarning");
 
     if (!name) {
@@ -62,11 +63,12 @@ window.tryAddEmployee = function () {
         return;
     }
 
-    addEmployee?.(name, groupId || null);
+    addEmployee?.(name, groupId || null, vacationDays || 25);
 
     if (warning) warning.textContent = "";
 
     document.getElementById("employeeName").value = "";
+    document.getElementById("employeeVacationDays").value = "";
 
     renderEmployeeList();
     refreshEmployeeSelect();
@@ -75,13 +77,17 @@ window.tryAddEmployee = function () {
 };
 
 /* ==========================================
-   🔄 EMPLOYEE LIST (🔥 NEXT LEVEL UI)
+   📊 YEAR
 ========================================== */
 
 window.getSelectedYear = function () {
     const el = document.getElementById("yearFilter");
     return el ? parseInt(el.value) : new Date().getFullYear();
 };
+
+/* ==========================================
+   🔄 EMPLOYEE LIST (UI PRO)
+========================================== */
 
 window.renderEmployeeList = function () {
     const list = document.getElementById("employeeList");
@@ -99,7 +105,7 @@ window.renderEmployeeList = function () {
         const balance = getVacationBalance(emp.id, year);
 
         const used = balance?.used || 0;
-        const total = balance?.total || 25;
+        const total = balance?.total || emp.vacationDays || 25;
         const percent = balance?.percent || 0;
 
         const color = getVacationStatusColor(percent);
@@ -147,15 +153,30 @@ window.renderEmployeeList = function () {
 };
 
 /* ==========================================
-   ✏️ EDIT EMPLOYEE
+   ✏️ EDIT EMPLOYEE (🔥 NY: semesterdagar + balans)
 ========================================== */
 
 window.openEditEmployee = function (id) {
     const emp = getEmployees().find(e => e.id == id);
     if (!emp) return;
 
+    const year = getSelectedYear();
+    const balance = getVacationBalance(emp.id, year);
+
     document.getElementById("editEmployeeName").value = emp.name;
     document.getElementById("editEmployeeId").value = emp.id;
+
+    // 🔥 NYTT
+    document.getElementById("editEmployeeVacationDays").value = emp.vacationDays || 25;
+
+    // 🔥 BALANS UI
+    const box = document.getElementById("employeeBalanceBox");
+    if (box && balance) {
+        box.innerHTML = `
+            📊 ${balance.used} använda / ${balance.total} totalt  
+            <br>💡 Kvar: ${balance.remaining}
+        `;
+    }
 
     openModal("editEmployeeModal");
 };
@@ -163,10 +184,11 @@ window.openEditEmployee = function (id) {
 window.saveEmployeeEdit = function () {
     const id = document.getElementById("editEmployeeId").value;
     const name = document.getElementById("editEmployeeName").value?.trim();
+    const vacationDays = document.getElementById("editEmployeeVacationDays")?.value;
 
     if (!name) return;
 
-    updateEmployee(id, name);
+    updateEmployee(id, name, undefined, vacationDays);
 
     closeModal("editEmployeeModal");
 
@@ -221,7 +243,31 @@ window.refreshEmployeeSelect = function (filter = "") {
     });
 
     select.selectedIndex = 0;
+
+    // 🔥 visa balans direkt
+    updateVacationBalanceUI();
 };
+
+/* ==========================================
+   📊 LIVE BALANS I VACATION MODAL
+========================================== */
+
+function updateVacationBalanceUI() {
+    const empId = document.getElementById("employeeSelect")?.value;
+    const box = document.getElementById("vacationBalanceInfo");
+
+    if (!empId || !box) return;
+
+    const year = getSelectedYear();
+    const balance = getVacationBalance(empId, year);
+
+    if (!balance) return;
+
+    box.innerHTML = `
+        📊 ${balance.used} / ${balance.total} dagar  
+        <br>💡 Kvar: ${balance.remaining}
+    `;
+}
 
 /* ==========================================
    📅 VACATION
@@ -235,6 +281,11 @@ window.trySubmitVacation = function () {
 
     if (!emp || !start || !end) {
         if (warning) warning.textContent = "Fyll i alla fält!";
+        return;
+    }
+
+    if (!canAddVacation?.(emp, start, end)) {
+        if (warning) warning.textContent = "⚠️ För många semesterdagar!";
         return;
     }
 
@@ -270,6 +321,7 @@ window.openModal = function (id) {
         if (search) search.value = "";
 
         refreshEmployeeSelect("");
+        updateVacationBalanceUI();
     }
 };
 
@@ -284,13 +336,17 @@ window.closeModal = function (id) {
 };
 
 /* ==========================================
-   🔍 SEARCH + GLOBAL UX
+   🔍 SEARCH + EVENTS
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("employeeSearch")?.addEventListener("input", e => {
         refreshEmployeeSelect(e.target.value);
+    });
+
+    document.getElementById("employeeSelect")?.addEventListener("change", () => {
+        updateVacationBalanceUI();
     });
 
     document.getElementById("modalOverlay")?.addEventListener("click", () => closeModal());
