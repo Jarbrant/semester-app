@@ -1,5 +1,5 @@
 /* ==========================================
-   🎛 CALENDAR ACTIONS (PRODUCTION CORE)
+   🎛 CALENDAR ACTIONS (FINAL)
 ========================================== */
 
 window.calendarActions = {
@@ -16,10 +16,6 @@ window.calendarActions = {
         window.refreshCalendar?.();
     },
 
-    /* ==========================================
-       📊 EVENTS PER DAG
-    ========================================== */
-
     getEventsForDate(dateStr) {
         return this.getEvents().filter(e =>
             e.startStr <= dateStr && e.endStr >= dateStr
@@ -29,10 +25,6 @@ window.calendarActions = {
     countEventsForDate(dateStr) {
         return this.getEventsForDate(dateStr).length;
     },
-
-    /* ==========================================
-       🚨 OVERBOOKING
-    ========================================== */
 
     isOverbooked(dateStr, limit = 3) {
         return this.countEventsForDate(dateStr) > limit;
