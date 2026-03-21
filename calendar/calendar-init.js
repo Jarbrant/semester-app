@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 FULLCALENDAR INIT (PER-DAY RENDER PATCH)
+   📅 FULLCALENDAR INIT (CLEAN + ACTIONS)
 ========================================== */
 
 let calendar;
@@ -51,23 +51,20 @@ window.initCalendar = function () {
             events: function (fetchInfo, successCallback) {
                 try {
                     const rawEvents = eventsFn();
-
                     const splitEvents = [];
 
                     rawEvents.forEach(event => {
                         const start = new Date(event.start);
                         const end = new Date(event.end);
-
                         const current = new Date(start);
 
                         while (current < end) {
-
                             const dayStr = current.toISOString().split("T")[0];
 
                             splitEvents.push({
                                 ...event,
                                 start: dayStr,
-                                end: dayStr, // 🔥 1-day event
+                                end: dayStr,
                                 id: event.id + "_" + dayStr
                             });
 
@@ -84,11 +81,11 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               🎨 STABIL FÄRG
+               🎨 EVENTS (VIA ACTIONS)
             ========================================== */
 
             eventDidMount: function (info) {
-                applyEventColor(info);
+                window.calendarActions?.applyEventColor(info);
 
                 try {
                     const tooltip = info.event.extendedProps?.tooltip;
@@ -99,7 +96,7 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               📊 DAY LOGIC (OFÖRÄNDRAD)
+               📊 DAY CELLS (VIA ACTIONS)
             ========================================== */
 
             dayCellDidMount: function (info) {
@@ -151,11 +148,14 @@ window.initCalendar = function () {
 
         calendar.render();
 
+        /* 🔥 FIX reload timing */
         setTimeout(() => {
             calendar.refetchEvents();
         }, 50);
 
-        console.log("✅ Calendar PER-DAY init klar");
+        window.calendar = calendar;
+
+        console.log("✅ Calendar FULL ACTIONS init klar");
 
     } catch (err) {
         console.error("💥 Calendar crash:", err);
@@ -164,7 +164,7 @@ window.initCalendar = function () {
 
 
 /* ==========================================
-   🔄 REFRESH
+   🔄 REFRESH (UNCHANGED)
 ========================================== */
 
 window.refreshCalendar = function () {
@@ -175,21 +175,3 @@ window.refreshCalendar = function () {
         console.error("💥 refreshCalendar error:", err);
     }
 };
-
-
-/* ==========================================
-   🎨 COLOR ENGINE
-========================================== */
-
-function applyEventColor(info) {
-    try {
-        const bg = info.event.backgroundColor;
-        if (!bg) return;
-
-        info.el.style.setProperty("background-color", bg, "important");
-        info.el.style.setProperty("border-color", bg, "important");
-
-    } catch (err) {
-        console.warn("⚠️ applyEventColor error:", err);
-    }
-}
