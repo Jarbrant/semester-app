@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 FULLCALENDAR INIT (NEXT LEVEL PRO)
+   📅 FULLCALENDAR INIT (MAX PRODUCTION PATCHED)
 ========================================== */
 
 let calendar;
@@ -44,10 +44,6 @@ window.initCalendar = function () {
                 list: "Lista"
             },
 
-            /* ==========================================
-               📡 EVENTS
-            ========================================== */
-
             events: function (fetchInfo, successCallback) {
                 try {
                     const events = eventsFn();
@@ -59,42 +55,28 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               🎨 FORCE COLOR (ULTIMATE FIX)
+               🎨 STABIL FÄRG (FIXAD)
             ========================================== */
 
             eventDidMount: function (info) {
+                applyEventColor(info);
+
                 try {
-                    const bg = info.event.backgroundColor;
-
-                    if (bg) {
-                        info.el.style.backgroundColor = bg;
-                        info.el.style.borderColor = bg;
-
-                        if (info.el.parentElement) {
-                            info.el.parentElement.style.backgroundColor = bg;
-                            info.el.parentElement.style.borderRadius = "999px";
-                        }
-                    }
-
                     const tooltip = info.event.extendedProps?.tooltip;
                     if (tooltip) {
                         info.el.title = tooltip;
                     }
-
-                } catch (err) {
-                    console.warn("⚠️ eventDidMount error:", err);
-                }
+                } catch {}
             },
 
             /* ==========================================
-               📊 DAY COUNTER + OVERBOOK
+               📊 DAY CELL (OFÖRÄNDRAD FUNKTION)
             ========================================== */
 
             dayCellDidMount: function (info) {
                 try {
                     setTimeout(() => {
                         const events = calendar.getEvents();
-
                         const dayStr = info.date.toISOString().split("T")[0];
 
                         const todays = events.filter(e =>
@@ -103,7 +85,6 @@ window.initCalendar = function () {
 
                         if (todays.length === 0) return;
 
-                        // 📊 counter
                         const counter = document.createElement("div");
                         counter.innerText = todays.length;
                         counter.style.position = "absolute";
@@ -114,21 +95,13 @@ window.initCalendar = function () {
 
                         info.el.appendChild(counter);
 
-                        // 🚨 overbook (basic)
                         if (todays.length > 3) {
                             info.el.style.boxShadow = "inset 0 0 0 2px #ef4444";
                         }
 
                     }, 0);
-
-                } catch (err) {
-                    console.warn("⚠️ dayCell error:", err);
-                }
+                } catch {}
             },
-
-            /* ==========================================
-               🖱 INTERACTION
-            ========================================== */
 
             dateClick: function (info) {
                 const startInput = document.getElementById("startDate");
@@ -159,27 +132,78 @@ window.initCalendar = function () {
 
         calendar.render();
 
-        /* 🔥 CRITICAL: FIX reload bug */
+        /* 🔥 KRITISK: FIX RELOAD BUG */
         setTimeout(() => {
-            calendar.refetchEvents();
+            try {
+                calendar.refetchEvents();
+
+                // 🔥 FORCE repaint
+                document.querySelectorAll(".fc-event").forEach(el => {
+                    const bg = el.style.backgroundColor;
+                    if (bg) {
+                        el.style.setProperty("background-color", bg, "important");
+                    }
+                });
+
+            } catch {}
         }, 50);
 
-        console.log("✅ Calendar NEXT LEVEL init klar");
+        console.log("✅ Calendar MAX init klar");
 
     } catch (err) {
         console.error("💥 Calendar crash:", err);
     }
 };
 
+
 /* ==========================================
-   🔄 REFRESH
+   🔄 REFRESH (PATCHED)
 ========================================== */
 
 window.refreshCalendar = function () {
     try {
         if (!calendar) return;
+
         calendar.refetchEvents();
+
+        // 🔥 FORCE repaint efter refetch
+        setTimeout(() => {
+            document.querySelectorAll(".fc-event").forEach(el => {
+                const bg = el.style.backgroundColor;
+                if (bg) {
+                    el.style.setProperty("background-color", bg, "important");
+                }
+            });
+        }, 30);
+
     } catch (err) {
         console.error("💥 refreshCalendar error:", err);
     }
 };
+
+
+/* ==========================================
+   🎨 COLOR ENGINE (NY – KRITISK FIX)
+========================================== */
+
+function applyEventColor(info) {
+    try {
+        const bg = info.event.backgroundColor;
+        if (!bg) return;
+
+        // event
+        info.el.style.setProperty("background-color", bg, "important");
+        info.el.style.setProperty("border-color", bg, "important");
+
+        // wrapper (viktig!)
+        const parent = info.el.closest(".fc-daygrid-event-harness");
+
+        if (parent) {
+            parent.style.setProperty("background-color", bg, "important");
+            parent.style.setProperty("border-radius", "999px");
+        }
+
+    } catch (err) {
+        console.warn("⚠️ applyEventColor error:", err);
+    }
+}
