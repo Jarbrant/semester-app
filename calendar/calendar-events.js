@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 EVENTS MED GROUP COLORS (PATCHED)
+   📅 EVENTS MED GROUP COLORS (FINAL SAFE)
 ========================================== */
 
 // 🔒 Fallbacks
@@ -8,7 +8,7 @@ if (typeof getEmployees !== "function") window.getEmployees = () => [];
 if (typeof getVacations !== "function") window.getVacations = () => [];
 
 /* ==========================================
-   🎨 SAFE COLOR (FIXAD)
+   🎨 SAFE COLOR
 ========================================== */
 
 function getSafeColor(group) {
