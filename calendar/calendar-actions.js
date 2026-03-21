@@ -1,12 +1,8 @@
 /* ==========================================
-   🎛 CALENDAR ACTIONS (FULL INTEGRATION)
+   🎛 CALENDAR ACTIONS (PRODUCTION CORE)
 ========================================== */
 
 window.calendarActions = {
-
-    /* ==========================================
-       📦 CORE
-    ========================================== */
 
     getCalendar() {
         return window.calendar || null;
@@ -43,13 +39,12 @@ window.calendarActions = {
     },
 
     /* ==========================================
-       🎨 COLOR ENGINE (CENTRAL)
+       🎨 COLOR ENGINE (FIXED)
     ========================================== */
 
     applyEventColor(info) {
         try {
-            const bg = info.event.backgroundColor;
-            if (!bg) return;
+            const bg = info.event.backgroundColor || "#3788d8";
 
             info.el.style.setProperty("background-color", bg, "important");
             info.el.style.setProperty("border-color", bg, "important");
@@ -60,7 +55,7 @@ window.calendarActions = {
     },
 
     /* ==========================================
-       🎨 DAY UI
+       📊 DAY UI
     ========================================== */
 
     addDayCounter(cellEl, count) {
@@ -85,10 +80,6 @@ window.calendarActions = {
             cellEl.style.boxShadow = "inset 0 0 0 2px #ef4444";
         }
     },
-
-    /* ==========================================
-       🧠 MAIN CELL PROCESSOR
-    ========================================== */
 
     processDayCell(cellEl, dateStr) {
         const count = this.countEventsForDate(dateStr);
