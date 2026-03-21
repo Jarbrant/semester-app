@@ -1,5 +1,5 @@
 /* ==========================================
-   🎛 CALENDAR ACTIONS (PRODUCTION CORE)
+   🎛 CALENDAR ACTIONS (FULL INTEGRATION)
 ========================================== */
 
 window.calendarActions = {
@@ -25,9 +25,7 @@ window.calendarActions = {
     ========================================== */
 
     getEventsForDate(dateStr) {
-        const events = this.getEvents();
-
-        return events.filter(e =>
+        return this.getEvents().filter(e =>
             e.startStr <= dateStr && e.endStr >= dateStr
         );
     },
@@ -37,7 +35,7 @@ window.calendarActions = {
     },
 
     /* ==========================================
-       🚨 OVERBOOKING (BASIC)
+       🚨 OVERBOOKING
     ========================================== */
 
     isOverbooked(dateStr, limit = 3) {
@@ -45,7 +43,24 @@ window.calendarActions = {
     },
 
     /* ==========================================
-       🎨 UI HELPERS
+       🎨 COLOR ENGINE (CENTRAL)
+    ========================================== */
+
+    applyEventColor(info) {
+        try {
+            const bg = info.event.backgroundColor;
+            if (!bg) return;
+
+            info.el.style.setProperty("background-color", bg, "important");
+            info.el.style.setProperty("border-color", bg, "important");
+
+        } catch (err) {
+            console.warn("⚠️ applyEventColor error:", err);
+        }
+    },
+
+    /* ==========================================
+       🎨 DAY UI
     ========================================== */
 
     addDayCounter(cellEl, count) {
@@ -53,6 +68,7 @@ window.calendarActions = {
 
         const el = document.createElement("div");
         el.innerText = count;
+
         el.style.position = "absolute";
         el.style.top = "4px";
         el.style.right = "6px";
@@ -71,7 +87,7 @@ window.calendarActions = {
     },
 
     /* ==========================================
-       🔥 APPLY LOGIC TO CELL
+       🧠 MAIN CELL PROCESSOR
     ========================================== */
 
     processDayCell(cellEl, dateStr) {
