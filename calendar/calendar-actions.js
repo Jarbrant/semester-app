@@ -1,8 +1,12 @@
 /* ==========================================
-   🎛 CALENDAR ACTIONS (FINAL)
+   🎛 CALENDAR ACTIONS (PRO MAX VERSION)
 ========================================== */
 
 window.calendarActions = {
+
+    /* ==========================================
+       🔌 CORE
+    ========================================== */
 
     getCalendar() {
         return window.calendar || null;
@@ -16,10 +20,36 @@ window.calendarActions = {
         window.refreshCalendar?.();
     },
 
+    /* ==========================================
+       ⚡ PERFORMANCE CACHE
+    ========================================== */
+
+    _eventCache: {},
+
+    buildEventCache() {
+        const cache = {};
+
+        this.getEvents().forEach(e => {
+            const start = new Date(e.start);
+            const end = new Date(e.end);
+
+            let current = new Date(start);
+
+            while (current <= end) {
+                const key = current.toISOString().split("T")[0];
+
+                if (!cache[key]) cache[key] = [];
+                cache[key].push(e);
+
+                current.setDate(current.getDate() + 1);
+            }
+        });
+
+        this._eventCache = cache;
+    },
+
     getEventsForDate(dateStr) {
-        return this.getEvents().filter(e =>
-            e.startStr <= dateStr && e.endStr >= dateStr
-        );
+        return this._eventCache[dateStr] || [];
     },
 
     countEventsForDate(dateStr) {
@@ -31,21 +61,46 @@ window.calendarActions = {
     },
 
     /* ==========================================
-       🎨 COLOR ENGINE (FIXED)
+       🎨 COLOR ENGINE (SMART + SAFE)
     ========================================== */
 
     applyEventColor(info) {
         try {
-            // Sätter färg om den är satt på eventet
-            const bg = info.event.backgroundColor || "#3788d8";
+            const bg = info.event.backgroundColor || "#3b82f6";
             const border = info.event.borderColor || bg;
             const text = info.event.textColor || "#fff";
+
+            // 🔥 tvinga färg (FullCalendar override fix)
             info.el.style.setProperty("background-color", bg, "important");
             info.el.style.setProperty("border-color", border, "important");
             info.el.style.setProperty("color", text, "important");
+
         } catch (err) {
             console.warn("⚠️ applyEventColor error:", err);
         }
+    },
+
+    /* ==========================================
+       🌡 HEATMAP ENGINE (🔥 NY!)
+    ========================================== */
+
+    getHeatColor(count) {
+        if (count === 0) return "transparent";
+
+        if (count === 1) return "rgba(59,130,246,0.08)";
+        if (count === 2) return "rgba(59,130,246,0.15)";
+        if (count === 3) return "rgba(59,130,246,0.25)";
+        if (count >= 4) return "rgba(239,68,68,0.25)"; // överbelastning
+
+        return "transparent";
+    },
+
+    applyHeatmap(cellEl, count) {
+        if (!cellEl) return;
+
+        const color = this.getHeatColor(count);
+
+        cellEl.style.background = color;
     },
 
     /* ==========================================
@@ -55,7 +110,11 @@ window.calendarActions = {
     addDayCounter(cellEl, count) {
         if (!cellEl || count <= 0) return;
 
+        // 🔥 undvik duplicering
+        if (cellEl.querySelector(".day-counter")) return;
+
         const el = document.createElement("div");
+        el.className = "day-counter";
         el.innerText = count;
 
         el.style.position = "absolute";
@@ -75,13 +134,27 @@ window.calendarActions = {
         }
     },
 
+    /* ==========================================
+       🧠 MAIN PROCESSOR (UPGRADED)
+    ========================================== */
+
     processDayCell(cellEl, dateStr) {
-        const count = this.countEventsForDate(dateStr);
+        try {
+            const count = this.countEventsForDate(dateStr);
 
-        this.addDayCounter(cellEl, count);
+            // 🔥 heatmap först
+            this.applyHeatmap(cellEl, count);
 
-        if (this.isOverbooked(dateStr)) {
-            this.highlightDay(cellEl, "overbooked");
+            // 🔢 counter
+            this.addDayCounter(cellEl, count);
+
+            // 🚨 overbooking
+            if (this.isOverbooked(dateStr)) {
+                this.highlightDay(cellEl, "overbooked");
+            }
+
+        } catch (err) {
+            console.warn("⚠️ processDayCell error:", err);
         }
     }
 
