@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 FULLCALENDAR INIT (FINAL PRO MAX)
+   📅 FULLCALENDAR INIT (PRO MAX ULTRA)
 ========================================== */
 
 let calendar;
@@ -13,6 +13,7 @@ window.initCalendar = function () {
             return;
         }
 
+        // 🔄 clean destroy
         if (calendar) {
             calendar.destroy();
             calendar = null;
@@ -29,6 +30,7 @@ window.initCalendar = function () {
             locale: "sv",
             height: "auto",
             eventDisplay: "block",
+            fixedWeekCount: false,
 
             headerToolbar: {
                 left: "prev,next today",
@@ -44,10 +46,10 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               📅 EVENTS (SPLIT + SAFE)
+               📅 EVENTS (SMART SPLIT)
             ========================================== */
 
-            events: function (fetchInfo, successCallback) {
+            events(fetchInfo, successCallback) {
                 try {
                     const rawEvents = eventsFn() || [];
                     const splitEvents = [];
@@ -68,9 +70,11 @@ window.initCalendar = function () {
                                 title: event.title,
                                 start: dayStr,
                                 end: dayStr,
+
                                 backgroundColor: event.backgroundColor,
                                 borderColor: event.borderColor,
                                 textColor: event.textColor,
+
                                 display: "block",
                                 allDay: true,
                                 extendedProps: event.extendedProps
@@ -78,6 +82,11 @@ window.initCalendar = function () {
 
                             current.setDate(current.getDate() + 1);
                         }
+                    });
+
+                    // 🔥 bygg cache för actions
+                    requestAnimationFrame(() => {
+                        window.calendarActions?.buildEventCache();
                     });
 
                     successCallback(splitEvents);
@@ -89,23 +98,13 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               🎨 EVENT RENDER
+               🎨 EVENT RENDER (HARD FIX)
             ========================================== */
 
-            eventDidMount: function (info) {
+            eventDidMount(info) {
                 try {
-                    // 🔥 FORCE COLOR (säker mot CSS buggar)
-                    const bg = info.event.backgroundColor;
-
-                    if (bg) {
-                        info.el.style.backgroundColor = bg;
-                        info.el.style.borderColor = bg;
-
-                        if (info.el.parentElement) {
-                            info.el.parentElement.style.backgroundColor = bg;
-                            info.el.parentElement.style.borderRadius = "999px";
-                        }
-                    }
+                    // 🔥 använd din centraliserade engine
+                    window.calendarActions?.applyEventColor(info);
 
                     const tooltip = info.event.extendedProps?.tooltip;
                     if (tooltip) {
@@ -118,39 +117,23 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               🔥 HEATMAP DAY CELLS (NYTT)
+               🌡 DAY CELLS (HEATMAP + UI)
             ========================================== */
 
-            dayCellDidMount: function (info) {
+            dayCellDidMount(info) {
                 try {
                     const dateStr = info.date.toISOString().split("T")[0];
 
-                    // 🔥 samla events för denna dag
-                    const events = calendar.getEvents();
-
-                    let load = 0;
-
-                    events.forEach(e => {
-                        if (e.startStr === dateStr) {
-                            load += e.extendedProps?.load || 0;
-                        }
+                    // 🔥 använd central logik istället
+                    requestAnimationFrame(() => {
+                        window.calendarActions?.processDayCell(
+                            info.el,
+                            dateStr
+                        );
                     });
 
-                    // 🔥 visualisera cell
-                    if (load > 0) {
-                        const intensity = Math.min(load / 10, 1);
-
-                        info.el.style.background = `
-                            linear-gradient(
-                                180deg,
-                                rgba(255,255,255,0.8),
-                                rgba(255,0,0,${0.05 + intensity * 0.25})
-                            )
-                        `;
-                    }
-
                 } catch (err) {
-                    console.warn("⚠️ dayCell heatmap error:", err);
+                    console.warn("⚠️ dayCell error:", err);
                 }
             },
 
@@ -158,7 +141,7 @@ window.initCalendar = function () {
                🖱 INTERACTIONS
             ========================================== */
 
-            dateClick: function (info) {
+            dateClick(info) {
                 const startInput = document.getElementById("startDate");
                 const endInput = document.getElementById("endDate");
 
@@ -170,7 +153,7 @@ window.initCalendar = function () {
                 openModal?.("vacationModal");
             },
 
-            eventClick: function (info) {
+            eventClick(info) {
                 if (!info?.event?.id) return;
 
                 const originalId = info.event.id.split("_")[0];
@@ -178,7 +161,7 @@ window.initCalendar = function () {
                 window.openEditVacationModal?.(originalId);
             },
 
-            eventMouseEnter: function (info) {
+            eventMouseEnter(info) {
                 info.el.style.cursor = "pointer";
             }
 
@@ -186,14 +169,14 @@ window.initCalendar = function () {
 
         calendar.render();
 
-        // 🔥 säker refetch efter render (fixar race condition)
+        // 🔥 stabil refetch (fixar timing issues)
         requestAnimationFrame(() => {
             calendar.refetchEvents();
         });
 
         window.calendar = calendar;
 
-        console.log("✅ Calendar FINAL MAX init klar");
+        console.log("✅ Calendar PRO MAX init klar");
 
     } catch (err) {
         console.error("💥 Calendar crash:", err);
@@ -201,14 +184,19 @@ window.initCalendar = function () {
 };
 
 /* ==========================================
-   🔄 REFRESH (STABIL)
+   🔄 REFRESH (SMART)
 ========================================== */
 
 window.refreshCalendar = function () {
     try {
         if (!calendar) return;
 
+        // 🔥 rebuild cache + refresh
         calendar.refetchEvents();
+
+        requestAnimationFrame(() => {
+            window.calendarActions?.buildEventCache();
+        });
 
     } catch (err) {
         console.error("💥 refreshCalendar error:", err);
