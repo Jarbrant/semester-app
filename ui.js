@@ -1,11 +1,11 @@
 /* ==========================================
-   🧩 GROUP UI
+   🧩 GROUP UI (UPGRADED)
 ========================================== */
 
 window.tryAddGroup = function () {
     const name = document.getElementById("groupName")?.value?.trim();
     const color = document.getElementById("groupColor")?.value;
-    const limit = document.getElementById("groupLimit")?.value;
+    const limit = parseInt(document.getElementById("groupLimit")?.value) || 1;
     const warning = document.getElementById("groupWarning");
 
     if (!name) {
@@ -13,14 +13,19 @@ window.tryAddGroup = function () {
         return;
     }
 
-    addGroup?.(name, color, limit || 1);
+    addGroup?.(name, color, limit);
 
     if (warning) warning.textContent = "";
-    closeModal();
+
+    // 🔥 reset inputs
+    document.getElementById("groupName").value = "";
+    document.getElementById("groupLimit").value = "";
+
+    closeModal("groupModal");
 };
 
 /* ==========================================
-   🔽 GROUP SELECT
+   🔽 GROUP SELECT (UPGRADED)
 ========================================== */
 
 window.refreshGroupSelect = function () {
@@ -31,10 +36,10 @@ window.refreshGroupSelect = function () {
 
     select.innerHTML = "";
 
-    if (!groups.length) {
-        select.innerHTML = "<option>Inga grupper</option>";
-        return;
-    }
+    const defaultOpt = document.createElement("option");
+    defaultOpt.value = "";
+    defaultOpt.textContent = "Ingen grupp";
+    select.appendChild(defaultOpt);
 
     groups.forEach(g => {
         const opt = document.createElement("option");
@@ -45,7 +50,7 @@ window.refreshGroupSelect = function () {
 };
 
 /* ==========================================
-   👤 EMPLOYEE ADD
+   👤 EMPLOYEE ADD (UPGRADED)
 ========================================== */
 
 window.tryAddEmployee = function () {
@@ -60,12 +65,19 @@ window.tryAddEmployee = function () {
 
     addEmployee?.(name, groupId || null);
 
-    closeModal();
+    if (warning) warning.textContent = "";
+
+    // 🔥 reset input
+    document.getElementById("employeeName").value = "";
+
     renderEmployeeList();
+    refreshEmployeeSelect();
+
+    closeModal("employeeModal");
 };
 
 /* ==========================================
-   🔄 EMPLOYEE LIST
+   🔄 EMPLOYEE LIST (UPGRADED)
 ========================================== */
 
 window.renderEmployeeList = function () {
@@ -73,17 +85,34 @@ window.renderEmployeeList = function () {
     if (!list) return;
 
     const employees = getEmployees?.() || [];
+    const groups = getGroups?.() || [];
 
     list.innerHTML = "";
 
     employees.forEach(emp => {
         const li = document.createElement("li");
+
+        const group = groups.find(g => g.id == emp.group_id);
+
         li.style.cursor = "pointer";
-        li.textContent = emp.name;
+        li.style.padding = "6px 10px";
+        li.style.borderRadius = "8px";
+        li.style.marginBottom = "4px";
+
+        li.innerHTML = `
+            <span>${emp.name}</span>
+            ${group ? `<small style="color:#6b7280"> (${group.name})</small>` : ""}
+        `;
+
         li.onclick = () => openEditEmployee(emp.id);
+
         list.appendChild(li);
     });
 };
+
+/* ==========================================
+   ✏️ EDIT EMPLOYEE (UPGRADED)
+========================================== */
 
 window.openEditEmployee = function (id) {
     const emp = getEmployees().find(e => e.id == id);
@@ -97,7 +126,9 @@ window.openEditEmployee = function (id) {
 
 window.saveEmployeeEdit = function () {
     const id = document.getElementById("editEmployeeId").value;
-    const name = document.getElementById("editEmployeeName").value;
+    const name = document.getElementById("editEmployeeName").value?.trim();
+
+    if (!name) return;
 
     const employees = getEmployees();
     const emp = employees.find(e => e.id == id);
@@ -106,26 +137,32 @@ window.saveEmployeeEdit = function () {
 
     saveEmployees(employees);
 
-    closeModal();
+    closeModal("editEmployeeModal");
+
     renderEmployeeList();
     refreshEmployeeSelect();
+    refreshCalendar?.();
 };
 
 window.deleteEmployee = function () {
     const id = document.getElementById("editEmployeeId").value;
+
+    if (!confirm("Ta bort denna person?")) return;
 
     let employees = getEmployees();
     employees = employees.filter(e => e.id != id);
 
     saveEmployees(employees);
 
-    closeModal();
+    closeModal("editEmployeeModal");
+
     renderEmployeeList();
     refreshEmployeeSelect();
+    refreshCalendar?.();
 };
 
 /* ==========================================
-   📅 EMPLOYEE SELECT + SEARCH (FIXAD)
+   📅 EMPLOYEE SELECT + SEARCH (STABIL)
 ========================================== */
 
 window.refreshEmployeeSelect = function (filter = "") {
@@ -155,17 +192,15 @@ window.refreshEmployeeSelect = function (filter = "") {
         select.appendChild(opt);
     });
 
-    // 🔥 KRITISK FIX
     select.selectedIndex = 0;
 };
 
 /* ==========================================
-   📅 VACATION (FIXAD)
+   📅 VACATION (CLEAN FIX)
 ========================================== */
 
 window.trySubmitVacation = function () {
-    const select = document.getElementById("employeeSelect");
-    const emp = select?.value;
+    const emp = document.getElementById("employeeSelect")?.value;
     const start = document.getElementById("startDate")?.value;
     const end = document.getElementById("endDate")?.value;
     const warning = document.getElementById("warning");
@@ -177,15 +212,13 @@ window.trySubmitVacation = function () {
 
     if (warning) warning.textContent = "";
 
-    console.log("Saving:", emp, start, end); // debug
-
     addVacation?.();
 
-    closeModal();
+    closeModal("vacationModal");
 };
 
 /* ==========================================
-   🪟 MODAL (FIXAD ORDNING)
+   🪟 MODAL (PRO VERSION)
 ========================================== */
 
 window.openModal = function (id) {
@@ -199,28 +232,32 @@ window.openModal = function (id) {
     modal.classList.add("active");
     overlay.style.display = "block";
 
+    // 🔥 smart init
     if (id === "employeeModal") {
         refreshGroupSelect();
         renderEmployeeList();
     }
 
     if (id === "vacationModal") {
-        // 🔥 FIX: reset search FÖRST
         const search = document.getElementById("employeeSearch");
         if (search) search.value = "";
 
-        // 🔥 SEN refresh
         refreshEmployeeSelect("");
     }
 };
 
-window.closeModal = function () {
-    document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
+window.closeModal = function (id) {
+    if (id) {
+        document.getElementById(id)?.classList.remove("active");
+    } else {
+        document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
+    }
+
     document.getElementById("modalOverlay").style.display = "none";
 };
 
 /* ==========================================
-   🔍 SEARCH
+   🔍 SEARCH + GLOBAL UX
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -229,7 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
         refreshEmployeeSelect(e.target.value);
     });
 
-    document.getElementById("modalOverlay")?.addEventListener("click", closeModal);
+    document.getElementById("modalOverlay")?.addEventListener("click", () => closeModal());
 
     document.addEventListener("keydown", e => {
         if (e.key === "Escape") closeModal();
