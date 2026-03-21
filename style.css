@@ -178,22 +178,20 @@ main {
 }
 
 /* ==========================================
-   🎯 EVENTS (FIXED FOR REAL)
+   🎯 EVENTS (FIXED)
 ========================================== */
 
-/* 🔥 CRITICAL: rätt nivå */
 .fc-daygrid-event-harness {
     background: transparent !important;
     margin-bottom: 3px;
 }
 
-/* 🔥 CRITICAL: låt JS färg slå igenom */
+/* 🔥 FIX: ta bort unset */
 .fc-daygrid-event-harness .fc-event {
-    background-color: unset !important;
-    border-color: unset !important;
+    /* låt JS styra */
 }
 
-/* 🎨 själva eventet */
+/* 🎨 event design */
 .fc-event {
     border: none !important;
     border-radius: 999px !important;
@@ -236,9 +234,18 @@ main {
     margin-top: 3px;
 }
 
-/* remove dot mode */
+/* remove dot */
 .fc-daygrid-event-dot {
     display: none;
+}
+
+/* ==========================================
+   🔥 FINAL COLOR FIX (VIKTIGASTE)
+========================================== */
+
+.fc-event[data-bg] {
+    background-color: var(--event-bg, #3788d8) !important;
+    border-color: var(--event-bg, #3788d8) !important;
 }
 
 /* ==========================================
@@ -300,69 +307,6 @@ main {
     margin: 0;
     font-size: 18px;
     font-weight: 600;
-}
-
-.modal .close {
-    position: absolute;
-    top: 12px;
-    right: 14px;
-    border: none;
-    background: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: #666;
-}
-
-.modal .close:hover {
-    color: #000;
-}
-
-/* ==========================================
-   🔽 INPUTS
-========================================== */
-
-.modal input,
-.modal select {
-    width: 100%;
-    padding: 12px 14px;
-    border-radius: 10px;
-    border: 1px solid #ddd;
-    font-size: 14px;
-    background: #fafafa;
-    transition: all 0.15s ease;
-    z-index: 1002;
-}
-
-input[type="date"] {
-    z-index: 1003;
-}
-
-.modal input:focus,
-.modal select:focus {
-    outline: none;
-    border-color: #3b82f6;
-    background: white;
-    box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
-}
-
-/* ==========================================
-   🔘 BUTTON
-========================================== */
-
-.modal .primary-btn {
-    margin-top: 10px;
-    padding: 12px;
-    border-radius: 10px;
-    font-weight: 500;
-}
-
-/* ==========================================
-   ⚠️ WARNING
-========================================== */
-
-#warning {
-    color: #e11d48;
-    font-size: 13px;
 }
 
 /* ==========================================
