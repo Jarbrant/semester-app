@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 EVENTS (NEXT LEVEL PRO)
+   📅 EVENTS MED GROUP COLORS (PATCHED)
 ========================================== */
 
 // 🔒 Fallbacks
@@ -8,7 +8,7 @@ if (typeof getEmployees !== "function") window.getEmployees = () => [];
 if (typeof getVacations !== "function") window.getVacations = () => [];
 
 /* ==========================================
-   🎨 SAFE COLOR (HARDENED)
+   🎨 SAFE COLOR (FIXAD)
 ========================================== */
 
 function getSafeColor(group) {
@@ -57,8 +57,7 @@ window.getCalendarEvents = function () {
             return {
                 id: vac.id ?? Date.now(),
 
-                /* 🔥 bättre titel */
-                title: `${emp?.name || "Okänd"}`,
+                title: emp?.name || "Okänd",
 
                 start: vac.start,
                 end: addOneDaySafe(vac.end),
