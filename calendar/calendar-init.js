@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 FULLCALENDAR INIT (FINAL PRODUCTION)
+   📅 FULLCALENDAR INIT (PRODUCTION)
 ========================================== */
 
 let calendar;
@@ -23,12 +23,10 @@ window.initCalendar = function () {
             : () => [];
 
         calendar = new FullCalendar.Calendar(calendarEl, {
-
             initialView: "dayGridMonth",
             firstDay: 1,
             locale: "sv",
             height: "auto",
-
             eventDisplay: "block",
 
             headerToolbar: {
@@ -44,45 +42,31 @@ window.initCalendar = function () {
                 list: "Lista"
             },
 
-            /* ==========================================
-               🔥 SPLIT EVENTS PER DAG (FIXED)
-            ========================================== */
-
+            /* SPLIT EVENTS PER DAG */
             events: function (fetchInfo, successCallback) {
                 try {
                     const rawEvents = eventsFn();
                     const splitEvents = [];
 
                     rawEvents.forEach(event => {
-
                         const start = new Date(event.start);
                         const end = new Date(event.end);
-
                         const current = new Date(start);
 
                         while (current < end) {
-
                             const dayStr = current.toISOString().split("T")[0];
-
                             splitEvents.push({
                                 id: event.id + "_" + dayStr,
-
                                 title: event.title,
-
                                 start: dayStr,
                                 end: dayStr,
-
-                                /* 🔥 KRITISK FIX */
                                 backgroundColor: event.backgroundColor,
                                 borderColor: event.borderColor,
                                 textColor: event.textColor,
-
                                 display: "block",
                                 allDay: true,
-
                                 extendedProps: event.extendedProps
                             });
-
                             current.setDate(current.getDate() + 1);
                         }
                     });
@@ -95,13 +79,9 @@ window.initCalendar = function () {
                 }
             },
 
-            /* ==========================================
-               🎨 EVENTS VIA ACTIONS
-            ========================================== */
-
+            /* EVENTS VIA ACTIONS */
             eventDidMount: function (info) {
                 window.calendarActions?.applyEventColor(info);
-
                 try {
                     const tooltip = info.event.extendedProps?.tooltip;
                     if (tooltip) {
@@ -110,27 +90,17 @@ window.initCalendar = function () {
                 } catch {}
             },
 
-            /* ==========================================
-               📊 DAY CELLS VIA ACTIONS
-            ========================================== */
-
             dayCellDidMount: function (info) {
                 try {
                     setTimeout(() => {
                         const dateStr = info.date.toISOString().split("T")[0];
-
                         window.calendarActions?.processDayCell(
                             info.el,
                             dateStr
                         );
-
                     }, 0);
                 } catch {}
             },
-
-            /* ==========================================
-               🖱 INTERACTION
-            ========================================== */
 
             dateClick: function (info) {
                 const startInput = document.getElementById("startDate");
@@ -146,19 +116,15 @@ window.initCalendar = function () {
 
             eventClick: function (info) {
                 if (!info?.event?.id) return;
-
                 const originalId = info.event.id.split("_")[0];
-
                 const ok = confirm(`Ta bort semester för ${info.event.title}?`);
                 if (!ok) return;
-
                 removeVacation?.(originalId);
             },
 
             eventMouseEnter: function (info) {
                 info.el.style.cursor = "pointer";
             }
-
         });
 
         calendar.render();
@@ -170,12 +136,10 @@ window.initCalendar = function () {
         window.calendar = calendar;
 
         console.log("✅ Calendar FINAL init klar");
-
     } catch (err) {
         console.error("💥 Calendar crash:", err);
     }
 };
-
 
 /* ==========================================
    🔄 REFRESH
