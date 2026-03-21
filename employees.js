@@ -1,5 +1,5 @@
 /* ==========================================
-   👤 EMPLOYEES (FINAL PRO++ SYSTEM)
+   👤 EMPLOYEES (FINAL PRO+++ YEAR SYSTEM)
 ========================================== */
 
 const EMP_KEY = "employees";
@@ -19,7 +19,7 @@ function safeDate(date) {
 }
 
 /* ==========================================
-   📦 GET / SAVE (ROBUST)
+   📦 GET / SAVE
 ========================================== */
 
 window.getEmployees = function () {
@@ -51,14 +51,11 @@ window.saveEmployees = function (emps) {
 };
 
 /* ==========================================
-   ➕ ADD EMPLOYEE
+   ➕ ADD / UPDATE / DELETE
 ========================================== */
 
 window.addEmployee = function (name, groupId = null, vacationDays = 25) {
-    if (!name || typeof name !== "string") {
-        console.warn("⚠️ Invalid employee name");
-        return;
-    }
+    if (!name) return;
 
     const employees = getEmployees();
 
@@ -71,57 +68,33 @@ window.addEmployee = function (name, groupId = null, vacationDays = 25) {
 
     employees.push(newEmp);
     saveEmployees(employees);
-
-    console.log("✅ Employee added:", newEmp);
 };
-
-/* ==========================================
-   ✏️ UPDATE EMPLOYEE
-========================================== */
 
 window.updateEmployee = function (id, name, groupId, vacationDays) {
     const employees = getEmployees();
-
     const emp = employees.find(e => e.id == id);
     if (!emp) return;
 
     if (name) emp.name = name.trim();
-
-    if (groupId !== undefined) {
-        emp.group_id = groupId || null;
-    }
-
-    if (vacationDays !== undefined) {
-        emp.vacationDays = toInt(vacationDays, 25);
-    }
+    if (groupId !== undefined) emp.group_id = groupId || null;
+    if (vacationDays !== undefined) emp.vacationDays = toInt(vacationDays, 25);
 
     saveEmployees(employees);
-
-    console.log("✏️ Updated:", emp);
 };
-
-/* ==========================================
-   ❌ DELETE EMPLOYEE
-========================================== */
 
 window.deleteEmployeeById = function (id) {
-    const employees = getEmployees();
-    const filtered = employees.filter(e => e.id != id);
-
-    saveEmployees(filtered);
-
-    console.log(`🗑 Deleted employee ${id}`);
+    const employees = getEmployees().filter(e => e.id != id);
+    saveEmployees(employees);
 };
 
 /* ==========================================
-   📊 VACATION DAYS (SMART)
+   📊 VACATION DAYS (PER YEAR 🔥)
 ========================================== */
 
-window.getUsedVacationDays = function (employeeId, options = {}) {
+window.getUsedVacationDays = function (employeeId, year = null, options = {}) {
     const { workdaysOnly = false } = options;
 
     const vacations = getVacations?.() || [];
-
     let total = 0;
 
     vacations.forEach(v => {
@@ -129,17 +102,21 @@ window.getUsedVacationDays = function (employeeId, options = {}) {
 
         const start = safeDate(v.start);
         const end = safeDate(v.end);
-
         if (!start || !end) return;
 
         let current = new Date(start);
 
         while (current <= end) {
 
-            const day = current.getDay(); // 0 = söndag
+            const currentYear = current.getFullYear();
 
-            if (!workdaysOnly || (day !== 0 && day !== 6)) {
-                total++;
+            if (!year || currentYear === year) {
+
+                const day = current.getDay();
+
+                if (!workdaysOnly || (day !== 0 && day !== 6)) {
+                    total++;
+                }
             }
 
             current.setDate(current.getDate() + 1);
@@ -150,7 +127,7 @@ window.getUsedVacationDays = function (employeeId, options = {}) {
 };
 
 /* ==========================================
-   🚨 VALIDATION (SMART)
+   🚨 VALIDATION (PER YEAR 🔥)
 ========================================== */
 
 window.canAddVacation = function (employeeId, start, end) {
@@ -159,33 +136,36 @@ window.canAddVacation = function (employeeId, start, end) {
 
     const startDate = safeDate(start);
     const endDate = safeDate(end);
-
     if (!startDate || !endDate) return false;
 
-    const used = getUsedVacationDays(employeeId);
+    const year = startDate.getFullYear();
+
+    const used = getUsedVacationDays(employeeId, year);
 
     let newDays = 0;
     let current = new Date(startDate);
 
     while (current <= endDate) {
-        newDays++;
+
+        if (current.getFullYear() === year) {
+            newDays++;
+        }
+
         current.setDate(current.getDate() + 1);
     }
 
-    const max = emp.vacationDays || 25;
-
-    return (used + newDays) <= max;
+    return (used + newDays) <= (emp.vacationDays || 25);
 };
 
 /* ==========================================
-   📊 BALANCE (UI READY)
+   📊 BALANCE (PER YEAR)
 ========================================== */
 
-window.getVacationBalance = function (employeeId) {
+window.getVacationBalance = function (employeeId, year = null) {
     const emp = getEmployees().find(e => e.id == employeeId);
     if (!emp) return null;
 
-    const used = getUsedVacationDays(employeeId);
+    const used = getUsedVacationDays(employeeId, year);
     const total = emp.vacationDays || 25;
 
     const percent = Math.min((used / total) * 100, 100);
@@ -194,16 +174,17 @@ window.getVacationBalance = function (employeeId) {
         used,
         total,
         remaining: Math.max(total - used, 0),
-        percent
+        percent,
+        year: year || new Date().getFullYear()
     };
 };
 
 /* ==========================================
-   🎨 STATUS COLOR (UI HELPER)
+   🎨 STATUS COLOR
 ========================================== */
 
 window.getVacationStatusColor = function (percent) {
-    if (percent > 90) return "#ef4444"; // red
-    if (percent > 70) return "#f59e0b"; // orange
-    return "#22c55e"; // green
+    if (percent > 90) return "#ef4444";
+    if (percent > 70) return "#f59e0b";
+    return "#22c55e";
 };
