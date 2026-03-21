@@ -79,7 +79,6 @@ window.initCalendar = function () {
                 }
             },
 
-            /* EVENTS VIA ACTIONS */
             eventDidMount: function (info) {
                 window.calendarActions?.applyEventColor(info);
                 try {
@@ -114,12 +113,13 @@ window.initCalendar = function () {
                 openModal?.("vacationModal");
             },
 
+            /* 🔥 NY: EDIT istället för DELETE */
             eventClick: function (info) {
                 if (!info?.event?.id) return;
+
                 const originalId = info.event.id.split("_")[0];
-                const ok = confirm(`Ta bort semester för ${info.event.title}?`);
-                if (!ok) return;
-                removeVacation?.(originalId);
+
+                window.openEditVacationModal?.(originalId);
             },
 
             eventMouseEnter: function (info) {
