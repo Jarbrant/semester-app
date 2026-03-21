@@ -68,35 +68,33 @@
     <ul id="vacationList"></ul>
 </section>
 
-<!-- 🪟 MODALS -->
+<!-- 🪟 MODAL OVERLAY -->
 <div id="modalOverlay" class="modal-overlay"></div>
 
 <!-- 👤 PERSONAL -->
 <div id="employeeModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
+        <button class="close" onclick="closeModal('employeeModal')">×</button>
         <h3>Lägg till personal</h3>
 
-        <p id="employeeWarning" style="color:#e11d48"></p>
+        <p id="employeeWarning" class="warning"></p>
 
         <input type="text" id="employeeName" placeholder="Namn">
         <select id="employeeGroupSelect"></select>
 
         <button class="primary-btn" onclick="tryAddEmployee()">Spara</button>
 
-        <!-- 🔥 LISTA (EDIT CLICK) -->
-        <ul id="employeeList" style="margin-top:10px;"></ul>
+        <ul id="employeeList" class="list"></ul>
     </div>
 </div>
 
 <!-- ✏️ EDIT EMPLOYEE -->
 <div id="editEmployeeModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
+        <button class="close" onclick="closeModal('editEmployeeModal')">×</button>
         <h3>Redigera personal</h3>
 
         <input type="hidden" id="editEmployeeId">
-
         <input type="text" id="editEmployeeName">
 
         <button class="primary-btn" onclick="saveEmployeeEdit()">Spara</button>
@@ -104,33 +102,57 @@
     </div>
 </div>
 
-<!-- 📅 SEMESTER -->
+<!-- 📅 ADD VACATION -->
 <div id="vacationModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
+        <button class="close" onclick="closeModal('vacationModal')">×</button>
         <h3>Lägg till semester</h3>
 
-        <!-- 🔍 SEARCH -->
         <input type="text" id="employeeSearch" placeholder="Sök person...">
-
         <select id="employeeSelect"></select>
 
+        <label>Start</label>
         <input type="date" id="startDate">
+
+        <label>Slut</label>
         <input type="date" id="endDate">
 
         <button class="primary-btn" onclick="trySubmitVacation()">Spara</button>
 
-        <p id="warning" style="color:#e11d48"></p>
+        <p id="warning" class="warning"></p>
+    </div>
+</div>
+
+<!-- ✏️ EDIT VACATION -->
+<div id="editVacationModal" class="modal">
+    <div class="modal-content">
+        <button class="close" onclick="closeModal('editVacationModal')">×</button>
+
+        <h3>Redigera semester</h3>
+
+        <input type="hidden" id="editVacationId">
+
+        <label>Start</label>
+        <input type="date" id="editStartDate">
+
+        <label>Slut</label>
+        <input type="date" id="editEndDate">
+
+        <button class="primary-btn" onclick="updateVacation()">💾 Spara</button>
+
+        <button class="logout-btn" onclick="deleteVacationFromModal()">🗑 Ta bort</button>
+
+        <button onclick="closeModal('editVacationModal')">Stäng</button>
     </div>
 </div>
 
 <!-- 🔍 FILTER -->
 <div id="filterModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
+        <button class="close" onclick="closeModal('filterModal')">×</button>
         <h3>Filter</h3>
 
-        <select id="filter" onchange="refreshCalendar(); closeModal();">
+        <select id="filter" onchange="refreshCalendar(); closeModal('filterModal');">
             <option value="all">Visa alla</option>
         </select>
     </div>
@@ -139,7 +161,7 @@
 <!-- 🧩 GROUP -->
 <div id="groupModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="closeModal()">×</button>
+        <button class="close" onclick="closeModal('groupModal')">×</button>
         <h3>Skapa grupp</h3>
 
         <input type="text" id="groupName" placeholder="Gruppnamn">
@@ -148,11 +170,11 @@
 
         <button class="primary-btn" onclick="tryAddGroup()">Spara</button>
 
-        <p id="groupWarning" style="color:#e11d48"></p>
+        <p id="groupWarning" class="warning"></p>
     </div>
 </div>
 
-<!-- 📦 SCRIPTS (KRITISK ORDNING) -->
+<!-- 📦 SCRIPTS -->
 <script src="data.js"></script>
 <script src="auth.js"></script>
 <script src="ui.js"></script>
@@ -160,17 +182,31 @@
 <script src="employees.js"></script>
 <script src="vacations.js"></script>
 
+<!-- 🔥 CALENDAR CORE -->
 <script src="calendar/calendar-events.js"></script>
+<script src="calendar/calendar-actions.js"></script>
 <script src="calendar/calendar-init.js"></script>
 
 <script src="app.js"></script>
 
-<!-- 🧠 USER -->
+<!-- 🧠 INIT -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const user = localStorage.getItem("currentUser");
-    const el = document.getElementById("currentUserName");
-    if (el && user) el.innerText = user;
+    try {
+        const user = localStorage.getItem("currentUser");
+        const el = document.getElementById("currentUserName");
+        if (el && user) el.innerText = user;
+
+        // 🔥 stabil init
+        setTimeout(() => {
+            if (typeof initCalendar === "function") {
+                initCalendar();
+            }
+        }, 0);
+
+    } catch (err) {
+        console.error("Init error:", err);
+    }
 });
 </script>
 
