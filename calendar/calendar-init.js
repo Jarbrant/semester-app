@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 FULLCALENDAR INIT (FULL ACTIONS + FIXED)
+   📅 FULLCALENDAR INIT (FINAL PRODUCTION)
 ========================================== */
 
 let calendar;
@@ -54,12 +54,14 @@ window.initCalendar = function () {
                     const splitEvents = [];
 
                     rawEvents.forEach(event => {
+
                         const start = new Date(event.start);
                         const end = new Date(event.end);
 
                         const current = new Date(start);
 
                         while (current < end) {
+
                             const dayStr = current.toISOString().split("T")[0];
 
                             splitEvents.push({
@@ -70,12 +72,13 @@ window.initCalendar = function () {
                                 start: dayStr,
                                 end: dayStr,
 
+                                /* 🔥 KRITISK FIX */
                                 backgroundColor: event.backgroundColor,
                                 borderColor: event.borderColor,
                                 textColor: event.textColor,
 
-                                allDay: true,
                                 display: "block",
+                                allDay: true,
 
                                 extendedProps: event.extendedProps
                             });
@@ -93,7 +96,7 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               🎨 EVENTS (VIA ACTIONS)
+               🎨 EVENTS VIA ACTIONS
             ========================================== */
 
             eventDidMount: function (info) {
@@ -108,7 +111,7 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               📊 DAY CELLS (VIA ACTIONS)
+               📊 DAY CELLS VIA ACTIONS
             ========================================== */
 
             dayCellDidMount: function (info) {
@@ -160,14 +163,13 @@ window.initCalendar = function () {
 
         calendar.render();
 
-        /* 🔥 FIX reload timing */
         setTimeout(() => {
             calendar.refetchEvents();
         }, 50);
 
         window.calendar = calendar;
 
-        console.log("✅ Calendar FULL ACTIONS init klar");
+        console.log("✅ Calendar FINAL init klar");
 
     } catch (err) {
         console.error("💥 Calendar crash:", err);
