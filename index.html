@@ -62,9 +62,15 @@
     <div id="calendar"></div>
 </main>
 
-<!-- 📋 LISTA -->
+<!-- 📋 LISTA (🔥 NU KLICKBAR + SMART) -->
 <section class="card">
-    <h3>📋 Semesterlista</h3>
+    <h3 onclick="openVacationOverview()" style="cursor:pointer;">
+        📋 Semesterlista
+    </h3>
+
+    <!-- 🔥 NY: snabbinfo -->
+    <div id="vacationSummary" style="font-size:13px; color:#6b7280; margin-bottom:10px;"></div>
+
     <ul id="vacationList"></ul>
 </section>
 
@@ -82,7 +88,6 @@
         <input type="text" id="employeeName" placeholder="Namn">
         <select id="employeeGroupSelect"></select>
 
-        <!-- 🔥 NYTT -->
         <input type="number" id="employeeVacationDays" placeholder="Semesterdagar (ex: 25)" min="1">
 
         <button class="primary-btn" onclick="tryAddEmployee()">Spara</button>
@@ -100,14 +105,10 @@
         <input type="hidden" id="editEmployeeId">
 
         <input type="text" id="editEmployeeName" placeholder="Namn">
-
-        <!-- 🔥 NYTT -->
         <input type="number" id="editEmployeeVacationDays" placeholder="Semesterdagar" min="1">
 
         <!-- 🔥 BALANS -->
-        <div id="employeeBalanceBox" style="font-size:13px; color:#6b7280;">
-            📊 Laddar balans...
-        </div>
+        <div id="employeeBalanceBox" style="font-size:13px; color:#6b7280;"></div>
 
         <button class="primary-btn" onclick="saveEmployeeEdit()">Spara</button>
         <button class="logout-btn" onclick="deleteEmployee()">Ta bort</button>
@@ -123,7 +124,7 @@
         <input type="text" id="employeeSearch" placeholder="Sök person...">
         <select id="employeeSelect"></select>
 
-        <!-- 🔥 BALANS LIVE -->
+        <!-- 🔥 LIVE BALANS -->
         <div id="vacationBalanceInfo" style="font-size:13px; color:#6b7280;"></div>
 
         <label>Start</label>
@@ -154,10 +155,18 @@
         <input type="date" id="editEndDate">
 
         <button class="primary-btn" onclick="updateVacation()">💾 Spara</button>
-
         <button class="logout-btn" onclick="deleteVacationFromModal()">🗑 Ta bort</button>
-
         <button onclick="closeModal('editVacationModal')">Stäng</button>
+    </div>
+</div>
+
+<!-- 📋 VACATION OVERVIEW (🔥 NY FEATURE) -->
+<div id="vacationOverviewModal" class="modal">
+    <div class="modal-content">
+        <button class="close" onclick="closeModal('vacationOverviewModal')">×</button>
+        <h3>📋 Aktiva semestrar</h3>
+
+        <div id="vacationOverviewList"></div>
     </div>
 </div>
 
@@ -197,14 +206,13 @@
 <script src="employees.js"></script>
 <script src="vacations.js"></script>
 
-<!-- 🔥 CALENDAR CORE -->
 <script src="calendar/calendar-events.js"></script>
 <script src="calendar/calendar-actions.js"></script>
 <script src="calendar/calendar-init.js"></script>
 
 <script src="app.js"></script>
 
-<!-- 🧠 INIT -->
+<!-- 🧠 INIT (STABIL VERSION) -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     try {
@@ -212,9 +220,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const el = document.getElementById("currentUserName");
         if (el && user) el.innerText = user;
 
-        if (typeof initCalendar === "function") {
-            initCalendar();
-        }
+        // 🔥 säker init (undviker race bugs)
+        requestAnimationFrame(() => {
+            if (typeof initCalendar === "function") {
+                initCalendar();
+            }
+        });
 
     } catch (err) {
         console.error("Init error:", err);
