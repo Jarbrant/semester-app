@@ -1,5 +1,5 @@
 /* ==========================================
-   🧩 GROUP UI (UPGRADED)
+   🧩 GROUP UI (FINAL PRO)
 ========================================== */
 
 window.tryAddGroup = function () {
@@ -17,7 +17,6 @@ window.tryAddGroup = function () {
 
     if (warning) warning.textContent = "";
 
-    // 🔥 reset inputs
     document.getElementById("groupName").value = "";
     document.getElementById("groupLimit").value = "";
 
@@ -25,7 +24,7 @@ window.tryAddGroup = function () {
 };
 
 /* ==========================================
-   🔽 GROUP SELECT (UPGRADED)
+   🔽 GROUP SELECT
 ========================================== */
 
 window.refreshGroupSelect = function () {
@@ -50,7 +49,7 @@ window.refreshGroupSelect = function () {
 };
 
 /* ==========================================
-   👤 EMPLOYEE ADD (UPGRADED)
+   👤 EMPLOYEE ADD
 ========================================== */
 
 window.tryAddEmployee = function () {
@@ -67,7 +66,6 @@ window.tryAddEmployee = function () {
 
     if (warning) warning.textContent = "";
 
-    // 🔥 reset input
     document.getElementById("employeeName").value = "";
 
     renderEmployeeList();
@@ -77,8 +75,13 @@ window.tryAddEmployee = function () {
 };
 
 /* ==========================================
-   🔄 EMPLOYEE LIST (UPGRADED)
+   🔄 EMPLOYEE LIST (🔥 NEXT LEVEL UI)
 ========================================== */
+
+window.getSelectedYear = function () {
+    const el = document.getElementById("yearFilter");
+    return el ? parseInt(el.value) : new Date().getFullYear();
+};
 
 window.renderEmployeeList = function () {
     const list = document.getElementById("employeeList");
@@ -86,22 +89,55 @@ window.renderEmployeeList = function () {
 
     const employees = getEmployees?.() || [];
     const groups = getGroups?.() || [];
+    const year = getSelectedYear();
 
     list.innerHTML = "";
 
     employees.forEach(emp => {
-        const li = document.createElement("li");
 
         const group = groups.find(g => g.id == emp.group_id);
+        const balance = getVacationBalance(emp.id, year);
+
+        const used = balance?.used || 0;
+        const total = balance?.total || 25;
+        const percent = balance?.percent || 0;
+
+        const color = getVacationStatusColor(percent);
+
+        const li = document.createElement("li");
 
         li.style.cursor = "pointer";
-        li.style.padding = "6px 10px";
-        li.style.borderRadius = "8px";
-        li.style.marginBottom = "4px";
+        li.style.padding = "10px";
+        li.style.borderRadius = "10px";
+        li.style.marginBottom = "8px";
+        li.style.background = "#f9fafb";
 
         li.innerHTML = `
-            <span>${emp.name}</span>
-            ${group ? `<small style="color:#6b7280"> (${group.name})</small>` : ""}
+            <div style="display:flex; justify-content:space-between;">
+                <div>
+                    <strong>${emp.name}</strong>
+                    ${group ? `<small style="color:#6b7280"> (${group.name})</small>` : ""}
+                </div>
+
+                <div style="font-size:12px; color:#6b7280;">
+                    ${used} / ${total}
+                </div>
+            </div>
+
+            <div style="
+                margin-top:6px;
+                height:6px;
+                background:#e5e7eb;
+                border-radius:999px;
+                overflow:hidden;
+            ">
+                <div style="
+                    width:${percent}%;
+                    height:100%;
+                    background:${color};
+                    transition:0.3s;
+                "></div>
+            </div>
         `;
 
         li.onclick = () => openEditEmployee(emp.id);
@@ -111,7 +147,7 @@ window.renderEmployeeList = function () {
 };
 
 /* ==========================================
-   ✏️ EDIT EMPLOYEE (UPGRADED)
+   ✏️ EDIT EMPLOYEE
 ========================================== */
 
 window.openEditEmployee = function (id) {
@@ -130,12 +166,7 @@ window.saveEmployeeEdit = function () {
 
     if (!name) return;
 
-    const employees = getEmployees();
-    const emp = employees.find(e => e.id == id);
-
-    if (emp) emp.name = name;
-
-    saveEmployees(employees);
+    updateEmployee(id, name);
 
     closeModal("editEmployeeModal");
 
@@ -149,10 +180,7 @@ window.deleteEmployee = function () {
 
     if (!confirm("Ta bort denna person?")) return;
 
-    let employees = getEmployees();
-    employees = employees.filter(e => e.id != id);
-
-    saveEmployees(employees);
+    deleteEmployeeById(id);
 
     closeModal("editEmployeeModal");
 
@@ -162,7 +190,7 @@ window.deleteEmployee = function () {
 };
 
 /* ==========================================
-   📅 EMPLOYEE SELECT + SEARCH (STABIL)
+   📅 EMPLOYEE SELECT + SEARCH
 ========================================== */
 
 window.refreshEmployeeSelect = function (filter = "") {
@@ -196,7 +224,7 @@ window.refreshEmployeeSelect = function (filter = "") {
 };
 
 /* ==========================================
-   📅 VACATION (CLEAN FIX)
+   📅 VACATION
 ========================================== */
 
 window.trySubmitVacation = function () {
@@ -218,7 +246,7 @@ window.trySubmitVacation = function () {
 };
 
 /* ==========================================
-   🪟 MODAL (PRO VERSION)
+   🪟 MODAL
 ========================================== */
 
 window.openModal = function (id) {
@@ -232,7 +260,6 @@ window.openModal = function (id) {
     modal.classList.add("active");
     overlay.style.display = "block";
 
-    // 🔥 smart init
     if (id === "employeeModal") {
         refreshGroupSelect();
         renderEmployeeList();
