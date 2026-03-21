@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 EVENTS MED GROUP COLORS (FINAL PRO)
+   📅 EVENTS (FINAL PRO+++ SMART SYSTEM)
 ========================================== */
 
 // 🔐 Fallbacks
@@ -8,28 +8,18 @@ if (typeof getEmployees !== "function") window.getEmployees = () => [];
 if (typeof getVacations !== "function") window.getVacations = () => [];
 
 /* ==========================================
-   🎨 SAFE COLOR (UPGRADED)
+   🎨 SAFE COLOR
 ========================================== */
 
 function getSafeColor(group) {
-    const defaultColor = "#3788d8";
+    const defaultColor = "#3b82f6";
 
-    if (!group) return defaultColor;
+    if (!group || !group.color) return defaultColor;
 
-    let color = group.color;
+    let color = group.color.trim();
 
-    if (!color || typeof color !== "string") {
-        return defaultColor;
-    }
+    if (/^#([0-9A-F]{3}){1,2}$/i.test(color)) return color;
 
-    color = color.trim();
-
-    // ✅ HEX direkt
-    if (/^#([0-9A-F]{3}){1,2}$/i.test(color)) {
-        return color;
-    }
-
-    // ✅ NAMED COLORS → HEX
     const map = {
         blue: "#3b82f6",
         red: "#ef4444",
@@ -41,24 +31,42 @@ function getSafeColor(group) {
         gray: "#6b7280"
     };
 
-    if (map[color.toLowerCase()]) {
-        return map[color.toLowerCase()];
-    }
-
-    // ❗ fallback men logga (viktigt för debug)
-    console.warn("⚠️ Unknown color format:", color);
-
-    return defaultColor;
+    return map[color.toLowerCase()] || defaultColor;
 }
 
 /* ==========================================
-   🧑‍🦰 TOOLTIP
+   🎨 SMART COLOR (LOAD BASED)
 ========================================== */
 
-function buildTooltip(emp, group, vac) {
+function getSmartEventColor(emp, group, year) {
+    const base = getSafeColor(group);
+
+    if (!emp) return base;
+
+    const balance = getVacationBalance?.(emp.id, year);
+
+    if (!balance) return base;
+
+    const percent = balance.percent || 0;
+
+    // 🔥 justera ljusstyrka beroende på belastning
+    if (percent > 90) return "#ef4444"; // röd (slut)
+    if (percent > 70) return "#f59e0b"; // orange
+
+    return base;
+}
+
+/* ==========================================
+   🧠 TOOLTIP (UPGRADED)
+========================================== */
+
+function buildTooltip(emp, group, vac, year) {
+    const balance = getVacationBalance?.(emp?.id, year);
+
     return `👤 ${emp?.name || "Okänd"}
-🦩 ${group?.name || "Ingen grupp"}
-📅 ${vac.start} → ${vac.end}`;
+🧩 ${group?.name || "Ingen grupp"}
+📅 ${vac.start} → ${vac.end}
+📊 ${balance ? `${balance.used}/${balance.total} dagar` : ""}`;
 }
 
 /* ==========================================
@@ -71,36 +79,20 @@ window.getCalendarEvents = function () {
         const employees = getEmployees() || [];
         const groups = getGroups() || [];
 
-        console.log("📊 DATA DEBUG", {
-            vacations,
-            employees,
-            groups
-        });
+        const year = (typeof getSelectedYear === "function")
+            ? getSelectedYear()
+            : new Date().getFullYear();
+
+        // 🔥 PERFORMANCE: skapa lookup maps
+        const empMap = Object.fromEntries(employees.map(e => [e.id, e]));
+        const groupMap = Object.fromEntries(groups.map(g => [g.id, g]));
 
         return vacations.map(vac => {
 
-            const emp = employees.find(e => e.id == vac.employee_id);
+            const emp = empMap[vac.employee_id];
+            const group = emp ? groupMap[emp.group_id] : null;
 
-            if (!emp) {
-                console.warn("⚠️ Employee not found for vacation:", vac);
-            }
-
-            const group = emp
-                ? groups.find(g => g.id == emp.group_id)
-                : null;
-
-            if (!group && emp?.group_id) {
-                console.warn("⚠️ Group not found:", emp.group_id);
-            }
-
-            const color = getSafeColor(group);
-
-            console.log("🎨 EVENT COLOR:", {
-                employee: emp?.name,
-                group: group?.name,
-                rawColor: group?.color,
-                finalColor: color
-            });
+            const color = getSmartEventColor(emp, group, year);
 
             return {
                 id: vac.id ?? Date.now(),
@@ -119,7 +111,7 @@ window.getCalendarEvents = function () {
                 allDay: true,
 
                 extendedProps: {
-                    tooltip: buildTooltip(emp, group, vac),
+                    tooltip: buildTooltip(emp, group, vac, year),
                     groupName: group?.name || null,
                     employeeId: emp?.id || null,
                     groupId: group?.id || null
@@ -143,17 +135,13 @@ function addOneDaySafe(dateStr) {
     try {
         const date = new Date(dateStr);
 
-        if (isNaN(date)) {
-            console.warn("⚠️ Invalid date:", dateStr);
-            return dateStr;
-        }
+        if (isNaN(date)) return dateStr;
 
         date.setDate(date.getDate() + 1);
 
         return date.toISOString().split("T")[0];
 
-    } catch (err) {
-        console.warn("⚠️ date parsing failed:", dateStr);
+    } catch {
         return dateStr;
     }
 }
