@@ -48,7 +48,7 @@ body {
 }
 
 /* ==========================================
-   🔵 BUTTONS (UPGRADED)
+   🔵 BUTTONS
 ========================================== */
 
 .primary-btn {
@@ -75,7 +75,6 @@ body {
     padding: 10px 14px;
     border-radius: 10px;
     cursor: pointer;
-    transition: 0.2s;
 }
 
 .logout-btn:hover {
@@ -141,6 +140,7 @@ main {
     font-weight: 600;
 }
 
+/* buttons */
 .fc-button {
     background: transparent !important;
     border: none !important;
@@ -166,7 +166,7 @@ main {
 }
 
 /* ==========================================
-   📅 DAGAR (HEATMAP SUPPORT)
+   📅 DAGAR (HEATMAP SAFE)
 ========================================== */
 
 .fc-daygrid-day {
@@ -175,19 +175,19 @@ main {
     position: relative;
 }
 
-/* 🔥 heatmap overlay (JS sätter background inline) */
+/* 🔥 heatmap layer */
 .fc-daygrid-day::after {
     content: "";
     position: absolute;
-    inset: 0;
-    border-radius: 8px;
+    inset: 2px;
+    border-radius: 10px;
     pointer-events: none;
+    z-index: 0;
 }
 
 /* hover */
 .fc-daygrid-day:hover {
     background: #f9fafb;
-    transform: scale(1.01);
 }
 
 /* today */
@@ -196,16 +196,18 @@ main {
 }
 
 /* ==========================================
-   🎯 EVENTS (FINAL FIX)
+   🎯 EVENTS (🔥 FINAL COLOR SAFE FIX)
 ========================================== */
 
-/* 🔥 CRITICAL: ta bort ALL CSS som dödar färg */
-.fc-daygrid-event-harness .fc-event {
-    background: unset !important;
-    border: unset !important;
+/* ❌ TA BORT ALLT SOM DÖDAR FÄRG */
+/* (den här var din största bug tidigare) */
+
+/* event container */
+.fc-daygrid-event-harness {
+    margin-bottom: 3px;
 }
 
-/* event */
+/* 🔥 CRITICAL: låt inline style vinna */
 .fc-event {
     border: none !important;
     border-radius: 999px !important;
@@ -222,6 +224,13 @@ main {
 
     backdrop-filter: blur(2px);
     will-change: transform;
+
+    position: relative;
+    z-index: 2;
+
+    /* 🔥 VIKTIGASTE: låt JS styra färg */
+    background-color: inherit !important;
+    border-color: inherit !important;
 }
 
 /* hover */
@@ -266,7 +275,7 @@ main {
 }
 
 /* ==========================================
-   🪟 MODAL (PREMIUM)
+   🪟 MODAL
 ========================================== */
 
 .modal-overlay {
