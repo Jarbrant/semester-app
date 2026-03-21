@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 FULLCALENDAR INIT (CLEAN + ACTIONS)
+   📅 FULLCALENDAR INIT (FULL ACTIONS + FIXED)
 ========================================== */
 
 let calendar;
@@ -45,7 +45,7 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               🔥 SPLIT EVENTS PER DAG
+               🔥 SPLIT EVENTS PER DAG (FIXED)
             ========================================== */
 
             events: function (fetchInfo, successCallback) {
@@ -56,16 +56,28 @@ window.initCalendar = function () {
                     rawEvents.forEach(event => {
                         const start = new Date(event.start);
                         const end = new Date(event.end);
+
                         const current = new Date(start);
 
                         while (current < end) {
                             const dayStr = current.toISOString().split("T")[0];
 
                             splitEvents.push({
-                                ...event,
+                                id: event.id + "_" + dayStr,
+
+                                title: event.title,
+
                                 start: dayStr,
                                 end: dayStr,
-                                id: event.id + "_" + dayStr
+
+                                backgroundColor: event.backgroundColor,
+                                borderColor: event.borderColor,
+                                textColor: event.textColor,
+
+                                allDay: true,
+                                display: "block",
+
+                                extendedProps: event.extendedProps
                             });
 
                             current.setDate(current.getDate() + 1);
@@ -164,7 +176,7 @@ window.initCalendar = function () {
 
 
 /* ==========================================
-   🔄 REFRESH (UNCHANGED)
+   🔄 REFRESH
 ========================================== */
 
 window.refreshCalendar = function () {
