@@ -1,5 +1,5 @@
 /* ==========================================
-   👤 EMPLOYEES (FINAL PRO+++ YEAR SYSTEM)
+   👤 EMPLOYEES (FINAL PRO MAX + YEAR SYSTEM)
 ========================================== */
 
 const EMP_KEY = "employees";
@@ -18,8 +18,12 @@ function safeDate(date) {
     return isNaN(d) ? null : d;
 }
 
+function sameDay(a, b) {
+    return a.toISOString().split("T")[0] === b.toISOString().split("T")[0];
+}
+
 /* ==========================================
-   📦 GET / SAVE
+   📦 GET / SAVE (ROBUST + MIGRATION SAFE)
 ========================================== */
 
 window.getEmployees = function () {
@@ -55,7 +59,7 @@ window.saveEmployees = function (emps) {
 ========================================== */
 
 window.addEmployee = function (name, groupId = null, vacationDays = 25) {
-    if (!name) return;
+    if (!name || typeof name !== "string") return;
 
     const employees = getEmployees();
 
@@ -63,11 +67,13 @@ window.addEmployee = function (name, groupId = null, vacationDays = 25) {
         id: Date.now(),
         name: name.trim(),
         group_id: groupId || null,
-        vacationDays: toInt(vacationDays, 25)
+        vacationDays: Math.max(1, toInt(vacationDays, 25)) // 🔥 min 1 dag
     };
 
     employees.push(newEmp);
     saveEmployees(employees);
+
+    console.log("✅ Employee created:", newEmp);
 };
 
 window.updateEmployee = function (id, name, groupId, vacationDays) {
@@ -77,18 +83,38 @@ window.updateEmployee = function (id, name, groupId, vacationDays) {
 
     if (name) emp.name = name.trim();
     if (groupId !== undefined) emp.group_id = groupId || null;
-    if (vacationDays !== undefined) emp.vacationDays = toInt(vacationDays, 25);
+
+    if (vacationDays !== undefined) {
+        emp.vacationDays = Math.max(1, toInt(vacationDays, 25));
+    }
 
     saveEmployees(employees);
+
+    console.log("✏️ Employee updated:", emp);
 };
 
 window.deleteEmployeeById = function (id) {
     const employees = getEmployees().filter(e => e.id != id);
     saveEmployees(employees);
+
+    console.log("🗑 Employee deleted:", id);
 };
 
 /* ==========================================
-   📊 VACATION DAYS (PER YEAR 🔥)
+   📊 CORE: ITERATE DAYS (REUSABLE 🔥)
+========================================== */
+
+function iterateDays(start, end, callback) {
+    const current = new Date(start);
+
+    while (current <= end) {
+        callback(new Date(current));
+        current.setDate(current.getDate() + 1);
+    }
+}
+
+/* ==========================================
+   📊 VACATION DAYS (PER YEAR + SAFE)
 ========================================== */
 
 window.getUsedVacationDays = function (employeeId, year = null, options = {}) {
@@ -102,32 +128,26 @@ window.getUsedVacationDays = function (employeeId, year = null, options = {}) {
 
         const start = safeDate(v.start);
         const end = safeDate(v.end);
+
         if (!start || !end) return;
 
-        let current = new Date(start);
+        iterateDays(start, end, (day) => {
 
-        while (current <= end) {
+            if (year && day.getFullYear() !== year) return;
 
-            const currentYear = current.getFullYear();
+            const dow = day.getDay();
 
-            if (!year || currentYear === year) {
-
-                const day = current.getDay();
-
-                if (!workdaysOnly || (day !== 0 && day !== 6)) {
-                    total++;
-                }
+            if (!workdaysOnly || (dow !== 0 && dow !== 6)) {
+                total++;
             }
-
-            current.setDate(current.getDate() + 1);
-        }
+        });
     });
 
     return total;
 };
 
 /* ==========================================
-   🚨 VALIDATION (PER YEAR 🔥)
+   🚨 VALIDATION (SMART + CROSS-YEAR SAFE)
 ========================================== */
 
 window.canAddVacation = function (employeeId, start, end) {
@@ -136,46 +156,73 @@ window.canAddVacation = function (employeeId, start, end) {
 
     const startDate = safeDate(start);
     const endDate = safeDate(end);
+
     if (!startDate || !endDate) return false;
+    if (endDate < startDate) return false;
 
-    const year = startDate.getFullYear();
+    const vacations = getVacations?.() || [];
 
-    const used = getUsedVacationDays(employeeId, year);
+    // 🔥 Räkna dagar per år separat
+    const yearlyUsage = {};
 
-    let newDays = 0;
-    let current = new Date(startDate);
+    // befintliga dagar
+    vacations.forEach(v => {
+        if (v.employee_id != employeeId) return;
 
-    while (current <= endDate) {
+        const s = safeDate(v.start);
+        const e = safeDate(v.end);
+        if (!s || !e) return;
 
-        if (current.getFullYear() === year) {
-            newDays++;
+        iterateDays(s, e, (d) => {
+            const y = d.getFullYear();
+            yearlyUsage[y] = (yearlyUsage[y] || 0) + 1;
+        });
+    });
+
+    // nya dagar
+    const newUsage = {};
+
+    iterateDays(startDate, endDate, (d) => {
+        const y = d.getFullYear();
+        newUsage[y] = (newUsage[y] || 0) + 1;
+    });
+
+    // 🔥 validera per år
+    for (const y in newUsage) {
+        const used = yearlyUsage[y] || 0;
+        const incoming = newUsage[y];
+
+        if ((used + incoming) > (emp.vacationDays || 25)) {
+            return false;
         }
-
-        current.setDate(current.getDate() + 1);
     }
 
-    return (used + newDays) <= (emp.vacationDays || 25);
+    return true;
 };
 
 /* ==========================================
-   📊 BALANCE (PER YEAR)
+   📊 BALANCE (PER YEAR + SAFE)
 ========================================== */
 
 window.getVacationBalance = function (employeeId, year = null) {
     const emp = getEmployees().find(e => e.id == employeeId);
     if (!emp) return null;
 
-    const used = getUsedVacationDays(employeeId, year);
+    const targetYear = year || new Date().getFullYear();
+
+    const used = getUsedVacationDays(employeeId, targetYear);
     const total = emp.vacationDays || 25;
 
-    const percent = Math.min((used / total) * 100, 100);
+    const percent = total > 0
+        ? Math.min((used / total) * 100, 100)
+        : 0;
 
     return {
         used,
         total,
         remaining: Math.max(total - used, 0),
         percent,
-        year: year || new Date().getFullYear()
+        year: targetYear
     };
 };
 
