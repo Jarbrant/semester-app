@@ -1,9 +1,18 @@
 /* ==========================================
-   📅 VACATIONS (PRODUCTION CLEAN VERSION)
+   📅 VACATIONS (FINAL PRO+++ YEAR SAFE)
 ========================================== */
 
 /* ==========================================
-   🔍 HELPERS
+   🛠 HELPERS
+========================================== */
+
+function safeDate(date) {
+    const d = new Date(date);
+    return isNaN(d) ? null : d;
+}
+
+/* ==========================================
+   🔍 CONFLICT CHECK
 ========================================== */
 
 function hasConflict(empId, start, end, ignoreId = null) {
@@ -15,6 +24,10 @@ function hasConflict(empId, start, end, ignoreId = null) {
         !(end < v.start || start > v.end)
     );
 }
+
+/* ==========================================
+   👥 GROUP LIMIT CHECK
+========================================== */
 
 function groupOverbooked(empId, start, end, ignoreId = null) {
     const employees = getEmployees() || [];
@@ -45,7 +58,7 @@ function groupOverbooked(empId, start, end, ignoreId = null) {
 }
 
 /* ==========================================
-   ➕ ADD VACATION
+   ➕ ADD VACATION (UPGRADED)
 ========================================== */
 
 window.addVacation = function () {
@@ -54,8 +67,16 @@ window.addVacation = function () {
     const end = document.getElementById("endDate")?.value;
     const warning = document.getElementById("warning");
 
-    if (!empId || !start || !end) {
-        if (warning) warning.textContent = "Fyll i alla fält!";
+    const startDate = safeDate(start);
+    const endDate = safeDate(end);
+
+    if (!empId || !startDate || !endDate) {
+        if (warning) warning.textContent = "Fyll i alla fält korrekt!";
+        return;
+    }
+
+    if (endDate < startDate) {
+        if (warning) warning.textContent = "Slutdatum kan inte vara före startdatum";
         return;
     }
 
@@ -66,6 +87,12 @@ window.addVacation = function () {
 
     if (groupOverbooked(empId, start, end)) {
         if (warning) warning.textContent = "⚠️ För många i gruppen är lediga!";
+        return;
+    }
+
+    // 🔥 KRITISK: semester per år
+    if (!canAddVacation(empId, start, end)) {
+        if (warning) warning.textContent = "⚠️ För många semesterdagar detta år!";
         return;
     }
 
@@ -121,16 +148,24 @@ window.openEditVacationModal = function (vacationId) {
 };
 
 /* ==========================================
-   💾 UPDATE VACATION
+   💾 UPDATE VACATION (UPGRADED)
 ========================================== */
 
 window.updateVacation = function () {
     const id = document.getElementById("editVacationId").value;
-    const start = document.getElementById("editStartDate").value;
-    const end = document.getElementById("editEndDate").value;
+    const start = document.getElementById("editStartDate")?.value;
+    const end = document.getElementById("editEndDate")?.value;
 
-    if (!start || !end) {
-        alert("Datum saknas");
+    const startDate = safeDate(start);
+    const endDate = safeDate(end);
+
+    if (!startDate || !endDate) {
+        alert("Datum saknas eller är felaktigt");
+        return;
+    }
+
+    if (endDate < startDate) {
+        alert("Slutdatum kan inte vara före startdatum");
         return;
     }
 
@@ -142,7 +177,6 @@ window.updateVacation = function () {
         return;
     }
 
-    // 🔥 behåll employee_id
     const empId = current.employee_id;
 
     if (hasConflict(empId, start, end, id)) {
@@ -152,6 +186,12 @@ window.updateVacation = function () {
 
     if (groupOverbooked(empId, start, end, id)) {
         alert("⚠️ För många i gruppen är lediga!");
+        return;
+    }
+
+    // 🔥 KRITISK: semester per år även vid edit
+    if (!canAddVacation(empId, start, end)) {
+        alert("⚠️ För många semesterdagar detta år!");
         return;
     }
 
