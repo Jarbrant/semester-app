@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 FULLCALENDAR INIT (MAX PRODUCTION PATCHED)
+   📅 FULLCALENDAR INIT (PER-DAY RENDER PATCH)
 ========================================== */
 
 let calendar;
@@ -44,18 +44,47 @@ window.initCalendar = function () {
                 list: "Lista"
             },
 
+            /* ==========================================
+               🔥 SPLIT EVENTS PER DAG
+            ========================================== */
+
             events: function (fetchInfo, successCallback) {
                 try {
-                    const events = eventsFn();
-                    successCallback(Array.isArray(events) ? events : []);
+                    const rawEvents = eventsFn();
+
+                    const splitEvents = [];
+
+                    rawEvents.forEach(event => {
+                        const start = new Date(event.start);
+                        const end = new Date(event.end);
+
+                        const current = new Date(start);
+
+                        while (current < end) {
+
+                            const dayStr = current.toISOString().split("T")[0];
+
+                            splitEvents.push({
+                                ...event,
+                                start: dayStr,
+                                end: dayStr, // 🔥 1-day event
+                                id: event.id + "_" + dayStr
+                            });
+
+                            current.setDate(current.getDate() + 1);
+                        }
+                    });
+
+                    successCallback(splitEvents);
+
                 } catch (err) {
-                    console.error("❌ event fetch error:", err);
+                    console.error("❌ event split error:", err);
                     successCallback([]);
                 }
             },
 
             /* ==========================================
-               🎨 STABIL FÄRG (FIXAD)
+               🎨 STABIL FÄRG
             ========================================== */
 
             eventDidMount: function (info) {
@@ -70,38 +99,26 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               📊 DAY CELL (OFÖRÄNDRAD FUNKTION)
+               📊 DAY LOGIC (OFÖRÄNDRAD)
             ========================================== */
 
             dayCellDidMount: function (info) {
                 try {
                     setTimeout(() => {
-                        const events = calendar.getEvents();
-                        const dayStr = info.date.toISOString().split("T")[0];
+                        const dateStr = info.date.toISOString().split("T")[0];
 
-                        const todays = events.filter(e =>
-                            e.startStr <= dayStr && e.endStr >= dayStr
+                        window.calendarActions?.processDayCell(
+                            info.el,
+                            dateStr
                         );
-
-                        if (todays.length === 0) return;
-
-                        const counter = document.createElement("div");
-                        counter.innerText = todays.length;
-                        counter.style.position = "absolute";
-                        counter.style.top = "4px";
-                        counter.style.right = "6px";
-                        counter.style.fontSize = "11px";
-                        counter.style.opacity = "0.6";
-
-                        info.el.appendChild(counter);
-
-                        if (todays.length > 3) {
-                            info.el.style.boxShadow = "inset 0 0 0 2px #ef4444";
-                        }
 
                     }, 0);
                 } catch {}
             },
+
+            /* ==========================================
+               🖱 INTERACTION
+            ========================================== */
 
             dateClick: function (info) {
                 const startInput = document.getElementById("startDate");
@@ -118,10 +135,12 @@ window.initCalendar = function () {
             eventClick: function (info) {
                 if (!info?.event?.id) return;
 
+                const originalId = info.event.id.split("_")[0];
+
                 const ok = confirm(`Ta bort semester för ${info.event.title}?`);
                 if (!ok) return;
 
-                removeVacation?.(info.event.id);
+                removeVacation?.(originalId);
             },
 
             eventMouseEnter: function (info) {
@@ -132,23 +151,11 @@ window.initCalendar = function () {
 
         calendar.render();
 
-        /* 🔥 KRITISK: FIX RELOAD BUG */
         setTimeout(() => {
-            try {
-                calendar.refetchEvents();
-
-                // 🔥 FORCE repaint
-                document.querySelectorAll(".fc-event").forEach(el => {
-                    const bg = el.style.backgroundColor;
-                    if (bg) {
-                        el.style.setProperty("background-color", bg, "important");
-                    }
-                });
-
-            } catch {}
+            calendar.refetchEvents();
         }, 50);
 
-        console.log("✅ Calendar MAX init klar");
+        console.log("✅ Calendar PER-DAY init klar");
 
     } catch (err) {
         console.error("💥 Calendar crash:", err);
@@ -157,25 +164,13 @@ window.initCalendar = function () {
 
 
 /* ==========================================
-   🔄 REFRESH (PATCHED)
+   🔄 REFRESH
 ========================================== */
 
 window.refreshCalendar = function () {
     try {
         if (!calendar) return;
-
         calendar.refetchEvents();
-
-        // 🔥 FORCE repaint efter refetch
-        setTimeout(() => {
-            document.querySelectorAll(".fc-event").forEach(el => {
-                const bg = el.style.backgroundColor;
-                if (bg) {
-                    el.style.setProperty("background-color", bg, "important");
-                }
-            });
-        }, 30);
-
     } catch (err) {
         console.error("💥 refreshCalendar error:", err);
     }
@@ -183,7 +178,7 @@ window.refreshCalendar = function () {
 
 
 /* ==========================================
-   🎨 COLOR ENGINE (NY – KRITISK FIX)
+   🎨 COLOR ENGINE
 ========================================== */
 
 function applyEventColor(info) {
@@ -191,17 +186,8 @@ function applyEventColor(info) {
         const bg = info.event.backgroundColor;
         if (!bg) return;
 
-        // event
         info.el.style.setProperty("background-color", bg, "important");
         info.el.style.setProperty("border-color", bg, "important");
-
-        // wrapper (viktig!)
-        const parent = info.el.closest(".fc-daygrid-event-harness");
-
-        if (parent) {
-            parent.style.setProperty("background-color", bg, "important");
-            parent.style.setProperty("border-radius", "999px");
-        }
 
     } catch (err) {
         console.warn("⚠️ applyEventColor error:", err);
