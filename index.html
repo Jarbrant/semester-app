@@ -82,6 +82,9 @@
         <input type="text" id="employeeName" placeholder="Namn">
         <select id="employeeGroupSelect"></select>
 
+        <!-- 🔥 NYTT -->
+        <input type="number" id="employeeVacationDays" placeholder="Semesterdagar (ex: 25)" min="1">
+
         <button class="primary-btn" onclick="tryAddEmployee()">Spara</button>
 
         <ul id="employeeList" class="list"></ul>
@@ -95,7 +98,16 @@
         <h3>Redigera personal</h3>
 
         <input type="hidden" id="editEmployeeId">
-        <input type="text" id="editEmployeeName">
+
+        <input type="text" id="editEmployeeName" placeholder="Namn">
+
+        <!-- 🔥 NYTT -->
+        <input type="number" id="editEmployeeVacationDays" placeholder="Semesterdagar" min="1">
+
+        <!-- 🔥 BALANS -->
+        <div id="employeeBalanceBox" style="font-size:13px; color:#6b7280;">
+            📊 Laddar balans...
+        </div>
 
         <button class="primary-btn" onclick="saveEmployeeEdit()">Spara</button>
         <button class="logout-btn" onclick="deleteEmployee()">Ta bort</button>
@@ -110,6 +122,9 @@
 
         <input type="text" id="employeeSearch" placeholder="Sök person...">
         <select id="employeeSelect"></select>
+
+        <!-- 🔥 BALANS LIVE -->
+        <div id="vacationBalanceInfo" style="font-size:13px; color:#6b7280;"></div>
 
         <label>Start</label>
         <input type="date" id="startDate">
@@ -197,12 +212,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const el = document.getElementById("currentUserName");
         if (el && user) el.innerText = user;
 
-        // 🔥 stabil init
-        setTimeout(() => {
-            if (typeof initCalendar === "function") {
-                initCalendar();
-            }
-        }, 0);
+        if (typeof initCalendar === "function") {
+            initCalendar();
+        }
 
     } catch (err) {
         console.error("Init error:", err);
