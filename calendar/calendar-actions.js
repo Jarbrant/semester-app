@@ -36,11 +36,13 @@ window.calendarActions = {
 
     applyEventColor(info) {
         try {
+            // Sätter färg om den är satt på eventet
             const bg = info.event.backgroundColor || "#3788d8";
-
+            const border = info.event.borderColor || bg;
+            const text = info.event.textColor || "#fff";
             info.el.style.setProperty("background-color", bg, "important");
-            info.el.style.setProperty("border-color", bg, "important");
-
+            info.el.style.setProperty("border-color", border, "important");
+            info.el.style.setProperty("color", text, "important");
         } catch (err) {
             console.warn("⚠️ applyEventColor error:", err);
         }
