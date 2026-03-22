@@ -66,7 +66,7 @@ window.addEventListener("DOMContentLoaded", () => {
             });
         }
 
-        // 📅 Spara semester (🔥 DIN BUGG FIXAD)
+        // 📅 Spara semester
         const saveVacationBtn = document.getElementById("saveVacationBtn");
         if (saveVacationBtn) {
             saveVacationBtn.addEventListener("click", () => {
@@ -75,6 +75,32 @@ window.addEventListener("DOMContentLoaded", () => {
             });
         } else {
             console.warn("⚠️ saveVacationBtn hittades inte");
+        }
+
+        /* ==========================================
+           ↩️ AO-03 UNDO SYSTEM
+        ========================================== */
+
+        const undoBtn = document.getElementById("undoBtn");
+
+        if (undoBtn) {
+            undoBtn.addEventListener("click", () => {
+
+                console.log("↩️ Klick: Undo");
+
+                // 🔥 kör undo
+                window.HistoryManager?.undo();
+
+                // 🔥 reset autosave state (kritisk koppling till ui.js)
+                if (typeof window.lastAutoSave !== "undefined") {
+                    window.lastAutoSave = null;
+                }
+
+                // 🔥 extra safety refresh (om något missas)
+                window.refreshCalendar?.();
+            });
+        } else {
+            console.warn("⚠️ undoBtn hittades inte");
         }
 
         /* ==========================================
