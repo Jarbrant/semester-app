@@ -73,10 +73,8 @@ window.initCalendar = function () {
                 try {
                     const rawEvents = eventsFn() || [];
 
-                    // 🔥 redan dag-splittade events → använd direkt
                     successCallback(rawEvents);
 
-                    // 🔥 bygg cache EFTER render (stabil)
                     requestAnimationFrame(() => {
                         window.calendarActions?.buildEventCache();
                     });
@@ -137,7 +135,6 @@ window.initCalendar = function () {
                     startInput.value = info.dateStr;
                     endInput.value = info.dateStr;
 
-                    // 🔥 auto-focus slutdatum (din feature 👇)
                     requestAnimationFrame(() => {
                         endInput.focus();
                     });
@@ -177,16 +174,22 @@ window.initCalendar = function () {
 };
 
 /* ==========================================
-   🔄 REFRESH (STATE SAFE)
+   🔄 REFRESH (STATE SAFE + HARDENED 🔥)
 ========================================== */
 
 window.refreshCalendar = function () {
     try {
         if (!calendar) return;
 
+        // 🔥 primary
         calendar.refetchEvents();
 
-        // 🔥 sync cache + UI efter refresh
+        // 🔥 fallback (fixar edge cases där FC inte redrawar)
+        requestAnimationFrame(() => {
+            calendar.rerenderEvents?.();
+        });
+
+        // 🔥 sync cache + UI
         requestAnimationFrame(() => {
             window.calendarActions?.buildEventCache();
         });
