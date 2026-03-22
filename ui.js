@@ -12,13 +12,43 @@ function setValue(id, value) {
 }
 
 /* ==========================================
-   ⚡ AUTOSAVE STATE (AO-02)
+   🪟 MODAL SYSTEM (🔥 SAKNADES)
+========================================== */
+
+window.openModal = function (id) {
+    const modal = getEl(id);
+    const overlay = getEl("modalOverlay");
+
+    if (!modal || !overlay) {
+        console.warn("⚠️ Modal saknas:", id);
+        return;
+    }
+
+    document.querySelectorAll(".modal").forEach(m => m.classList.remove("active"));
+
+    modal.classList.add("active");
+    overlay.style.display = "block";
+};
+
+window.closeModal = function (id) {
+    if (id) {
+        getEl(id)?.classList.remove("active");
+    } else {
+        document.querySelectorAll(".modal").forEach(m => m.classList.remove("active"));
+    }
+
+    const overlay = getEl("modalOverlay");
+    if (overlay) overlay.style.display = "none";
+};
+
+/* ==========================================
+   ⚡ AUTOSAVE STATE
 ========================================== */
 
 let lastAutoSave = null;
 
 /* ==========================================
-   ⚡ AUTOSAVE ENGINE (AO-02)
+   ⚡ AUTOSAVE
 ========================================== */
 
 function autoSaveVacation() {
@@ -43,7 +73,7 @@ function autoSaveVacation() {
 }
 
 /* ==========================================
-   🧠 VALIDATION (AO-02)
+   🧠 VALIDATION
 ========================================== */
 
 function validateVacationInput() {
@@ -62,7 +92,7 @@ function validateVacationInput() {
 }
 
 /* ==========================================
-   🧠 GLOBAL SUCCESS
+   🧠 SUCCESS
 ========================================== */
 
 function showSuccess(message, targetId = "warning") {
@@ -79,152 +109,16 @@ function showSuccess(message, targetId = "warning") {
 }
 
 /* ==========================================
-   🧠 AO-03 UNDO HOOK (🔥)
+   🧠 UNDO
 ========================================== */
 
 function handleUndo() {
     window.HistoryManager?.undo();
-
-    // 🔥 reset autosave så samma input kan sparas igen
     lastAutoSave = null;
 }
 
 /* ==========================================
-   🧩 GROUP UI
-========================================== */
-
-window.tryAddGroup = function () {
-    const name = getEl("groupName")?.value?.trim();
-    const color = getEl("groupColor")?.value;
-    const limit = parseInt(getEl("groupLimit")?.value) || 1;
-    const warning = getEl("groupWarning");
-
-    if (!name) {
-        if (warning) warning.textContent = "Ange gruppnamn";
-        return;
-    }
-
-    if (typeof addGroup !== "function") return console.error("❌ addGroup saknas");
-
-    addGroup(name, color, limit);
-
-    if (warning) warning.textContent = "";
-
-    showSuccess(`Grupp "${name}" skapad`, "groupWarning");
-
-    setValue("groupName", "");
-    setValue("groupLimit", "");
-
-    closeModal?.("groupModal");
-};
-
-/* ==========================================
-   🔽 GROUP SELECT
-========================================== */
-
-window.refreshGroupSelect = function () {
-    const select = getEl("employeeGroupSelect");
-    if (!select) return;
-
-    const groups = getGroups?.() || [];
-
-    select.innerHTML = "";
-
-    const defaultOpt = document.createElement("option");
-    defaultOpt.value = "";
-    defaultOpt.textContent = "Ingen grupp";
-    select.appendChild(defaultOpt);
-
-    groups.forEach(g => {
-        const opt = document.createElement("option");
-        opt.value = g.id;
-        opt.textContent = `${g.name} (max ${g.maxConcurrent})`;
-        select.appendChild(opt);
-    });
-};
-
-/* ==========================================
-   📅 EMPLOYEE SELECT
-========================================== */
-
-window.refreshEmployeeSelect = function (filter = "") {
-    const select = getEl("employeeSelect");
-    if (!select) return;
-
-    const employees = getEmployees?.() || [];
-
-    const filtered = employees.filter(e =>
-        e.name?.toLowerCase().includes(filter.toLowerCase())
-    );
-
-    select.innerHTML = "";
-
-    if (!filtered.length) {
-        const opt = document.createElement("option");
-        opt.textContent = "Ingen personal";
-        opt.value = "";
-        select.appendChild(opt);
-        return;
-    }
-
-    filtered.forEach(emp => {
-        const opt = document.createElement("option");
-        opt.value = emp.id;
-        opt.textContent = emp.name;
-        select.appendChild(opt);
-    });
-
-    select.selectedIndex = 0;
-};
-
-/* ==========================================
-   👤 EMPLOYEE ADD
-========================================== */
-
-window.tryAddEmployee = function () {
-
-    const nameEl = getEl("employeeName");
-    const groupEl = getEl("employeeGroupSelect");
-    const daysEl = getEl("employeeVacationDays");
-    const warning = getEl("employeeWarning");
-
-    const name = nameEl?.value?.trim();
-    const groupId = groupEl?.value;
-    const vacationDays = daysEl?.value || 25;
-
-    if (!name) {
-        if (warning) warning.textContent = "Du måste ange ett namn!";
-        return;
-    }
-
-    if (typeof addEmployee !== "function") return console.error("❌ addEmployee saknas");
-
-    addEmployee(name, groupId || null, vacationDays);
-
-    if (warning) warning.textContent = "";
-
-    showSuccess(`${name} sparad (${vacationDays} dagar)`, "employeeWarning");
-
-    setValue("employeeName", "");
-    setValue("employeeVacationDays", "");
-
-    renderEmployeeList?.();
-    window.refreshEmployeeSelect?.();
-
-    closeModal?.("employeeModal");
-};
-
-/* ==========================================
-   📊 YEAR
-========================================== */
-
-window.getSelectedYear = function () {
-    const el = getEl("yearFilter");
-    return el ? parseInt(el.value) : new Date().getFullYear();
-};
-
-/* ==========================================
-   🔄 EMPLOYEE LIST
+   📅 EMPLOYEE LIST (🔥 FIXAD)
 ========================================== */
 
 window.renderEmployeeList = function () {
@@ -258,7 +152,21 @@ window.renderEmployeeList = function () {
             background:#f9fafb;
         `;
 
-        li.innerHTML = `...`;
+        // 🔥 FULL FIX
+        li.innerHTML = `
+            <div style="display:flex; justify-content:space-between;">
+                <div>
+                    <strong>${emp.name}</strong>
+                    ${group ? `<small style="color:#6b7280"> (${group.name})</small>` : ""}
+                </div>
+                <div style="font-size:12px; color:#6b7280;">
+                    ${used} / ${total}
+                </div>
+            </div>
+            <div style="margin-top:6px;height:6px;background:#e5e7eb;border-radius:999px;">
+                <div style="width:${percent}%;height:100%;background:${color};"></div>
+            </div>
+        `;
 
         li.onclick = () => openEditEmployee?.(emp.id);
 
@@ -311,7 +219,6 @@ document.addEventListener("DOMContentLoaded", () => {
     getEl("startDate")?.addEventListener("change", validateVacationInput);
     getEl("endDate")?.addEventListener("change", validateVacationInput);
 
-    // 🔥 smart slutdatum
     getEl("startDate")?.addEventListener("change", () => {
         const start = getEl("startDate")?.value;
         const endEl = getEl("endDate");
@@ -329,7 +236,6 @@ document.addEventListener("DOMContentLoaded", () => {
         updateVacationBalanceUI?.();
     });
 
-    // 🔥 AO-03 undo button
     getEl("undoBtn")?.addEventListener("click", handleUndo);
 
     getEl("modalOverlay")?.addEventListener("click", () => closeModal());
