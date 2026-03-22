@@ -12,7 +12,7 @@ function setValue(id, value) {
 }
 
 /* ==========================================
-   🪟 MODAL SYSTEM (🔥 FIXAD + DATA INIT)
+   🪟 MODAL SYSTEM (🔥 EDIT-AWARE)
 ========================================== */
 
 window.openModal = function (id) {
@@ -30,15 +30,19 @@ window.openModal = function (id) {
     modal.classList.add("active");
     overlay.style.display = "block";
 
-    // 🔥 KRITISK DATA INIT (FIX)
     if (id === "employeeModal") {
         window.refreshGroupSelect?.();
         window.renderEmployeeList?.();
     }
 
     if (id === "vacationModal") {
-        setValue("employeeSearch", "");
-        window.refreshEmployeeSelect?.("");
+
+        // 🔥 bara reset om INTE edit mode
+        if (!window.AppState?.editingVacationId) {
+            setValue("employeeSearch", "");
+            window.refreshEmployeeSelect?.("");
+        }
+
         updateVacationBalanceUI?.();
     }
 };
@@ -52,6 +56,9 @@ window.closeModal = function (id) {
 
     const overlay = getEl("modalOverlay");
     if (overlay) overlay.style.display = "none";
+
+    // 🔥 reset edit mode vid stängning
+    window.AppState.editingVacationId = null;
 };
 
 /* ==========================================
@@ -61,10 +68,13 @@ window.closeModal = function (id) {
 let lastAutoSave = null;
 
 /* ==========================================
-   ⚡ AUTOSAVE
+   ⚡ AUTOSAVE (🔥 EDIT SAFE)
 ========================================== */
 
 function autoSaveVacation() {
+
+    // 🔥 blockera autosave vid edit
+    if (window.AppState?.editingVacationId) return;
 
     const emp = getEl("employeeSelect")?.value;
     const start = getEl("startDate")?.value;
@@ -199,7 +209,7 @@ window.getSelectedYear = function () {
 };
 
 /* ==========================================
-   🔄 EMPLOYEE LIST (🔥 FULL FIX)
+   🔄 EMPLOYEE LIST
 ========================================== */
 
 window.renderEmployeeList = function () {
@@ -259,23 +269,9 @@ window.renderEmployeeList = function () {
 ========================================== */
 
 window.trySubmitVacation = function () {
-    const emp = getEl("employeeSelect")?.value;
-    const start = getEl("startDate")?.value;
-    const end = getEl("endDate")?.value;
-    const warning = getEl("warning");
 
-    if (!emp || !start || !end) {
-        if (warning) warning.textContent = "Fyll i alla fält!";
-        return;
-    }
-
-    if (!canAddVacation?.(emp, start, end)) {
-        if (warning) warning.textContent = "⚠️ För många semesterdagar!";
-        return;
-    }
-
+    // 🔥 edit hanteras i addVacation
     addVacation?.();
-    refreshCalendar?.();
 
     showSuccess("Semestern sparad", "warning");
 
