@@ -12,7 +12,7 @@ function setValue(id, value) {
 }
 
 /* ==========================================
-   📊 BALANS UI (🔥 KRITISK FIX)
+   📊 BALANS UI
 ========================================== */
 
 function updateVacationBalanceUI() {
@@ -33,7 +33,7 @@ function updateVacationBalanceUI() {
 }
 
 /* ==========================================
-   🪟 MODAL SYSTEM (🔥 EDIT-AWARE)
+   🪟 MODAL SYSTEM (EDIT SAFE)
 ========================================== */
 
 window.openModal = function (id) {
@@ -58,7 +58,6 @@ window.openModal = function (id) {
 
     if (id === "vacationModal") {
 
-        // 🔥 bara reset om INTE edit mode
         if (!window.AppState?.editingVacationId) {
             setValue("employeeSearch", "");
             window.refreshEmployeeSelect?.("");
@@ -78,7 +77,6 @@ window.closeModal = function (id) {
     const overlay = getEl("modalOverlay");
     if (overlay) overlay.style.display = "none";
 
-    // 🔥 reset edit mode
     if (window.AppState) {
         window.AppState.editingVacationId = null;
     }
@@ -91,7 +89,7 @@ window.closeModal = function (id) {
 let lastAutoSave = null;
 
 /* ==========================================
-   ⚡ AUTOSAVE (🔥 EDIT SAFE)
+   ⚡ AUTOSAVE
 ========================================== */
 
 function autoSaveVacation() {
@@ -161,6 +159,46 @@ function handleUndo() {
     window.HistoryManager?.undo();
     lastAutoSave = null;
 }
+
+/* ==========================================
+   👤 EMPLOYEE ADD (🔥 FIX)
+========================================== */
+
+window.tryAddEmployee = function () {
+
+    const nameEl = getEl("employeeName");
+    const groupEl = getEl("employeeGroupSelect");
+    const daysEl = getEl("employeeVacationDays");
+    const warning = getEl("employeeWarning");
+
+    const name = nameEl?.value?.trim();
+    const groupId = groupEl?.value;
+    const vacationDays = daysEl?.value || 25;
+
+    if (!name) {
+        if (warning) warning.textContent = "Du måste ange ett namn!";
+        return;
+    }
+
+    if (typeof addEmployee !== "function") {
+        console.error("❌ addEmployee saknas");
+        return;
+    }
+
+    addEmployee(name, groupId || null, vacationDays);
+
+    if (warning) warning.textContent = "";
+
+    showSuccess(`${name} sparad (${vacationDays} dagar)`, "employeeWarning");
+
+    setValue("employeeName", "");
+    setValue("employeeVacationDays", "");
+
+    renderEmployeeList?.();
+    window.refreshEmployeeSelect?.();
+
+    closeModal?.("employeeModal");
+};
 
 /* ==========================================
    🔽 GROUP SELECT
