@@ -1,9 +1,22 @@
 /* ==========================================
+   🧠 SAFE DOM HELPERS
+========================================== */
+
+function getEl(id) {
+    return document.getElementById(id);
+}
+
+function setValue(id, value) {
+    const el = getEl(id);
+    if (el) el.value = value;
+}
+
+/* ==========================================
    🧠 GLOBAL SUCCESS
 ========================================== */
 
 function showSuccess(message, targetId = "warning") {
-    const el = document.getElementById(targetId);
+    const el = getEl(targetId);
     if (!el) return;
 
     el.style.color = "#16a34a";
@@ -20,20 +33,17 @@ function showSuccess(message, targetId = "warning") {
 ========================================== */
 
 window.tryAddGroup = function () {
-    const name = document.getElementById("groupName")?.value?.trim();
-    const color = document.getElementById("groupColor")?.value;
-    const limit = parseInt(document.getElementById("groupLimit")?.value) || 1;
-    const warning = document.getElementById("groupWarning");
+    const name = getEl("groupName")?.value?.trim();
+    const color = getEl("groupColor")?.value;
+    const limit = parseInt(getEl("groupLimit")?.value) || 1;
+    const warning = getEl("groupWarning");
 
     if (!name) {
         if (warning) warning.textContent = "Ange gruppnamn";
         return;
     }
 
-    if (typeof addGroup !== "function") {
-        console.error("❌ addGroup saknas");
-        return;
-    }
+    if (typeof addGroup !== "function") return console.error("❌ addGroup saknas");
 
     addGroup(name, color, limit);
 
@@ -41,54 +51,47 @@ window.tryAddGroup = function () {
 
     showSuccess(`Grupp "${name}" skapad`, "groupWarning");
 
-    document.getElementById("groupName").value = "";
-    document.getElementById("groupLimit").value = "";
+    setValue("groupName", "");
+    setValue("groupLimit", "");
 
-    closeModal("groupModal");
+    closeModal?.("groupModal");
 };
 
 /* ==========================================
-   👤 EMPLOYEE ADD (🔥 FIXAD)
+   👤 EMPLOYEE ADD
 ========================================== */
 
 window.tryAddEmployee = function () {
 
-    const nameEl = document.getElementById("employeeName");
-    const groupEl = document.getElementById("employeeGroupSelect");
-    const daysEl = document.getElementById("employeeVacationDays");
-    const warning = document.getElementById("employeeWarning");
+    const nameEl = getEl("employeeName");
+    const groupEl = getEl("employeeGroupSelect");
+    const daysEl = getEl("employeeVacationDays");
+    const warning = getEl("employeeWarning");
 
-    const name = nameEl?.value;
+    const name = nameEl?.value?.trim();
     const groupId = groupEl?.value;
     const vacationDays = daysEl?.value || 25;
 
-    console.log("🧪 UI INPUT:", { name, groupId, vacationDays });
-
-    if (!name || !name.trim()) {
+    if (!name) {
         if (warning) warning.textContent = "Du måste ange ett namn!";
         return;
     }
 
-    const success = addEmployee?.(name.trim(), groupId || null, vacationDays);
+    if (typeof addEmployee !== "function") return console.error("❌ addEmployee saknas");
 
-    console.log("🧪 RESULT:", success);
-
-    if (!success) {
-        if (warning) warning.textContent = "❌ Kunde inte spara";
-        return;
-    }
+    addEmployee(name, groupId || null, vacationDays);
 
     if (warning) warning.textContent = "";
 
     showSuccess(`${name} sparad (${vacationDays} dagar)`, "employeeWarning");
 
-    nameEl.value = "";
-    if (daysEl) daysEl.value = "";
+    setValue("employeeName", "");
+    setValue("employeeVacationDays", "");
 
-    renderEmployeeList();
-    refreshEmployeeSelect();
+    renderEmployeeList?.();
+    refreshEmployeeSelect?.();
 
-    closeModal("employeeModal");
+    closeModal?.("employeeModal");
 };
 
 /* ==========================================
@@ -96,7 +99,7 @@ window.tryAddEmployee = function () {
 ========================================== */
 
 window.refreshGroupSelect = function () {
-    const select = document.getElementById("employeeGroupSelect");
+    const select = getEl("employeeGroupSelect");
     if (!select) return;
 
     const groups = getGroups?.() || [];
@@ -121,7 +124,7 @@ window.refreshGroupSelect = function () {
 ========================================== */
 
 window.getSelectedYear = function () {
-    const el = document.getElementById("yearFilter");
+    const el = getEl("yearFilter");
     return el ? parseInt(el.value) : new Date().getFullYear();
 };
 
@@ -130,7 +133,7 @@ window.getSelectedYear = function () {
 ========================================== */
 
 window.renderEmployeeList = function () {
-    const list = document.getElementById("employeeList");
+    const list = getEl("employeeList");
     if (!list) return;
 
     const employees = getEmployees?.() || [];
@@ -142,21 +145,23 @@ window.renderEmployeeList = function () {
     employees.forEach(emp => {
 
         const group = groups.find(g => g.id == emp.group_id);
-        const balance = getVacationBalance(emp.id, year);
+        const balance = getVacationBalance?.(emp.id, year);
 
         const used = balance?.used || 0;
         const total = balance?.total || emp.vacationDays || 25;
         const percent = balance?.percent || 0;
 
-        const color = getVacationStatusColor(percent);
+        const color = getVacationStatusColor?.(percent) || "#22c55e";
 
         const li = document.createElement("li");
 
-        li.style.cursor = "pointer";
-        li.style.padding = "10px";
-        li.style.borderRadius = "10px";
-        li.style.marginBottom = "8px";
-        li.style.background = "#f9fafb";
+        li.style.cssText = `
+            cursor:pointer;
+            padding:10px;
+            border-radius:10px;
+            margin-bottom:8px;
+            background:#f9fafb;
+        `;
 
         li.innerHTML = `
             <div style="display:flex; justify-content:space-between;">
@@ -164,124 +169,30 @@ window.renderEmployeeList = function () {
                     <strong>${emp.name}</strong>
                     ${group ? `<small style="color:#6b7280"> (${group.name})</small>` : ""}
                 </div>
-
                 <div style="font-size:12px; color:#6b7280;">
                     ${used} / ${total}
                 </div>
             </div>
-
-            <div style="
-                margin-top:6px;
-                height:6px;
-                background:#e5e7eb;
-                border-radius:999px;
-                overflow:hidden;
-            ">
-                <div style="
-                    width:${percent}%;
-                    height:100%;
-                    background:${color};
-                    transition:0.3s;
-                "></div>
+            <div style="margin-top:6px;height:6px;background:#e5e7eb;border-radius:999px;">
+                <div style="width:${percent}%;height:100%;background:${color};"></div>
             </div>
         `;
 
-        li.onclick = () => openEditEmployee(emp.id);
+        li.onclick = () => openEditEmployee?.(emp.id);
 
         list.appendChild(li);
     });
 };
 
 /* ==========================================
-   ✏️ EDIT EMPLOYEE (RESTORED 🔥)
-========================================== */
-
-window.openEditEmployee = function (id) {
-    const emp = getEmployees().find(e => e.id == id);
-    if (!emp) return;
-
-    const year = getSelectedYear();
-    const balance = getVacationBalance(emp.id, year);
-
-    document.getElementById("editEmployeeName").value = emp.name;
-    document.getElementById("editEmployeeId").value = emp.id;
-    document.getElementById("editEmployeeVacationDays").value = emp.vacationDays || 25;
-
-    const box = document.getElementById("employeeBalanceBox");
-    if (box && balance) {
-        box.innerHTML = `
-            📊 ${balance.used} / ${balance.total}<br>
-            💡 Kvar: ${balance.remaining}
-        `;
-    }
-
-    openModal("editEmployeeModal");
-};
-
-window.saveEmployeeEdit = function () {
-    const id = document.getElementById("editEmployeeId").value;
-    const name = document.getElementById("editEmployeeName").value?.trim();
-    const vacationDays = document.getElementById("editEmployeeVacationDays")?.value;
-
-    if (!name) return;
-
-    updateEmployee(id, name, undefined, vacationDays);
-
-    showSuccess("Ändringar sparade", "employeeWarning");
-
-    closeModal("editEmployeeModal");
-
-    renderEmployeeList();
-    refreshEmployeeSelect();
-    refreshCalendar?.();
-};
-
-window.deleteEmployee = function () {
-    const id = document.getElementById("editEmployeeId").value;
-
-    if (!confirm("Ta bort denna person?")) return;
-
-    deleteEmployeeById(id);
-
-    showSuccess("Person borttagen", "employeeWarning");
-
-    closeModal("editEmployeeModal");
-
-    renderEmployeeList();
-    refreshEmployeeSelect();
-    refreshCalendar?.();
-};
-
-/* ==========================================
-   📊 BALANS (RESTORED 🔥)
-========================================== */
-
-function updateVacationBalanceUI() {
-    const empId = document.getElementById("employeeSelect")?.value;
-    const box = document.getElementById("vacationBalanceInfo");
-
-    if (!empId || !box) return;
-
-    const year = getSelectedYear();
-    const balance = getVacationBalance(empId, year);
-
-    if (!balance) return;
-
-    box.innerHTML = `
-        📊 ${balance.used} / ${balance.total} dagar  
-        <br>💡 Kvar: ${balance.remaining}
-    `;
-}
-
-/* ==========================================
    📅 VACATION
 ========================================== */
 
 window.trySubmitVacation = function () {
-    const emp = document.getElementById("employeeSelect")?.value;
-    const start = document.getElementById("startDate")?.value;
-    const end = document.getElementById("endDate")?.value;
-    const warning = document.getElementById("warning");
+    const emp = getEl("employeeSelect")?.value;
+    const start = getEl("startDate")?.value;
+    const end = getEl("endDate")?.value;
+    const warning = getEl("warning");
 
     if (!emp || !start || !end) {
         if (warning) warning.textContent = "Fyll i alla fält!";
@@ -293,11 +204,13 @@ window.trySubmitVacation = function () {
         return;
     }
 
-    addVacation?.();
+    if (typeof addVacation !== "function") return console.error("❌ addVacation saknas");
+
+    addVacation();
 
     showSuccess("Semestern sparad", "warning");
 
-    closeModal("vacationModal");
+    closeModal?.("vacationModal");
 };
 
 /* ==========================================
@@ -305,10 +218,14 @@ window.trySubmitVacation = function () {
 ========================================== */
 
 window.openModal = function (id) {
-    document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
 
-    const modal = document.getElementById(id);
-    const overlay = document.getElementById("modalOverlay");
+    const modals = document.querySelectorAll('.modal');
+    if (!modals.length) return;
+
+    modals.forEach(m => m.classList.remove("active"));
+
+    const modal = getEl(id);
+    const overlay = getEl("modalOverlay");
 
     if (!modal || !overlay) return;
 
@@ -316,26 +233,48 @@ window.openModal = function (id) {
     overlay.style.display = "block";
 
     if (id === "employeeModal") {
-        refreshGroupSelect();
-        renderEmployeeList();
+        refreshGroupSelect?.();
+        renderEmployeeList?.();
     }
 
     if (id === "vacationModal") {
-        document.getElementById("employeeSearch")?.value = "";
-        refreshEmployeeSelect("");
-        updateVacationBalanceUI();
+        setValue("employeeSearch", "");
+        refreshEmployeeSelect?.("");
+        updateVacationBalanceUI?.();
     }
 };
 
 window.closeModal = function (id) {
     if (id) {
-        document.getElementById(id)?.classList.remove("active");
+        getEl(id)?.classList.remove("active");
     } else {
         document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
     }
 
-    document.getElementById("modalOverlay").style.display = "none";
+    const overlay = getEl("modalOverlay");
+    if (overlay) overlay.style.display = "none";
 };
+
+/* ==========================================
+   📊 BALANS
+========================================== */
+
+function updateVacationBalanceUI() {
+    const empId = getEl("employeeSelect")?.value;
+    const box = getEl("vacationBalanceInfo");
+
+    if (!empId || !box) return;
+
+    const year = getSelectedYear();
+    const balance = getVacationBalance?.(empId, year);
+
+    if (!balance) return;
+
+    box.innerHTML = `
+        📊 ${balance.used} / ${balance.total} dagar  
+        <br>💡 Kvar: ${balance.remaining}
+    `;
+}
 
 /* ==========================================
    🔍 EVENTS
@@ -343,15 +282,15 @@ window.closeModal = function (id) {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    document.getElementById("employeeSearch")?.addEventListener("input", e => {
-        refreshEmployeeSelect(e.target.value);
+    getEl("employeeSearch")?.addEventListener("input", e => {
+        refreshEmployeeSelect?.(e.target.value);
     });
 
-    document.getElementById("employeeSelect")?.addEventListener("change", () => {
-        updateVacationBalanceUI();
+    getEl("employeeSelect")?.addEventListener("change", () => {
+        updateVacationBalanceUI?.();
     });
 
-    document.getElementById("modalOverlay")?.addEventListener("click", () => closeModal());
+    getEl("modalOverlay")?.addEventListener("click", () => closeModal());
 
     document.addEventListener("keydown", e => {
         if (e.key === "Escape") closeModal();
