@@ -1,4 +1,21 @@
 /* ==========================================
+   🧠 GLOBAL SUCCESS (🔥 NYTT)
+========================================== */
+
+function showSuccess(message, targetId = "warning") {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+
+    el.style.color = "#16a34a";
+    el.textContent = "✅ " + message;
+
+    setTimeout(() => {
+        el.textContent = "";
+        el.style.color = "";
+    }, 2000);
+}
+
+/* ==========================================
    🧩 GROUP UI
 ========================================== */
 
@@ -16,6 +33,9 @@ window.tryAddGroup = function () {
     addGroup?.(name, color, limit);
 
     if (warning) warning.textContent = "";
+
+    // ✅ KVITTO
+    showSuccess(`Grupp "${name}" skapad`, "groupWarning");
 
     document.getElementById("groupName").value = "";
     document.getElementById("groupLimit").value = "";
@@ -49,18 +69,14 @@ window.refreshGroupSelect = function () {
 };
 
 /* ==========================================
-   👤 EMPLOYEE ADD (🔥 PATCHAD)
+   👤 EMPLOYEE ADD
 ========================================== */
 
 window.tryAddEmployee = function () {
-    const nameInput = document.getElementById("employeeName");
-    const groupSelect = document.getElementById("employeeGroupSelect");
-    const daysInput = document.getElementById("employeeVacationDays");
+    const name = document.getElementById("employeeName")?.value?.trim();
+    const groupId = document.getElementById("employeeGroupSelect")?.value;
+    const vacationDays = document.getElementById("employeeVacationDays")?.value || 25;
     const warning = document.getElementById("employeeWarning");
-
-    const name = nameInput?.value?.trim();
-    const groupId = groupSelect?.value;
-    const vacationDays = daysInput?.value || 25;
 
     if (!name) {
         if (warning) warning.textContent = "Du måste ange ett namn!";
@@ -71,19 +87,11 @@ window.tryAddEmployee = function () {
 
     if (warning) warning.textContent = "";
 
-    // ✅ KVITTO (NYTT)
-    if (warning) {
-        warning.style.color = "#16a34a";
-        warning.textContent = `✅ ${name} sparad (${vacationDays} dagar)`;
+    // ✅ KVITTO
+    showSuccess(`${name} sparad (${vacationDays} dagar)`, "employeeWarning");
 
-        setTimeout(() => {
-            warning.textContent = "";
-            warning.style.color = "";
-        }, 2000);
-    }
-
-    nameInput.value = "";
-    daysInput.value = "";
+    document.getElementById("employeeName").value = "";
+    document.getElementById("employeeVacationDays").value = "";
 
     renderEmployeeList();
     refreshEmployeeSelect();
@@ -202,6 +210,9 @@ window.saveEmployeeEdit = function () {
 
     updateEmployee(id, name, undefined, vacationDays);
 
+    // ✅ KVITTO
+    showSuccess("Ändringar sparade", "employeeWarning");
+
     closeModal("editEmployeeModal");
 
     renderEmployeeList();
@@ -215,6 +226,8 @@ window.deleteEmployee = function () {
     if (!confirm("Ta bort denna person?")) return;
 
     deleteEmployeeById(id);
+
+    showSuccess("Person borttagen", "employeeWarning");
 
     closeModal("editEmployeeModal");
 
@@ -302,6 +315,10 @@ window.trySubmitVacation = function () {
     if (warning) warning.textContent = "";
 
     addVacation?.();
+
+    // ✅ KVITTO
+    showSuccess("Semestern sparad", "warning");
+
     closeModal("vacationModal");
 };
 
