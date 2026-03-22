@@ -1,5 +1,5 @@
 /* ==========================================
-   🧠 GLOBAL SUCCESS (UPGRADED)
+   🧠 GLOBAL SUCCESS
 ========================================== */
 
 function showSuccess(message, targetId = "warning") {
@@ -69,13 +69,7 @@ window.tryAddEmployee = function () {
         return;
     }
 
-    if (typeof addEmployee !== "function") {
-        console.error("❌ addEmployee saknas");
-        if (warning) warning.textContent = "Systemfel: kan inte spara";
-        return;
-    }
-
-    const success = addEmployee(name.trim(), groupId || null, vacationDays);
+    const success = addEmployee?.(name.trim(), groupId || null, vacationDays);
 
     console.log("🧪 RESULT:", success);
 
@@ -88,12 +82,11 @@ window.tryAddEmployee = function () {
 
     showSuccess(`${name} sparad (${vacationDays} dagar)`, "employeeWarning");
 
-    // reset
-    if (nameEl) nameEl.value = "";
+    nameEl.value = "";
     if (daysEl) daysEl.value = "";
 
-    renderEmployeeList?.();
-    refreshEmployeeSelect?.();
+    renderEmployeeList();
+    refreshEmployeeSelect();
 
     closeModal("employeeModal");
 };
@@ -200,7 +193,88 @@ window.renderEmployeeList = function () {
 };
 
 /* ==========================================
-   📅 VACATION (SAFE)
+   ✏️ EDIT EMPLOYEE (RESTORED 🔥)
+========================================== */
+
+window.openEditEmployee = function (id) {
+    const emp = getEmployees().find(e => e.id == id);
+    if (!emp) return;
+
+    const year = getSelectedYear();
+    const balance = getVacationBalance(emp.id, year);
+
+    document.getElementById("editEmployeeName").value = emp.name;
+    document.getElementById("editEmployeeId").value = emp.id;
+    document.getElementById("editEmployeeVacationDays").value = emp.vacationDays || 25;
+
+    const box = document.getElementById("employeeBalanceBox");
+    if (box && balance) {
+        box.innerHTML = `
+            📊 ${balance.used} / ${balance.total}<br>
+            💡 Kvar: ${balance.remaining}
+        `;
+    }
+
+    openModal("editEmployeeModal");
+};
+
+window.saveEmployeeEdit = function () {
+    const id = document.getElementById("editEmployeeId").value;
+    const name = document.getElementById("editEmployeeName").value?.trim();
+    const vacationDays = document.getElementById("editEmployeeVacationDays")?.value;
+
+    if (!name) return;
+
+    updateEmployee(id, name, undefined, vacationDays);
+
+    showSuccess("Ändringar sparade", "employeeWarning");
+
+    closeModal("editEmployeeModal");
+
+    renderEmployeeList();
+    refreshEmployeeSelect();
+    refreshCalendar?.();
+};
+
+window.deleteEmployee = function () {
+    const id = document.getElementById("editEmployeeId").value;
+
+    if (!confirm("Ta bort denna person?")) return;
+
+    deleteEmployeeById(id);
+
+    showSuccess("Person borttagen", "employeeWarning");
+
+    closeModal("editEmployeeModal");
+
+    renderEmployeeList();
+    refreshEmployeeSelect();
+    refreshCalendar?.();
+};
+
+/* ==========================================
+   📊 BALANS (RESTORED 🔥)
+========================================== */
+
+function updateVacationBalanceUI() {
+    const empId = document.getElementById("employeeSelect")?.value;
+    const box = document.getElementById("vacationBalanceInfo");
+
+    if (!empId || !box) return;
+
+    const year = getSelectedYear();
+    const balance = getVacationBalance(empId, year);
+
+    if (!balance) return;
+
+    box.innerHTML = `
+        📊 ${balance.used} / ${balance.total} dagar  
+        <br>💡 Kvar: ${balance.remaining}
+    `;
+}
+
+/* ==========================================
+   📅 VACATION
 ========================================== */
 
 window.trySubmitVacation = function () {
@@ -249,6 +323,7 @@ window.openModal = function (id) {
     if (id === "vacationModal") {
         document.getElementById("employeeSearch")?.value = "";
         refreshEmployeeSelect("");
+        updateVacationBalanceUI();
     }
 };
 
@@ -273,7 +348,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.getElementById("employeeSelect")?.addEventListener("change", () => {
-        updateVacationBalanceUI?.();
+        updateVacationBalanceUI();
     });
 
     document.getElementById("modalOverlay")?.addEventListener("click", () => closeModal());
