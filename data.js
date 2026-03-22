@@ -1,23 +1,71 @@
 /* ==========================================
-   💾 DATA LAGER (localStorage)
+   💾 DATA LAGER (SAFE + SYNC)
 ========================================== */
 
-// 🔹 Hämta anställda
+function safeParse(key, fallback = []) {
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+    } catch (err) {
+        console.error(`❌ parse error (${key}):`, err);
+        return fallback;
+    }
+}
+
+/* ==========================================
+   👤 EMPLOYEES (🔥 SYNC MED AppState)
+========================================== */
+
 function getEmployees() {
-    return JSON.parse(localStorage.getItem("employees")) || [];
+
+    // 🔥 PRIORITERA AppState
+    if (window.AppState?.employees) {
+        return window.AppState.employees;
+    }
+
+    const data = safeParse("employees", []);
+
+    // 🔥 SYNC tillbaka till state
+    if (window.AppState) {
+        window.AppState.employees = data;
+    }
+
+    return data;
 }
 
-// 🔹 Spara anställda
 function saveEmployees(data) {
+
+    if (!Array.isArray(data)) {
+        console.error("❌ saveEmployees: fel data");
+        return;
+    }
+
+    // 🔥 SYNC state
+    if (window.AppState) {
+        window.AppState.employees = data;
+    }
+
     localStorage.setItem("employees", JSON.stringify(data));
+
+    console.log("💾 Employees saved:", data.length);
 }
 
-// 🔹 Hämta semester
+/* ==========================================
+   📅 VACATIONS
+========================================== */
+
 function getVacations() {
-    return JSON.parse(localStorage.getItem("vacations")) || [];
+    return safeParse("vacations", []);
 }
 
-// 🔹 Spara semester
 function saveVacations(data) {
+
+    if (!Array.isArray(data)) {
+        console.error("❌ saveVacations: fel data");
+        return;
+    }
+
     localStorage.setItem("vacations", JSON.stringify(data));
+
+    console.log("💾 Vacations saved:", data.length);
 }
