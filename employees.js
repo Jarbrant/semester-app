@@ -5,11 +5,12 @@
 const EMP_KEY = "employees";
 
 /* ==========================================
-   🧠 STATE LAYER
+   🧠 STATE LAYER (🔥 PATCH)
 ========================================== */
 
 window.AppState = window.AppState || {
-    employees: null
+    employees: null,
+    _loaded: false // 🔥 NY: säker init
 };
 
 /* ==========================================
@@ -35,15 +36,24 @@ function iterateDays(start, end, callback) {
 }
 
 /* ==========================================
-   📦 LOAD / SAVE
+   📦 LOAD / SAVE (🔥 FIXAD)
 ========================================== */
 
 function loadEmployees() {
     try {
         const raw = localStorage.getItem(EMP_KEY);
-        if (!raw) return [];
+
+        if (!raw) {
+            console.log("📦 No employees in storage");
+            return [];
+        }
 
         const data = JSON.parse(raw);
+
+        if (!Array.isArray(data)) {
+            console.warn("⚠️ Invalid employees format");
+            return [];
+        }
 
         const normalized = data.map(emp => ({
             id: emp.id,
@@ -64,22 +74,32 @@ function loadEmployees() {
 
 function persistEmployees() {
     try {
+        if (!Array.isArray(AppState.employees)) {
+            console.warn("⚠️ persistEmployees skipped (invalid state)");
+            return;
+        }
+
         localStorage.setItem(EMP_KEY, JSON.stringify(AppState.employees));
-        console.log("💾 Employees persisted:", AppState.employees?.length || 0);
+        console.log("💾 Employees persisted:", AppState.employees.length);
+
     } catch (err) {
         console.error("❌ persistEmployees error:", err);
     }
 }
 
 /* ==========================================
-   📦 PUBLIC API
+   📦 PUBLIC API (🔥 KRITISK FIX)
 ========================================== */
 
 window.getEmployees = function () {
-    if (!Array.isArray(AppState.employees)) {
+
+    // 🔥 LADDAS EN GÅNG KORREKT
+    if (!AppState._loaded) {
         AppState.employees = loadEmployees();
+        AppState._loaded = true;
     }
-    return AppState.employees;
+
+    return AppState.employees || [];
 };
 
 window.saveEmployees = function (emps) {
@@ -89,18 +109,19 @@ window.saveEmployees = function (emps) {
     }
 
     AppState.employees = emps;
+    AppState._loaded = true; // 🔥 viktigt
+
     persistEmployees();
 };
 
 /* ==========================================
-   ➕ ADD EMPLOYEE (🔥 FIXAD BUG)
+   ➕ ADD EMPLOYEE
 ========================================== */
 
 window.addEmployee = function (name, groupId = null, vacationDays = 25) {
 
     console.log("🧪 addEmployee input:", { name, groupId, vacationDays });
 
-    // 🔥 robust validation
     if (!name || typeof name !== "string") {
         console.warn("⚠️ Invalid name:", name);
         return false;
@@ -113,7 +134,7 @@ window.addEmployee = function (name, groupId = null, vacationDays = 25) {
         return false;
     }
 
-    const employees = [...getEmployees()]; // 🔥 CLONE
+    const employees = [...getEmployees()];
 
     const newEmp = {
         id: Date.now(),
@@ -124,7 +145,7 @@ window.addEmployee = function (name, groupId = null, vacationDays = 25) {
 
     employees.push(newEmp);
 
-    saveEmployees(employees); // 🔥 SINGLE SOURCE
+    saveEmployees(employees);
 
     console.log("✅ Employee created:", newEmp);
 
