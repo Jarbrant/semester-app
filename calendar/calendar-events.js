@@ -51,7 +51,7 @@ function getSafeColor(group) {
 }
 
 /* ==========================================
-   📊 GROUP LOAD MAP (🔥 FIXAD PER DAG)
+   📊 GROUP LOAD MAP
 ========================================== */
 
 function buildGroupLoadMap(vacations, empMap) {
@@ -138,11 +138,9 @@ window.getCalendarEvents = function () {
             ? getSelectedYear()
             : new Date().getFullYear();
 
-        // 🔥 lookup maps (O(1))
         const empMap = Object.fromEntries(employees.map(e => [e.id, e]));
         const groupMap = Object.fromEntries(groups.map(g => [g.id, g]));
 
-        // 🔥 precompute load per dag
         const loadMap = buildGroupLoadMap(vacations, empMap);
 
         const events = [];
@@ -165,7 +163,7 @@ window.getCalendarEvents = function () {
                 const color = getSmartEventColor(emp, group, year, load, max);
 
                 events.push({
-                    id: `${vac.id}_${dayStr}`, // 🔥 unik per dag
+                    id: `${vac.id}_${dayStr}`,
 
                     title: emp?.name || "Okänd",
 
@@ -183,6 +181,7 @@ window.getCalendarEvents = function () {
                         groupName: group?.name || null,
                         employeeId: emp?.id || null,
                         groupId: group?.id || null,
+                        vacationId: vac.id, // 🔥 NY
                         load
                     }
                 });
@@ -195,4 +194,41 @@ window.getCalendarEvents = function () {
         console.error("❌ getCalendarEvents error:", err);
         return [];
     }
+};
+
+/* ==========================================
+   ✏️ EDIT HANDLER (🔥 AO-03 FIX)
+========================================== */
+
+window.handleEventEdit = function (event) {
+
+    if (!event) return;
+
+    const vacId = event.extendedProps?.vacationId;
+
+    if (!vacId) {
+        console.warn("⚠️ Ingen vacationId hittades");
+        return;
+    }
+
+    const vacations = getVacations?.() || [];
+    const vac = vacations.find(v => v.id == vacId);
+
+    if (!vac) {
+        console.warn("⚠️ Semester hittades inte");
+        return;
+    }
+
+    // 🔥 SÄTT EDIT MODE
+    window.AppState = window.AppState || {};
+    window.AppState.editingVacationId = vac.id;
+
+    console.log("✏️ Edit mode:", vac.id);
+
+    // 🔥 FYLL FORM
+    setValue("employeeSelect", vac.employee_id);
+    setValue("startDate", vac.start);
+    setValue("endDate", vac.end);
+
+    openModal?.("vacationModal");
 };
