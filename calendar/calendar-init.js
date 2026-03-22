@@ -23,6 +23,30 @@ function getEventSource() {
 }
 
 /* ==========================================
+   🧠 EDIT LOADER (🔥 AO-03 CORE)
+========================================== */
+
+function loadVacationIntoForm(vacationId) {
+
+    const vacations = getVacations?.() || [];
+    const vac = vacations.find(v => v.id == vacationId);
+
+    if (!vac) return;
+
+    // 🔥 sätt edit mode
+    window.AppState.editingVacationId = vac.id;
+
+    // 🔥 fyll UI
+    const empEl = document.getElementById("employeeSelect");
+    const startEl = document.getElementById("startDate");
+    const endEl = document.getElementById("endDate");
+
+    if (empEl) empEl.value = vac.employee_id;
+    if (startEl) startEl.value = vac.start;
+    if (endEl) endEl.value = vac.end;
+}
+
+/* ==========================================
    📅 INIT
 ========================================== */
 
@@ -35,7 +59,6 @@ window.initCalendar = function () {
             return;
         }
 
-        // 🔄 destroy safely
         if (calendar) {
             calendar.destroy();
             calendar = null;
@@ -66,7 +89,7 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               📅 EVENTS (STATE + CACHE SAFE 🔥)
+               📅 EVENTS
             ========================================== */
 
             events(fetchInfo, successCallback) {
@@ -104,7 +127,7 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               🌡 DAY CELLS (HEATMAP ENGINE)
+               🌡 DAY CELLS
             ========================================== */
 
             dayCellDidMount(info) {
@@ -124,12 +147,15 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               🖱 INTERACTIONS (UX++)
+               🖱 INTERACTIONS
             ========================================== */
 
             dateClick(info) {
                 const startInput = document.getElementById("startDate");
                 const endInput = document.getElementById("endDate");
+
+                // 🔥 reset edit mode (NY SKAPNING)
+                window.AppState.editingVacationId = null;
 
                 if (startInput && endInput) {
                     startInput.value = info.dateStr;
@@ -148,7 +174,11 @@ window.initCalendar = function () {
 
                 const originalId = info.event.id.split("_")[0];
 
-                window.openEditVacationModal?.(originalId);
+                // 🔥 LOAD EDIT MODE
+                loadVacationIntoForm(originalId);
+
+                // 🔥 öppna samma modal (inte editModal)
+                openModal?.("vacationModal");
             },
 
             eventMouseEnter(info) {
@@ -159,7 +189,6 @@ window.initCalendar = function () {
 
         calendar.render();
 
-        // 🔥 stabil initial sync
         requestAnimationFrame(() => {
             calendar.refetchEvents();
         });
@@ -174,22 +203,19 @@ window.initCalendar = function () {
 };
 
 /* ==========================================
-   🔄 REFRESH (STATE SAFE + HARDENED 🔥)
+   🔄 REFRESH
 ========================================== */
 
 window.refreshCalendar = function () {
     try {
         if (!calendar) return;
 
-        // 🔥 primary
         calendar.refetchEvents();
 
-        // 🔥 fallback (fixar edge cases där FC inte redrawar)
         requestAnimationFrame(() => {
             calendar.rerenderEvents?.();
         });
 
-        // 🔥 sync cache + UI
         requestAnimationFrame(() => {
             window.calendarActions?.buildEventCache();
         });
