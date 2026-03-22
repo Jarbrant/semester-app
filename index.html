@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Semesterplaneraren</title>
 
     <!-- 📅 FullCalendar -->
@@ -13,8 +12,9 @@
     <!-- 🎨 CSS -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- 🧠 UI CORE (🔥 NYTT - måste ligga först av JS) -->
+    <!-- 🧠 CORE -->
     <script src="utils/dom.js" defer></script>
+    <script src="core/state.js" defer></script>
 </head>
 
 <body>
@@ -25,11 +25,10 @@
         📅 <span>Semesterplanerare</span>
     </div>
 
-    <!-- 🔥 framtida controls (year/filter etc) -->
     <div class="topbar-center" id="calendarControls"></div>
 
     <div class="topbar-right">
-        <button class="primary-btn" onclick="openModal('vacationModal')">
+        <button class="primary-btn" id="btnAddVacation">
             + Ny semester
         </button>
 
@@ -37,7 +36,7 @@
             <span id="currentUserName">Användare</span>
         </div>
 
-        <button class="logout-btn" onclick="logout()">
+        <button class="logout-btn" id="btnLogout">
             Logga ut
         </button>
     </div>
@@ -45,19 +44,19 @@
 
 <!-- 🎯 ACTIONS -->
 <section class="actions">
-    <div class="action-card" onclick="openModal('employeeModal')">
+    <div class="action-card" data-action="employee">
         👥 Lägg till personal
     </div>
 
-    <div class="action-card" onclick="openModal('vacationModal')">
+    <div class="action-card" data-action="vacation">
         📅 Lägg till semester
     </div>
 
-    <div class="action-card" onclick="openModal('filterModal')">
+    <div class="action-card" data-action="filter">
         🔍 Filter
     </div>
 
-    <div class="action-card" onclick="openModal('groupModal')">
+    <div class="action-card" data-action="group">
         🧩 Skapa grupp
     </div>
 </section>
@@ -69,13 +68,8 @@
 
 <!-- 📋 LISTA -->
 <section class="card">
+    <h3 id="vacationListTitle">📋 Semesterlista</h3>
 
-    <!-- 🔥 KLICKBAR HEADER -->
-    <h3 id="vacationListTitle" style="cursor:pointer;">
-        📋 Semesterlista
-    </h3>
-
-    <!-- 🔥 SUMMARY -->
     <div id="vacationSummary" class="muted-text"></div>
 
     <ul id="vacationList"></ul>
@@ -87,7 +81,7 @@
 <!-- 👤 PERSONAL -->
 <div id="employeeModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="closeModal('employeeModal')">×</button>
+        <button class="close" data-close="employeeModal">×</button>
 
         <h3>Lägg till personal</h3>
 
@@ -95,10 +89,9 @@
 
         <input type="text" id="employeeName" placeholder="Namn" autocomplete="off">
         <select id="employeeGroupSelect"></select>
+        <input type="number" id="employeeVacationDays" placeholder="Semesterdagar" min="1">
 
-        <input type="number" id="employeeVacationDays" placeholder="Semesterdagar (ex: 25)" min="1">
-
-        <button class="primary-btn" onclick="tryAddEmployee()">Spara</button>
+        <button class="primary-btn" id="saveEmployeeBtn">Spara</button>
 
         <ul id="employeeList" class="list"></ul>
     </div>
@@ -107,26 +100,25 @@
 <!-- ✏️ EDIT EMPLOYEE -->
 <div id="editEmployeeModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="closeModal('editEmployeeModal')">×</button>
+        <button class="close" data-close="editEmployeeModal">×</button>
 
         <h3>Redigera personal</h3>
 
         <input type="hidden" id="editEmployeeId">
-
-        <input type="text" id="editEmployeeName" placeholder="Namn">
-        <input type="number" id="editEmployeeVacationDays" placeholder="Semesterdagar" min="1">
+        <input type="text" id="editEmployeeName">
+        <input type="number" id="editEmployeeVacationDays">
 
         <div id="employeeBalanceBox" class="muted-text"></div>
 
-        <button class="primary-btn" onclick="saveEmployeeEdit()">Spara</button>
-        <button class="logout-btn" onclick="deleteEmployee()">Ta bort</button>
+        <button class="primary-btn" id="updateEmployeeBtn">Spara</button>
+        <button class="logout-btn" id="deleteEmployeeBtn">Ta bort</button>
     </div>
 </div>
 
 <!-- 📅 ADD VACATION -->
 <div id="vacationModal" class="modal">
     <div class="modal-content">
-        <button class="close" onclick="closeModal('vacationModal')">×</button>
+        <button class="close" data-close="vacationModal">×</button>
 
         <h3>Lägg till semester</h3>
 
@@ -141,71 +133,9 @@
         <label>Slut</label>
         <input type="date" id="endDate">
 
-        <button class="primary-btn" onclick="trySubmitVacation()">Spara</button>
+        <button class="primary-btn" id="saveVacationBtn">Spara</button>
 
         <p id="warning" class="warning"></p>
-    </div>
-</div>
-
-<!-- ✏️ EDIT VACATION -->
-<div id="editVacationModal" class="modal">
-    <div class="modal-content">
-        <button class="close" onclick="closeModal('editVacationModal')">×</button>
-
-        <h3>Redigera semester</h3>
-
-        <input type="hidden" id="editVacationId">
-
-        <label>Start</label>
-        <input type="date" id="editStartDate">
-
-        <label>Slut</label>
-        <input type="date" id="editEndDate">
-
-        <button class="primary-btn" onclick="updateVacation()">💾 Spara</button>
-        <button class="logout-btn" onclick="deleteVacationFromModal()">🗑 Ta bort</button>
-        <button onclick="closeModal('editVacationModal')">Stäng</button>
-    </div>
-</div>
-
-<!-- 📋 VACATION OVERVIEW -->
-<div id="vacationOverviewModal" class="modal">
-    <div class="modal-content">
-        <button class="close" onclick="closeModal('vacationOverviewModal')">×</button>
-
-        <h3>📋 Aktiva semestrar</h3>
-
-        <div id="vacationOverviewList"></div>
-    </div>
-</div>
-
-<!-- 🔍 FILTER -->
-<div id="filterModal" class="modal">
-    <div class="modal-content">
-        <button class="close" onclick="closeModal('filterModal')">×</button>
-
-        <h3>Filter</h3>
-
-        <select id="filter">
-            <option value="all">Visa alla</option>
-        </select>
-    </div>
-</div>
-
-<!-- 🧩 GROUP -->
-<div id="groupModal" class="modal">
-    <div class="modal-content">
-        <button class="close" onclick="closeModal('groupModal')">×</button>
-
-        <h3>Skapa grupp</h3>
-
-        <input type="text" id="groupName" placeholder="Gruppnamn">
-        <input type="color" id="groupColor" value="#3b82f6">
-        <input type="number" id="groupLimit" placeholder="Max samtidiga" min="1">
-
-        <button class="primary-btn" onclick="tryAddGroup()">Spara</button>
-
-        <p id="groupWarning" class="warning"></p>
     </div>
 </div>
 
@@ -227,32 +157,51 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     try {
-        // 🔥 använd UI helper om den finns
+        // 🔥 LOAD STATE (NYTT)
+        window.AppState?.load();
+
+        // 👤 USER
         const user = localStorage.getItem("currentUser");
+        UI?.text("currentUserName", user || "Användare");
 
-        if (window.UI) {
-            UI.text("currentUserName", user || "Användare");
-        } else {
-            const el = document.getElementById("currentUserName");
-            if (el && user) el.innerText = user;
-        }
+        // 🔘 BUTTONS
+        UI.get("btnAddVacation")?.addEventListener("click", () => openModal("vacationModal"));
+        UI.get("btnLogout")?.addEventListener("click", logout);
 
-        // 🔥 klickbar lista (bättre UX än inline onclick)
-        document.getElementById("vacationListTitle")?.addEventListener("click", () => {
+        // 🎯 ACTION CARDS
+        document.querySelectorAll("[data-action]").forEach(el => {
+            el.addEventListener("click", () => {
+                const map = {
+                    employee: "employeeModal",
+                    vacation: "vacationModal",
+                    filter: "filterModal",
+                    group: "groupModal"
+                };
+                openModal(map[el.dataset.action]);
+            });
+        });
+
+        // ❌ CLOSE BUTTONS (🔥 generisk)
+        document.querySelectorAll("[data-close]").forEach(btn => {
+            btn.addEventListener("click", () => {
+                closeModal(btn.dataset.close);
+            });
+        });
+
+        // 📋 LIST CLICK
+        UI.get("vacationListTitle")?.addEventListener("click", () => {
             window.openVacationOverview?.();
         });
 
-        // 🔥 filter change (renare än inline)
-        document.getElementById("filter")?.addEventListener("change", () => {
+        // 🔍 FILTER
+        UI.get("filter")?.addEventListener("change", () => {
             refreshCalendar?.();
             closeModal?.("filterModal");
         });
 
-        // 🔥 säker init
+        // 🚀 INIT CALENDAR
         requestAnimationFrame(() => {
-            if (typeof initCalendar === "function") {
-                initCalendar();
-            }
+            initCalendar?.();
         });
 
     } catch (err) {
