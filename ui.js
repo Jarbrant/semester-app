@@ -242,6 +242,11 @@ window.trySubmitVacation = function () {
 
     addVacation();
 
+    // 🔥 AO-001 AUTOPATCH
+    if (typeof refreshCalendar === "function") {
+        refreshCalendar();
+    }
+
     showSuccess("Semestern sparad", "warning");
 
     closeModal?.("vacationModal");
