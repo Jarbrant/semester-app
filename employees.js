@@ -1,5 +1,5 @@
 /* ==========================================
-   👤 EMPLOYEES (STATE DRIVEN PRO MAX)
+   👤 EMPLOYEES (STATE DRIVEN PRO MAX STABLE)
 ========================================== */
 
 const EMP_KEY = "employees";
@@ -45,12 +45,16 @@ function loadEmployees() {
 
         const data = JSON.parse(raw);
 
-        return data.map(emp => ({
+        const normalized = data.map(emp => ({
             id: emp.id,
             name: emp.name || "Okänd",
             group_id: emp.group_id ?? null,
             vacationDays: Math.max(1, toInt(emp.vacationDays, 25))
         }));
+
+        console.log("📦 Employees loaded:", normalized.length);
+
+        return normalized;
 
     } catch (err) {
         console.error("❌ loadEmployees error:", err);
@@ -61,6 +65,7 @@ function loadEmployees() {
 function persistEmployees() {
     try {
         localStorage.setItem(EMP_KEY, JSON.stringify(AppState.employees));
+        console.log("💾 Employees persisted:", AppState.employees?.length || 0);
     } catch (err) {
         console.error("❌ persistEmployees error:", err);
     }
@@ -71,77 +76,108 @@ function persistEmployees() {
 ========================================== */
 
 window.getEmployees = function () {
-    if (!AppState.employees) {
+    if (!Array.isArray(AppState.employees)) {
         AppState.employees = loadEmployees();
     }
     return AppState.employees;
 };
 
 window.saveEmployees = function (emps) {
+    if (!Array.isArray(emps)) {
+        console.error("❌ saveEmployees invalid data:", emps);
+        return;
+    }
+
     AppState.employees = emps;
     persistEmployees();
 };
 
 /* ==========================================
-   ➕ ADD / UPDATE / DELETE
+   ➕ ADD EMPLOYEE (🔥 FIXAD BUG)
 ========================================== */
 
 window.addEmployee = function (name, groupId = null, vacationDays = 25) {
 
-    // ✅ FIX: säkra input
-    if (!name || typeof name !== "string") return;
+    console.log("🧪 addEmployee input:", { name, groupId, vacationDays });
 
-    name = name.trim();
-    if (!name) return;
+    // 🔥 robust validation
+    if (!name || typeof name !== "string") {
+        console.warn("⚠️ Invalid name:", name);
+        return false;
+    }
 
-    const employees = getEmployees();
+    const cleanName = name.trim();
+
+    if (!cleanName) {
+        console.warn("⚠️ Empty name after trim");
+        return false;
+    }
+
+    const employees = [...getEmployees()]; // 🔥 CLONE
 
     const newEmp = {
         id: Date.now(),
-        name: name,
+        name: cleanName,
         group_id: groupId || null,
         vacationDays: Math.max(1, toInt(vacationDays, 25))
     };
 
     employees.push(newEmp);
 
-    // ✅ FIX: säkerställ state sync
-    AppState.employees = employees;
-
-    persistEmployees();
+    saveEmployees(employees); // 🔥 SINGLE SOURCE
 
     console.log("✅ Employee created:", newEmp);
+
+    return true;
 };
 
+/* ==========================================
+   ✏️ UPDATE
+========================================== */
+
 window.updateEmployee = function (id, name, groupId, vacationDays) {
-    const emp = getEmployees().find(e => e.id == id);
-    if (!emp) return;
+    const employees = [...getEmployees()];
+    const emp = employees.find(e => e.id == id);
+
+    if (!emp) {
+        console.warn("⚠️ Employee not found:", id);
+        return false;
+    }
 
     if (name && typeof name === "string") {
         const clean = name.trim();
-        if (clean) emp.name = clean; // ✅ FIX
+        if (clean) emp.name = clean;
     }
 
-    if (groupId !== undefined) emp.group_id = groupId || null;
+    if (groupId !== undefined) {
+        emp.group_id = groupId || null;
+    }
 
     if (vacationDays !== undefined) {
         emp.vacationDays = Math.max(1, toInt(vacationDays, 25));
     }
 
-    persistEmployees();
+    saveEmployees(employees);
 
     console.log("✏️ Employee updated:", emp);
+
+    return true;
 };
 
+/* ==========================================
+   🗑 DELETE
+========================================== */
+
 window.deleteEmployeeById = function (id) {
-    AppState.employees = getEmployees().filter(e => e.id != id);
-    persistEmployees();
+    const employees = getEmployees().filter(e => e.id != id);
+
+    saveEmployees(employees);
 
     console.log("🗑 Employee deleted:", id);
 };
 
 /* ==========================================
-   📊 VACATION DAYS (PER YEAR)
+   📊 VACATION DAYS
 ========================================== */
 
 window.getUsedVacationDays = function (employeeId, year = null, options = {}) {
