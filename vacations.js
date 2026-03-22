@@ -1,14 +1,13 @@
 /* ==========================================
-   📅 VACATIONS (STATE DRIVEN PRO MAX)
+   📅 VACATIONS (STATE DRIVEN PRO MAX FIXED)
 ========================================== */
 
 /* ==========================================
-   🧠 STATE (MATCHAR EMPLOYEES 🔥)
+   🧠 STATE (🔥 FIX: merge istället för overwrite)
 ========================================== */
 
-window.AppState = window.AppState || {
-    vacations: null
-};
+window.AppState = window.AppState || {};
+window.AppState.vacations = window.AppState.vacations || null;
 
 const VAC_KEY = "vacations";
 
@@ -21,20 +20,8 @@ function safeDate(date) {
     return isNaN(d) ? null : d;
 }
 
-function toISO(date) {
-    return date.toISOString().split("T")[0];
-}
-
-function iterateDays(start, end, cb) {
-    const current = new Date(start);
-    while (current <= end) {
-        cb(new Date(current));
-        current.setDate(current.getDate() + 1);
-    }
-}
-
 /* ==========================================
-   📦 LOAD / SAVE (STATE 🔥)
+   📦 LOAD / SAVE (🔥 STABIL)
 ========================================== */
 
 function loadVacations() {
@@ -59,7 +46,8 @@ function loadVacations() {
 
 function persistVacations() {
     try {
-        localStorage.setItem(VAC_KEY, JSON.stringify(AppState.vacations));
+        localStorage.setItem(VAC_KEY, JSON.stringify(window.AppState.vacations));
+        console.log("💾 vacations saved:", window.AppState.vacations);
     } catch (err) {
         console.error("❌ persistVacations error:", err);
     }
@@ -70,25 +58,23 @@ function persistVacations() {
 ========================================== */
 
 window.getVacations = function () {
-    if (!AppState.vacations) {
-        AppState.vacations = loadVacations();
+    if (!window.AppState.vacations) {
+        window.AppState.vacations = loadVacations();
     }
-    return AppState.vacations;
+    return window.AppState.vacations;
 };
 
 window.saveVacations = function (data) {
-    AppState.vacations = data;
+    window.AppState.vacations = data;
     persistVacations();
 };
 
 /* ==========================================
-   🔍 CORE LOGIC (OPTIMIZED 🔥)
+   🔍 CORE LOGIC
 ========================================== */
 
 function hasConflict(empId, start, end, ignoreId = null) {
-    const vacations = getVacations();
-
-    return vacations.some(v =>
+    return getVacations().some(v =>
         v.employee_id == empId &&
         v.id != ignoreId &&
         !(end < v.start || start > v.end)
@@ -128,38 +114,24 @@ function groupOverbooked(empId, start, end, ignoreId = null) {
 }
 
 /* ==========================================
-   🧠 VALIDATION ENGINE (🔥 CENTRAL)
+   🧠 VALIDATION
 ========================================== */
 
 function validateVacation(empId, start, end, ignoreId = null) {
     const startDate = safeDate(start);
     const endDate = safeDate(end);
 
-    if (!empId || !startDate || !endDate) {
-        return "Fyll i alla fält korrekt!";
-    }
-
-    if (endDate < startDate) {
-        return "Slutdatum kan inte vara före startdatum";
-    }
-
-    if (hasConflict(empId, start, end, ignoreId)) {
-        return "⚠️ Personen har redan semester här!";
-    }
-
-    if (groupOverbooked(empId, start, end, ignoreId)) {
-        return "⚠️ För många i gruppen är lediga!";
-    }
-
-    if (!canAddVacation(empId, start, end)) {
-        return "⚠️ För många semesterdagar detta år!";
-    }
+    if (!empId || !startDate || !endDate) return "Fyll i alla fält korrekt!";
+    if (endDate < startDate) return "Slutdatum kan inte vara före startdatum";
+    if (hasConflict(empId, start, end, ignoreId)) return "⚠️ Personen har redan semester här!";
+    if (groupOverbooked(empId, start, end, ignoreId)) return "⚠️ För många i gruppen är lediga!";
+    if (!canAddVacation(empId, start, end)) return "⚠️ För många semesterdagar detta år!";
 
     return null;
 }
 
 /* ==========================================
-   ➕ ADD VACATION
+   ➕ ADD VACATION (🔥 FIX)
 ========================================== */
 
 window.addVacation = function () {
@@ -184,8 +156,9 @@ window.addVacation = function () {
         end
     };
 
-    vacations.push(newVac);
-    persistVacations();
+    const updated = [...vacations, newVac];
+
+    saveVacations(updated); // 🔥 KRITISK FIX
 
     console.log("✅ Vacation added:", newVac);
 
@@ -195,37 +168,18 @@ window.addVacation = function () {
 };
 
 /* ==========================================
-   ❌ REMOVE VACATION
+   ❌ REMOVE
 ========================================== */
 
 window.removeVacation = function (id) {
-    AppState.vacations = getVacations().filter(v => v.id != id);
-    persistVacations();
+    const updated = getVacations().filter(v => v.id != id);
+    saveVacations(updated);
 
     refreshCalendar?.();
 };
 
 /* ==========================================
-   ✏️ OPEN EDIT
-========================================== */
-
-window.openEditVacationModal = function (vacationId) {
-    const vac = getVacations().find(v => v.id == vacationId);
-
-    if (!vac) {
-        alert("Kunde inte hitta semester");
-        return;
-    }
-
-    document.getElementById("editVacationId").value = vac.id;
-    document.getElementById("editStartDate").value = vac.start;
-    document.getElementById("editEndDate").value = vac.end;
-
-    openModal?.("editVacationModal");
-};
-
-/* ==========================================
-   💾 UPDATE VACATION
+   ✏️ UPDATE
 ========================================== */
 
 window.updateVacation = function () {
@@ -233,7 +187,7 @@ window.updateVacation = function () {
     const start = document.getElementById("editStartDate")?.value;
     const end = document.getElementById("editEndDate")?.value;
 
-    let vacations = getVacations();
+    const vacations = getVacations();
     const current = vacations.find(v => v.id == id);
 
     if (!current) {
@@ -248,13 +202,11 @@ window.updateVacation = function () {
         return;
     }
 
-    vacations = vacations.map(v =>
+    const updated = vacations.map(v =>
         v.id == id ? { ...v, start, end } : v
     );
 
-    persistVacations();
-
-    console.log("✏️ Vacation updated:", id);
+    saveVacations(updated); // 🔥 FIX
 
     closeModal?.("editVacationModal");
     refreshCalendar?.();
