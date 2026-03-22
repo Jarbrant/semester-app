@@ -1,5 +1,5 @@
 /* ==========================================
-   🧠 GLOBAL SUCCESS (🔥 NYTT)
+   🧠 GLOBAL SUCCESS (UPGRADED)
 ========================================== */
 
 function showSuccess(message, targetId = "warning") {
@@ -30,17 +30,72 @@ window.tryAddGroup = function () {
         return;
     }
 
-    addGroup?.(name, color, limit);
+    if (typeof addGroup !== "function") {
+        console.error("❌ addGroup saknas");
+        return;
+    }
+
+    addGroup(name, color, limit);
 
     if (warning) warning.textContent = "";
 
-    // ✅ KVITTO
     showSuccess(`Grupp "${name}" skapad`, "groupWarning");
 
     document.getElementById("groupName").value = "";
     document.getElementById("groupLimit").value = "";
 
     closeModal("groupModal");
+};
+
+/* ==========================================
+   👤 EMPLOYEE ADD (🔥 FIXAD)
+========================================== */
+
+window.tryAddEmployee = function () {
+
+    const nameEl = document.getElementById("employeeName");
+    const groupEl = document.getElementById("employeeGroupSelect");
+    const daysEl = document.getElementById("employeeVacationDays");
+    const warning = document.getElementById("employeeWarning");
+
+    const name = nameEl?.value;
+    const groupId = groupEl?.value;
+    const vacationDays = daysEl?.value || 25;
+
+    console.log("🧪 UI INPUT:", { name, groupId, vacationDays });
+
+    if (!name || !name.trim()) {
+        if (warning) warning.textContent = "Du måste ange ett namn!";
+        return;
+    }
+
+    if (typeof addEmployee !== "function") {
+        console.error("❌ addEmployee saknas");
+        if (warning) warning.textContent = "Systemfel: kan inte spara";
+        return;
+    }
+
+    const success = addEmployee(name.trim(), groupId || null, vacationDays);
+
+    console.log("🧪 RESULT:", success);
+
+    if (!success) {
+        if (warning) warning.textContent = "❌ Kunde inte spara";
+        return;
+    }
+
+    if (warning) warning.textContent = "";
+
+    showSuccess(`${name} sparad (${vacationDays} dagar)`, "employeeWarning");
+
+    // reset
+    if (nameEl) nameEl.value = "";
+    if (daysEl) daysEl.value = "";
+
+    renderEmployeeList?.();
+    refreshEmployeeSelect?.();
+
+    closeModal("employeeModal");
 };
 
 /* ==========================================
@@ -66,37 +121,6 @@ window.refreshGroupSelect = function () {
         opt.textContent = `${g.name} (max ${g.maxConcurrent})`;
         select.appendChild(opt);
     });
-};
-
-/* ==========================================
-   👤 EMPLOYEE ADD
-========================================== */
-
-window.tryAddEmployee = function () {
-    const name = document.getElementById("employeeName")?.value?.trim();
-    const groupId = document.getElementById("employeeGroupSelect")?.value;
-    const vacationDays = document.getElementById("employeeVacationDays")?.value || 25;
-    const warning = document.getElementById("employeeWarning");
-
-    if (!name) {
-        if (warning) warning.textContent = "Du måste ange ett namn!";
-        return;
-    }
-
-    addEmployee?.(name, groupId || null, vacationDays);
-
-    if (warning) warning.textContent = "";
-
-    // ✅ KVITTO
-    showSuccess(`${name} sparad (${vacationDays} dagar)`, "employeeWarning");
-
-    document.getElementById("employeeName").value = "";
-    document.getElementById("employeeVacationDays").value = "";
-
-    renderEmployeeList();
-    refreshEmployeeSelect();
-
-    closeModal("employeeModal");
 };
 
 /* ==========================================
@@ -176,124 +200,7 @@ window.renderEmployeeList = function () {
 };
 
 /* ==========================================
-   ✏️ EDIT EMPLOYEE
-========================================== */
-
-window.openEditEmployee = function (id) {
-    const emp = getEmployees().find(e => e.id == id);
-    if (!emp) return;
-
-    const year = getSelectedYear();
-    const balance = getVacationBalance(emp.id, year);
-
-    document.getElementById("editEmployeeName").value = emp.name;
-    document.getElementById("editEmployeeId").value = emp.id;
-    document.getElementById("editEmployeeVacationDays").value = emp.vacationDays || 25;
-
-    const box = document.getElementById("employeeBalanceBox");
-    if (box && balance) {
-        box.innerHTML = `
-            📊 ${balance.used} använda / ${balance.total} totalt  
-            <br>💡 Kvar: ${balance.remaining}
-        `;
-    }
-
-    openModal("editEmployeeModal");
-};
-
-window.saveEmployeeEdit = function () {
-    const id = document.getElementById("editEmployeeId").value;
-    const name = document.getElementById("editEmployeeName").value?.trim();
-    const vacationDays = document.getElementById("editEmployeeVacationDays")?.value;
-
-    if (!name) return;
-
-    updateEmployee(id, name, undefined, vacationDays);
-
-    // ✅ KVITTO
-    showSuccess("Ändringar sparade", "employeeWarning");
-
-    closeModal("editEmployeeModal");
-
-    renderEmployeeList();
-    refreshEmployeeSelect();
-    refreshCalendar?.();
-};
-
-window.deleteEmployee = function () {
-    const id = document.getElementById("editEmployeeId").value;
-
-    if (!confirm("Ta bort denna person?")) return;
-
-    deleteEmployeeById(id);
-
-    showSuccess("Person borttagen", "employeeWarning");
-
-    closeModal("editEmployeeModal");
-
-    renderEmployeeList();
-    refreshEmployeeSelect();
-    refreshCalendar?.();
-};
-
-/* ==========================================
-   📅 EMPLOYEE SELECT + SEARCH
-========================================== */
-
-window.refreshEmployeeSelect = function (filter = "") {
-    const select = document.getElementById("employeeSelect");
-    if (!select) return;
-
-    const employees = getEmployees?.() || [];
-
-    const filtered = employees.filter(e =>
-        e.name.toLowerCase().includes(filter.toLowerCase())
-    );
-
-    select.innerHTML = "";
-
-    if (!filtered.length) {
-        const opt = document.createElement("option");
-        opt.textContent = "Ingen match";
-        opt.value = "";
-        select.appendChild(opt);
-        return;
-    }
-
-    filtered.forEach(emp => {
-        const opt = document.createElement("option");
-        opt.value = emp.id;
-        opt.textContent = emp.name;
-        select.appendChild(opt);
-    });
-
-    select.selectedIndex = 0;
-    updateVacationBalanceUI();
-};
-
-/* ==========================================
-   📊 BALANS
-========================================== */
-
-function updateVacationBalanceUI() {
-    const empId = document.getElementById("employeeSelect")?.value;
-    const box = document.getElementById("vacationBalanceInfo");
-
-    if (!empId || !box) return;
-
-    const year = getSelectedYear();
-    const balance = getVacationBalance(empId, year);
-
-    if (!balance) return;
-
-    box.innerHTML = `
-        📊 ${balance.used} / ${balance.total} dagar  
-        <br>💡 Kvar: ${balance.remaining}
-    `;
-}
-
-/* ==========================================
-   📅 VACATION
+   📅 VACATION (SAFE)
 ========================================== */
 
 window.trySubmitVacation = function () {
@@ -312,11 +219,8 @@ window.trySubmitVacation = function () {
         return;
     }
 
-    if (warning) warning.textContent = "";
-
     addVacation?.();
 
-    // ✅ KVITTO
     showSuccess("Semestern sparad", "warning");
 
     closeModal("vacationModal");
@@ -343,11 +247,8 @@ window.openModal = function (id) {
     }
 
     if (id === "vacationModal") {
-        const search = document.getElementById("employeeSearch");
-        if (search) search.value = "";
-
+        document.getElementById("employeeSearch")?.value = "";
         refreshEmployeeSelect("");
-        updateVacationBalanceUI();
     }
 };
 
@@ -362,7 +263,7 @@ window.closeModal = function (id) {
 };
 
 /* ==========================================
-   🔍 EVENTS + FIX DATUM
+   🔍 EVENTS
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -372,15 +273,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.getElementById("employeeSelect")?.addEventListener("change", () => {
-        updateVacationBalanceUI();
-    });
-
-    document.getElementById("startDate")?.addEventListener("click", function () {
-        this.showPicker?.();
-    });
-
-    document.getElementById("endDate")?.addEventListener("click", function () {
-        this.showPicker?.();
+        updateVacationBalanceUI?.();
     });
 
     document.getElementById("modalOverlay")?.addEventListener("click", () => closeModal());
