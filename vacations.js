@@ -20,6 +20,11 @@ function safeDate(date) {
     return isNaN(d) ? null : d;
 }
 
+// 🔥 bättre id (undviker krockar vid snabb autosave)
+function generateId() {
+    return Date.now() + Math.floor(Math.random() * 1000);
+}
+
 /* ==========================================
    📦 LOAD / SAVE (🔥 STABIL)
 ========================================== */
@@ -131,7 +136,7 @@ function validateVacation(empId, start, end, ignoreId = null) {
 }
 
 /* ==========================================
-   ➕ ADD VACATION (🔥 FIX)
+   ➕ ADD VACATION (🔥 AO-03 PATCH)
 ========================================== */
 
 window.addVacation = function () {
@@ -149,22 +154,30 @@ window.addVacation = function () {
 
     const vacations = getVacations();
 
-    const newVac = {
-        id: Date.now(),
+    const newVacation = {
+        id: generateId(), // 🔥 förbättrad
         employee_id: empId,
         start,
         end
     };
 
-    const updated = [...vacations, newVac];
+    const updated = [...vacations, newVacation];
 
-    saveVacations(updated); // 🔥 KRITISK FIX
+    saveVacations(updated);
 
-    console.log("✅ Vacation added:", newVac);
+    // 🔥 AO-03 HISTORY HOOK
+    window.HistoryManager?.push({
+        type: "addVacation",
+        payload: newVacation
+    });
+
+    console.log("✅ Vacation added:", newVacation);
 
     if (warning) warning.textContent = "";
 
     refreshCalendar?.();
+
+    return newVacation; // 🔥 viktigt för framtida flows
 };
 
 /* ==========================================
@@ -206,7 +219,7 @@ window.updateVacation = function () {
         v.id == id ? { ...v, start, end } : v
     );
 
-    saveVacations(updated); // 🔥 FIX
+    saveVacations(updated);
 
     closeModal?.("editVacationModal");
     refreshCalendar?.();
