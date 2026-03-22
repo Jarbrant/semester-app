@@ -26,7 +26,7 @@ window.addEventListener("DOMContentLoaded", () => {
         console.log("✅ User:", user);
 
         /* ==========================================
-           📦 LOAD STATE (🔥 VIKTIG)
+           📦 LOAD STATE
         ========================================== */
 
         if (window.AppState?.load) {
@@ -35,20 +35,12 @@ window.addEventListener("DOMContentLoaded", () => {
         }
 
         /* ==========================================
-           🔄 UI INIT (🔥 KRITISK FIX)
+           🔄 UI INIT
         ========================================== */
 
-        if (typeof renderEmployeeList === "function") {
-            renderEmployeeList();
-        }
-
-        if (typeof refreshEmployeeSelect === "function") {
-            refreshEmployeeSelect();
-        }
-
-        if (typeof refreshGroupSelect === "function") {
-            refreshGroupSelect();
-        }
+        window.renderEmployeeList?.();
+        window.refreshEmployeeSelect?.();
+        window.refreshGroupSelect?.();
 
         /* ==========================================
            📅 CALENDAR
@@ -62,19 +54,31 @@ window.addEventListener("DOMContentLoaded", () => {
         }
 
         /* ==========================================
-           🔘 BUTTONS (🔥 DU SAKNADE DENNA)
+           🔘 BUTTONS (🔥 FIX ALLA)
         ========================================== */
 
+        // 👤 Spara personal
         const saveEmployeeBtn = document.getElementById("saveEmployeeBtn");
+        if (saveEmployeeBtn) {
+            saveEmployeeBtn.addEventListener("click", () => {
+                console.log("🔥 Klick: Spara personal");
+                window.tryAddEmployee?.();
+            });
+        }
 
-        if (saveEmployeeBtn && typeof tryAddEmployee === "function") {
-            saveEmployeeBtn.addEventListener("click", tryAddEmployee);
+        // 📅 Spara semester (🔥 DIN BUGG FIXAD)
+        const saveVacationBtn = document.getElementById("saveVacationBtn");
+        if (saveVacationBtn) {
+            saveVacationBtn.addEventListener("click", () => {
+                console.log("🔥 Klick: Spara semester");
+                window.trySubmitVacation?.();
+            });
         } else {
-            console.warn("⚠️ saveEmployeeBtn saknas eller ej kopplad");
+            console.warn("⚠️ saveVacationBtn hittades inte");
         }
 
         /* ==========================================
-           🔍 DEBUG
+           🔍 EXTRA DEBUG (KAN TAS BORT SEN)
         ========================================== */
 
         console.log("👤 Employees:", localStorage.getItem("employees"));
