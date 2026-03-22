@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 EVENTS (FINAL PRO MAX – HEATMAP + SMART)
+   📅 EVENTS (STATE DRIVEN PRO MAX+++)
 ========================================== */
 
 // 🔐 Fallbacks
@@ -8,15 +8,31 @@ if (typeof getEmployees !== "function") window.getEmployees = () => [];
 if (typeof getVacations !== "function") window.getVacations = () => [];
 
 /* ==========================================
+   🛠 UTIL
+========================================== */
+
+function toISO(date) {
+    return date.toISOString().split("T")[0];
+}
+
+function iterateDays(start, end, cb) {
+    const current = new Date(start);
+    while (current <= end) {
+        cb(new Date(current));
+        current.setDate(current.getDate() + 1);
+    }
+}
+
+/* ==========================================
    🎨 SAFE COLOR
 ========================================== */
 
 function getSafeColor(group) {
     const defaultColor = "#3b82f6";
 
-    if (!group || !group.color) return defaultColor;
+    if (!group?.color) return defaultColor;
 
-    let color = group.color.trim();
+    const color = group.color.trim();
 
     if (/^#([0-9A-F]{3}){1,2}$/i.test(color)) return color;
 
@@ -35,39 +51,36 @@ function getSafeColor(group) {
 }
 
 /* ==========================================
-   📊 GROUP LOAD (OPTIMIZED)
+   📊 GROUP LOAD MAP (🔥 FIXAD PER DAG)
 ========================================== */
 
-function buildGroupLoadMap(vacations, employees) {
+function buildGroupLoadMap(vacations, empMap) {
     const map = {};
 
     vacations.forEach(v => {
-        const emp = employees.find(e => e.id == v.employee_id);
-        if (!emp || !emp.group_id) return;
+        const emp = empMap[v.employee_id];
+        if (!emp?.group_id) return;
 
-        let current = new Date(v.start);
+        const start = new Date(v.start);
         const end = new Date(v.end);
 
-        while (current <= end) {
-            const key = `${emp.group_id}_${current.toISOString().split("T")[0]}`;
-
+        iterateDays(start, end, (d) => {
+            const key = `${emp.group_id}_${toISO(d)}`;
             map[key] = (map[key] || 0) + 1;
-
-            current.setDate(current.getDate() + 1);
-        }
+        });
     });
 
     return map;
 }
 
 /* ==========================================
-   🎨 HEATMAP COLOR ENGINE
+   🎨 HEATMAP COLOR
 ========================================== */
 
 function getHeatmapColor(baseColor, load, max = 5) {
     const intensity = Math.min(load / max, 1);
 
-    if (intensity > 0.9) return "#dc2626"; // 🔥 critical
+    if (intensity > 0.9) return "#dc2626";
 
     const hex = baseColor.replace("#", "");
 
@@ -112,86 +125,74 @@ function buildTooltip(emp, group, vac, year, load) {
 }
 
 /* ==========================================
-   📅 EVENTS
+   📅 EVENTS (🔥 CORE ENGINE)
 ========================================== */
 
 window.getCalendarEvents = function () {
     try {
-        const vacations = getVacations() || [];
-        const employees = getEmployees() || [];
-        const groups = getGroups() || [];
+        const vacations = getVacations();
+        const employees = getEmployees();
+        const groups = getGroups();
 
         const year = (typeof getSelectedYear === "function")
             ? getSelectedYear()
             : new Date().getFullYear();
 
-        // 🔥 lookup maps
+        // 🔥 lookup maps (O(1))
         const empMap = Object.fromEntries(employees.map(e => [e.id, e]));
         const groupMap = Object.fromEntries(groups.map(g => [g.id, g]));
 
-        // 🔥 heatmap pre-calc
-        const loadMap = buildGroupLoadMap(vacations, employees);
+        // 🔥 precompute load per dag
+        const loadMap = buildGroupLoadMap(vacations, empMap);
 
-        return vacations.map(vac => {
+        const events = [];
+
+        vacations.forEach(vac => {
 
             const emp = empMap[vac.employee_id];
             const group = emp ? groupMap[emp.group_id] : null;
 
-            const dateKey = `${group?.id}_${vac.start}`;
-            const load = loadMap[dateKey] || 0;
+            const start = new Date(vac.start);
+            const end = new Date(vac.end);
 
-            const max = group?.maxConcurrent || 5;
+            iterateDays(start, end, (day) => {
 
-            const color = getSmartEventColor(emp, group, year, load, max);
+                const dayStr = toISO(day);
+                const key = `${group?.id}_${dayStr}`;
+                const load = loadMap[key] || 0;
+                const max = group?.maxConcurrent || 5;
 
-            return {
-                id: vac.id ?? Date.now(),
+                const color = getSmartEventColor(emp, group, year, load, max);
 
-                title: emp?.name || "Okänd",
+                events.push({
+                    id: `${vac.id}_${dayStr}`, // 🔥 unik per dag
 
-                start: vac.start,
-                end: addOneDaySafe(vac.end),
+                    title: emp?.name || "Okänd",
 
-                display: "block",
+                    start: dayStr,
+                    end: dayStr,
 
-                backgroundColor: color,
-                borderColor: color,
-                textColor: "#ffffff",
+                    backgroundColor: color,
+                    borderColor: color,
+                    textColor: "#fff",
 
-                allDay: true,
+                    allDay: true,
 
-                extendedProps: {
-                    tooltip: buildTooltip(emp, group, vac, year, load),
-                    groupName: group?.name || null,
-                    employeeId: emp?.id || null,
-                    groupId: group?.id || null,
-                    load
-                }
-            };
+                    extendedProps: {
+                        tooltip: buildTooltip(emp, group, vac, year, load),
+                        groupName: group?.name || null,
+                        employeeId: emp?.id || null,
+                        groupId: group?.id || null,
+                        load
+                    }
+                });
+            });
         });
+
+        return events;
 
     } catch (err) {
         console.error("❌ getCalendarEvents error:", err);
         return [];
     }
 };
-
-/* ==========================================
-   🛠 DATE FIX
-========================================== */
-
-function addOneDaySafe(dateStr) {
-    if (!dateStr) return null;
-
-    try {
-        const date = new Date(dateStr);
-        if (isNaN(date)) return dateStr;
-
-        date.setDate(date.getDate() + 1);
-
-        return date.toISOString().split("T")[0];
-
-    } catch {
-        return dateStr;
-    }
-}
