@@ -5,7 +5,7 @@
 const EMP_KEY = "employees";
 
 /* ==========================================
-   🧠 STATE LAYER (🔥 NYTT)
+   🧠 STATE LAYER
 ========================================== */
 
 window.AppState = window.AppState || {
@@ -35,7 +35,7 @@ function iterateDays(start, end, callback) {
 }
 
 /* ==========================================
-   📦 LOAD / SAVE (STATE FIRST 🔥)
+   📦 LOAD / SAVE
 ========================================== */
 
 function loadEmployees() {
@@ -67,7 +67,7 @@ function persistEmployees() {
 }
 
 /* ==========================================
-   📦 PUBLIC API (CACHE 🔥)
+   📦 PUBLIC API
 ========================================== */
 
 window.getEmployees = function () {
@@ -87,18 +87,27 @@ window.saveEmployees = function (emps) {
 ========================================== */
 
 window.addEmployee = function (name, groupId = null, vacationDays = 25) {
+
+    // ✅ FIX: säkra input
     if (!name || typeof name !== "string") return;
+
+    name = name.trim();
+    if (!name) return;
 
     const employees = getEmployees();
 
     const newEmp = {
         id: Date.now(),
-        name: name.trim(),
+        name: name,
         group_id: groupId || null,
         vacationDays: Math.max(1, toInt(vacationDays, 25))
     };
 
     employees.push(newEmp);
+
+    // ✅ FIX: säkerställ state sync
+    AppState.employees = employees;
+
     persistEmployees();
 
     console.log("✅ Employee created:", newEmp);
@@ -108,7 +117,11 @@ window.updateEmployee = function (id, name, groupId, vacationDays) {
     const emp = getEmployees().find(e => e.id == id);
     if (!emp) return;
 
-    if (name) emp.name = name.trim();
+    if (name && typeof name === "string") {
+        const clean = name.trim();
+        if (clean) emp.name = clean; // ✅ FIX
+    }
+
     if (groupId !== undefined) emp.group_id = groupId || null;
 
     if (vacationDays !== undefined) {
@@ -160,7 +173,7 @@ window.getUsedVacationDays = function (employeeId, year = null, options = {}) {
 };
 
 /* ==========================================
-   🚨 VALIDATION (CROSS-YEAR SAFE)
+   🚨 VALIDATION
 ========================================== */
 
 window.canAddVacation = function (employeeId, start, end) {
@@ -177,7 +190,6 @@ window.canAddVacation = function (employeeId, start, end) {
     const yearlyUsage = {};
     const newUsage = {};
 
-    // existing
     vacations.forEach(v => {
         if (v.employee_id != employeeId) return;
 
@@ -191,7 +203,6 @@ window.canAddVacation = function (employeeId, start, end) {
         });
     });
 
-    // new
     iterateDays(startDate, endDate, (d) => {
         const y = d.getFullYear();
         newUsage[y] = (newUsage[y] || 0) + 1;
