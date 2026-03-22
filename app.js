@@ -1,5 +1,5 @@
 /* ==========================================
-   🚀 APP INIT (🔥 HARDENED PRO VERSION)
+   🚀 APP INIT (🔥 HARDENED PRO MAX VERSION)
 ========================================== */
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -28,7 +28,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     /* ==========================================
-       📦 LOAD STATE
+       📦 LOAD STATE (🔥 KRITISK FIX)
     ========================================== */
 
     try {
@@ -36,6 +36,10 @@ window.addEventListener("DOMContentLoaded", () => {
             AppState.load();
             console.log("📦 State loaded");
         }
+
+        // 🔥 FORCE LOAD vacations (FIXAR DIN BUGG)
+        window.getVacations?.();
+
     } catch (err) {
         console.error("❌ State load error:", err);
     }
@@ -53,7 +57,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     /* ==========================================
-       📅 CALENDAR
+       📅 CALENDAR (🔥 EFTER STATE)
     ========================================== */
 
     try {
@@ -98,7 +102,7 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     /* ==========================================
-       ↩️ AO-03 UNDO SYSTEM (FIXAD)
+       ↩️ AO-03 UNDO SYSTEM (🔥 FIXAD)
     ========================================== */
 
     try {
@@ -109,12 +113,11 @@ window.addEventListener("DOMContentLoaded", () => {
 
                 console.log("↩️ Klick: Undo");
 
-                // 🔥 undo
-                window.HistoryManager?.undo();
-
-                // 🔥 korrekt reset via UI (inte window)
+                // 🔥 ENDAST UI handler (inte dubbelkörning)
                 if (typeof window.handleUndo === "function") {
-                    window.handleUndo(); // använder ui.js logik
+                    window.handleUndo();
+                } else {
+                    window.HistoryManager?.undo();
                 }
 
             });
@@ -132,6 +135,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     try {
         console.log("👤 Employees:", localStorage.getItem("employees"));
+        console.log("📅 Vacations:", localStorage.getItem("vacations"));
         console.log("🚀 App fully initialized");
     } catch (err) {
         console.error("❌ Debug log error:", err);
