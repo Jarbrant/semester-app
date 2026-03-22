@@ -1,8 +1,30 @@
 /* ==========================================
-   📅 FULLCALENDAR INIT (PRO MAX ULTRA)
+   📅 FULLCALENDAR INIT (STATE DRIVEN PRO MAX++++)
 ========================================== */
 
 let calendar;
+
+/* ==========================================
+   🛠 UTIL
+========================================== */
+
+function toISO(date) {
+    return date.toISOString().split("T")[0];
+}
+
+/* ==========================================
+   🧠 SAFE EVENT SOURCE
+========================================== */
+
+function getEventSource() {
+    return (typeof getCalendarEvents === "function")
+        ? getCalendarEvents
+        : () => [];
+}
+
+/* ==========================================
+   📅 INIT
+========================================== */
 
 window.initCalendar = function () {
     try {
@@ -13,15 +35,13 @@ window.initCalendar = function () {
             return;
         }
 
-        // 🔄 clean destroy
+        // 🔄 destroy safely
         if (calendar) {
             calendar.destroy();
             calendar = null;
         }
 
-        const eventsFn = typeof getCalendarEvents === "function"
-            ? getCalendarEvents
-            : () => [];
+        const eventsFn = getEventSource();
 
         calendar = new FullCalendar.Calendar(calendarEl, {
 
@@ -29,8 +49,8 @@ window.initCalendar = function () {
             firstDay: 1,
             locale: "sv",
             height: "auto",
-            eventDisplay: "block",
             fixedWeekCount: false,
+            eventDisplay: "block",
 
             headerToolbar: {
                 left: "prev,next today",
@@ -46,64 +66,33 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               📅 EVENTS (SMART SPLIT)
+               📅 EVENTS (STATE + CACHE SAFE 🔥)
             ========================================== */
 
             events(fetchInfo, successCallback) {
                 try {
                     const rawEvents = eventsFn() || [];
-                    const splitEvents = [];
 
-                    rawEvents.forEach(event => {
-                        const start = new Date(event.start);
-                        const end = new Date(event.end);
+                    // 🔥 redan dag-splittade events → använd direkt
+                    successCallback(rawEvents);
 
-                        if (isNaN(start) || isNaN(end)) return;
-
-                        const current = new Date(start);
-
-                        while (current < end) {
-                            const dayStr = current.toISOString().split("T")[0];
-
-                            splitEvents.push({
-                                id: `${event.id}_${dayStr}`,
-                                title: event.title,
-                                start: dayStr,
-                                end: dayStr,
-
-                                backgroundColor: event.backgroundColor,
-                                borderColor: event.borderColor,
-                                textColor: event.textColor,
-
-                                display: "block",
-                                allDay: true,
-                                extendedProps: event.extendedProps
-                            });
-
-                            current.setDate(current.getDate() + 1);
-                        }
-                    });
-
-                    // 🔥 bygg cache för actions
+                    // 🔥 bygg cache EFTER render (stabil)
                     requestAnimationFrame(() => {
                         window.calendarActions?.buildEventCache();
                     });
 
-                    successCallback(splitEvents);
-
                 } catch (err) {
-                    console.error("❌ event split error:", err);
+                    console.error("❌ event load error:", err);
                     successCallback([]);
                 }
             },
 
             /* ==========================================
-               🎨 EVENT RENDER (HARD FIX)
+               🎨 EVENT RENDER
             ========================================== */
 
             eventDidMount(info) {
                 try {
-                    // 🔥 använd din centraliserade engine
                     window.calendarActions?.applyEventColor(info);
 
                     const tooltip = info.event.extendedProps?.tooltip;
@@ -117,14 +106,13 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               🌡 DAY CELLS (HEATMAP + UI)
+               🌡 DAY CELLS (HEATMAP ENGINE)
             ========================================== */
 
             dayCellDidMount(info) {
                 try {
-                    const dateStr = info.date.toISOString().split("T")[0];
+                    const dateStr = toISO(info.date);
 
-                    // 🔥 använd central logik istället
                     requestAnimationFrame(() => {
                         window.calendarActions?.processDayCell(
                             info.el,
@@ -138,7 +126,7 @@ window.initCalendar = function () {
             },
 
             /* ==========================================
-               🖱 INTERACTIONS
+               🖱 INTERACTIONS (UX++)
             ========================================== */
 
             dateClick(info) {
@@ -148,6 +136,11 @@ window.initCalendar = function () {
                 if (startInput && endInput) {
                     startInput.value = info.dateStr;
                     endInput.value = info.dateStr;
+
+                    // 🔥 auto-focus slutdatum (din feature 👇)
+                    requestAnimationFrame(() => {
+                        endInput.focus();
+                    });
                 }
 
                 openModal?.("vacationModal");
@@ -169,14 +162,14 @@ window.initCalendar = function () {
 
         calendar.render();
 
-        // 🔥 stabil refetch (fixar timing issues)
+        // 🔥 stabil initial sync
         requestAnimationFrame(() => {
             calendar.refetchEvents();
         });
 
         window.calendar = calendar;
 
-        console.log("✅ Calendar PRO MAX init klar");
+        console.log("✅ Calendar PRO MAX++++ init klar");
 
     } catch (err) {
         console.error("💥 Calendar crash:", err);
@@ -184,16 +177,16 @@ window.initCalendar = function () {
 };
 
 /* ==========================================
-   🔄 REFRESH (SMART)
+   🔄 REFRESH (STATE SAFE)
 ========================================== */
 
 window.refreshCalendar = function () {
     try {
         if (!calendar) return;
 
-        // 🔥 rebuild cache + refresh
         calendar.refetchEvents();
 
+        // 🔥 sync cache + UI efter refresh
         requestAnimationFrame(() => {
             window.calendarActions?.buildEventCache();
         });
