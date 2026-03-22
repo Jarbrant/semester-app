@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Semesterplaneraren</title>
 
     <!-- 📅 FullCalendar -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js" defer></script>
 
     <!-- 🎨 CSS -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- 🧠 UI CORE (🔥 NYTT - måste ligga först av JS) -->
+    <script src="utils/dom.js" defer></script>
 </head>
 
 <body>
@@ -21,6 +25,7 @@
         📅 <span>Semesterplanerare</span>
     </div>
 
+    <!-- 🔥 framtida controls (year/filter etc) -->
     <div class="topbar-center" id="calendarControls"></div>
 
     <div class="topbar-right">
@@ -62,14 +67,16 @@
     <div id="calendar"></div>
 </main>
 
-<!-- 📋 LISTA (🔥 NU KLICKBAR + SMART) -->
+<!-- 📋 LISTA -->
 <section class="card">
-    <h3 onclick="openVacationOverview()" style="cursor:pointer;">
+
+    <!-- 🔥 KLICKBAR HEADER -->
+    <h3 id="vacationListTitle" style="cursor:pointer;">
         📋 Semesterlista
     </h3>
 
-    <!-- 🔥 NY: snabbinfo -->
-    <div id="vacationSummary" style="font-size:13px; color:#6b7280; margin-bottom:10px;"></div>
+    <!-- 🔥 SUMMARY -->
+    <div id="vacationSummary" class="muted-text"></div>
 
     <ul id="vacationList"></ul>
 </section>
@@ -81,11 +88,12 @@
 <div id="employeeModal" class="modal">
     <div class="modal-content">
         <button class="close" onclick="closeModal('employeeModal')">×</button>
+
         <h3>Lägg till personal</h3>
 
         <p id="employeeWarning" class="warning"></p>
 
-        <input type="text" id="employeeName" placeholder="Namn">
+        <input type="text" id="employeeName" placeholder="Namn" autocomplete="off">
         <select id="employeeGroupSelect"></select>
 
         <input type="number" id="employeeVacationDays" placeholder="Semesterdagar (ex: 25)" min="1">
@@ -100,6 +108,7 @@
 <div id="editEmployeeModal" class="modal">
     <div class="modal-content">
         <button class="close" onclick="closeModal('editEmployeeModal')">×</button>
+
         <h3>Redigera personal</h3>
 
         <input type="hidden" id="editEmployeeId">
@@ -107,8 +116,7 @@
         <input type="text" id="editEmployeeName" placeholder="Namn">
         <input type="number" id="editEmployeeVacationDays" placeholder="Semesterdagar" min="1">
 
-        <!-- 🔥 BALANS -->
-        <div id="employeeBalanceBox" style="font-size:13px; color:#6b7280;"></div>
+        <div id="employeeBalanceBox" class="muted-text"></div>
 
         <button class="primary-btn" onclick="saveEmployeeEdit()">Spara</button>
         <button class="logout-btn" onclick="deleteEmployee()">Ta bort</button>
@@ -119,13 +127,13 @@
 <div id="vacationModal" class="modal">
     <div class="modal-content">
         <button class="close" onclick="closeModal('vacationModal')">×</button>
+
         <h3>Lägg till semester</h3>
 
-        <input type="text" id="employeeSearch" placeholder="Sök person...">
+        <input type="text" id="employeeSearch" placeholder="Sök person..." autocomplete="off">
         <select id="employeeSelect"></select>
 
-        <!-- 🔥 LIVE BALANS -->
-        <div id="vacationBalanceInfo" style="font-size:13px; color:#6b7280;"></div>
+        <div id="vacationBalanceInfo" class="muted-text"></div>
 
         <label>Start</label>
         <input type="date" id="startDate">
@@ -160,10 +168,11 @@
     </div>
 </div>
 
-<!-- 📋 VACATION OVERVIEW (🔥 NY FEATURE) -->
+<!-- 📋 VACATION OVERVIEW -->
 <div id="vacationOverviewModal" class="modal">
     <div class="modal-content">
         <button class="close" onclick="closeModal('vacationOverviewModal')">×</button>
+
         <h3>📋 Aktiva semestrar</h3>
 
         <div id="vacationOverviewList"></div>
@@ -174,9 +183,10 @@
 <div id="filterModal" class="modal">
     <div class="modal-content">
         <button class="close" onclick="closeModal('filterModal')">×</button>
+
         <h3>Filter</h3>
 
-        <select id="filter" onchange="refreshCalendar(); closeModal('filterModal');">
+        <select id="filter">
             <option value="all">Visa alla</option>
         </select>
     </div>
@@ -186,6 +196,7 @@
 <div id="groupModal" class="modal">
     <div class="modal-content">
         <button class="close" onclick="closeModal('groupModal')">×</button>
+
         <h3>Skapa grupp</h3>
 
         <input type="text" id="groupName" placeholder="Gruppnamn">
@@ -199,28 +210,45 @@
 </div>
 
 <!-- 📦 SCRIPTS -->
-<script src="data.js"></script>
-<script src="auth.js"></script>
-<script src="ui.js"></script>
-<script src="groups.js"></script>
-<script src="employees.js"></script>
-<script src="vacations.js"></script>
+<script src="data.js" defer></script>
+<script src="auth.js" defer></script>
+<script src="ui.js" defer></script>
+<script src="groups.js" defer></script>
+<script src="employees.js" defer></script>
+<script src="vacations.js" defer></script>
 
-<script src="calendar/calendar-events.js"></script>
-<script src="calendar/calendar-actions.js"></script>
-<script src="calendar/calendar-init.js"></script>
+<script src="calendar/calendar-events.js" defer></script>
+<script src="calendar/calendar-actions.js" defer></script>
+<script src="calendar/calendar-init.js" defer></script>
 
-<script src="app.js"></script>
+<script src="app.js" defer></script>
 
-<!-- 🧠 INIT (STABIL VERSION) -->
+<!-- 🧠 INIT -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     try {
+        // 🔥 använd UI helper om den finns
         const user = localStorage.getItem("currentUser");
-        const el = document.getElementById("currentUserName");
-        if (el && user) el.innerText = user;
 
-        // 🔥 säker init (undviker race bugs)
+        if (window.UI) {
+            UI.text("currentUserName", user || "Användare");
+        } else {
+            const el = document.getElementById("currentUserName");
+            if (el && user) el.innerText = user;
+        }
+
+        // 🔥 klickbar lista (bättre UX än inline onclick)
+        document.getElementById("vacationListTitle")?.addEventListener("click", () => {
+            window.openVacationOverview?.();
+        });
+
+        // 🔥 filter change (renare än inline)
+        document.getElementById("filter")?.addEventListener("change", () => {
+            refreshCalendar?.();
+            closeModal?.("filterModal");
+        });
+
+        // 🔥 säker init
         requestAnimationFrame(() => {
             if (typeof initCalendar === "function") {
                 initCalendar();
