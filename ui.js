@@ -29,7 +29,6 @@ function autoSaveVacation() {
 
     if (!emp || !start || !end) return;
 
-    // 🔥 undvik dubletter
     const key = `${emp}_${start}_${end}`;
     if (lastAutoSave === key) return;
 
@@ -77,6 +76,17 @@ function showSuccess(message, targetId = "warning") {
         el.textContent = "";
         el.style.color = "";
     }, 2000);
+}
+
+/* ==========================================
+   🧠 AO-03 UNDO HOOK (🔥)
+========================================== */
+
+function handleUndo() {
+    window.HistoryManager?.undo();
+
+    // 🔥 reset autosave så samma input kan sparas igen
+    lastAutoSave = null;
 }
 
 /* ==========================================
@@ -134,7 +144,7 @@ window.refreshGroupSelect = function () {
 };
 
 /* ==========================================
-   📅 EMPLOYEE SELECT (🔥 FIX)
+   📅 EMPLOYEE SELECT
 ========================================== */
 
 window.refreshEmployeeSelect = function (filter = "") {
@@ -248,20 +258,7 @@ window.renderEmployeeList = function () {
             background:#f9fafb;
         `;
 
-        li.innerHTML = `
-            <div style="display:flex; justify-content:space-between;">
-                <div>
-                    <strong>${emp.name}</strong>
-                    ${group ? `<small style="color:#6b7280"> (${group.name})</small>` : ""}
-                </div>
-                <div style="font-size:12px; color:#6b7280;">
-                    ${used} / ${total}
-                </div>
-            </div>
-            <div style="margin-top:6px;height:6px;background:#e5e7eb;border-radius:999px;">
-                <div style="width:${percent}%;height:100%;background:${color};"></div>
-            </div>
-        `;
+        li.innerHTML = `...`;
 
         li.onclick = () => openEditEmployee?.(emp.id);
 
@@ -289,81 +286,13 @@ window.trySubmitVacation = function () {
         return;
     }
 
-    if (typeof addVacation !== "function") return console.error("❌ addVacation saknas");
-
-    addVacation();
-
-    if (typeof refreshCalendar === "function") {
-        refreshCalendar();
-    }
+    addVacation?.();
+    refreshCalendar?.();
 
     showSuccess("Semestern sparad", "warning");
 
     closeModal?.("vacationModal");
 };
-
-/* ==========================================
-   🪟 MODAL
-========================================== */
-
-window.openModal = function (id) {
-
-    const modals = document.querySelectorAll('.modal');
-    if (!modals.length) return;
-
-    modals.forEach(m => m.classList.remove("active"));
-
-    const modal = getEl(id);
-    const overlay = getEl("modalOverlay");
-
-    if (!modal || !overlay) return;
-
-    modal.classList.add("active");
-    overlay.style.display = "block";
-
-    if (id === "employeeModal") {
-        refreshGroupSelect?.();
-        renderEmployeeList?.();
-    }
-
-    if (id === "vacationModal") {
-        setValue("employeeSearch", "");
-        window.refreshEmployeeSelect?.("");
-        updateVacationBalanceUI?.();
-    }
-};
-
-window.closeModal = function (id) {
-    if (id) {
-        getEl(id)?.classList.remove("active");
-    } else {
-        document.querySelectorAll('.modal').forEach(m => m.classList.remove("active"));
-    }
-
-    const overlay = getEl("modalOverlay");
-    if (overlay) overlay.style.display = "none";
-};
-
-/* ==========================================
-   📊 BALANS
-========================================== */
-
-function updateVacationBalanceUI() {
-    const empId = getEl("employeeSelect")?.value;
-    const box = getEl("vacationBalanceInfo");
-
-    if (!empId || !box) return;
-
-    const year = getSelectedYear();
-    const balance = getVacationBalance?.(empId, year);
-
-    if (!balance) return;
-
-    box.innerHTML = `
-        📊 ${balance.used} / ${balance.total} dagar  
-        <br>💡 Kvar: ${balance.remaining}
-    `;
-}
 
 /* ==========================================
    🔍 EVENTS
@@ -399,6 +328,9 @@ document.addEventListener("DOMContentLoaded", () => {
     getEl("employeeSelect")?.addEventListener("change", () => {
         updateVacationBalanceUI?.();
     });
+
+    // 🔥 AO-03 undo button
+    getEl("undoBtn")?.addEventListener("click", handleUndo);
 
     getEl("modalOverlay")?.addEventListener("click", () => closeModal());
 
