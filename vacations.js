@@ -3,11 +3,14 @@
 ========================================== */
 
 /* ==========================================
-   🧠 STATE (🔥 FIX: merge istället för overwrite)
+   🧠 STATE
 ========================================== */
 
 window.AppState = window.AppState || {};
 window.AppState.vacations = window.AppState.vacations || null;
+
+// 🔥 NY: edit mode state
+window.AppState.editingVacationId = null;
 
 const VAC_KEY = "vacations";
 
@@ -20,13 +23,12 @@ function safeDate(date) {
     return isNaN(d) ? null : d;
 }
 
-// 🔥 bättre id (undviker krockar vid snabb autosave)
 function generateId() {
     return Date.now() + Math.floor(Math.random() * 1000);
 }
 
 /* ==========================================
-   📦 LOAD / SAVE (🔥 STABIL)
+   📦 LOAD / SAVE
 ========================================== */
 
 function loadVacations() {
@@ -75,7 +77,7 @@ window.saveVacations = function (data) {
 };
 
 /* ==========================================
-   🔍 CORE LOGIC
+   🔍 VALIDATION
 ========================================== */
 
 function hasConflict(empId, start, end, ignoreId = null) {
@@ -118,10 +120,6 @@ function groupOverbooked(empId, start, end, ignoreId = null) {
     return count >= max;
 }
 
-/* ==========================================
-   🧠 VALIDATION
-========================================== */
-
 function validateVacation(empId, start, end, ignoreId = null) {
     const startDate = safeDate(start);
     const endDate = safeDate(end);
@@ -136,14 +134,22 @@ function validateVacation(empId, start, end, ignoreId = null) {
 }
 
 /* ==========================================
-   ➕ ADD VACATION (🔥 AO-03 PATCH)
+   ➕ ADD / EDIT (🔥 FIXAD)
 ========================================== */
 
 window.addVacation = function () {
+
     const empId = document.getElementById("employeeSelect")?.value;
     const start = document.getElementById("startDate")?.value;
     const end = document.getElementById("endDate")?.value;
     const warning = document.getElementById("warning");
+
+    const editingId = window.AppState.editingVacationId;
+
+    // 🔥 EDIT FLOW
+    if (editingId) {
+        return updateVacationFromForm(editingId, start, end);
+    }
 
     const error = validateVacation(empId, start, end);
 
@@ -155,7 +161,7 @@ window.addVacation = function () {
     const vacations = getVacations();
 
     const newVacation = {
-        id: generateId(), // 🔥 förbättrad
+        id: generateId(),
         employee_id: empId,
         start,
         end
@@ -165,48 +171,28 @@ window.addVacation = function () {
 
     saveVacations(updated);
 
-    // 🔥 AO-03 HISTORY HOOK
     window.HistoryManager?.push({
         type: "addVacation",
         payload: newVacation
     });
 
-    console.log("✅ Vacation added:", newVacation);
-
     if (warning) warning.textContent = "";
 
     refreshCalendar?.();
 
-    return newVacation; // 🔥 viktigt för framtida flows
+    return newVacation;
 };
 
 /* ==========================================
-   ❌ REMOVE
+   ✏️ UPDATE (🔥 NY CORE)
 ========================================== */
 
-window.removeVacation = function (id) {
-    const updated = getVacations().filter(v => v.id != id);
-    saveVacations(updated);
-
-    refreshCalendar?.();
-};
-
-/* ==========================================
-   ✏️ UPDATE
-========================================== */
-
-window.updateVacation = function () {
-    const id = document.getElementById("editVacationId").value;
-    const start = document.getElementById("editStartDate")?.value;
-    const end = document.getElementById("editEndDate")?.value;
+function updateVacationFromForm(id, start, end) {
 
     const vacations = getVacations();
     const current = vacations.find(v => v.id == id);
 
-    if (!current) {
-        alert("Semester saknas");
-        return;
-    }
+    if (!current) return;
 
     const error = validateVacation(current.employee_id, start, end, id);
 
@@ -215,18 +201,50 @@ window.updateVacation = function () {
         return;
     }
 
+    const updatedVacation = { ...current, start, end };
+
     const updated = vacations.map(v =>
-        v.id == id ? { ...v, start, end } : v
+        v.id == id ? updatedVacation : v
     );
 
     saveVacations(updated);
 
-    closeModal?.("editVacationModal");
+    window.HistoryManager?.push({
+        type: "updateVacation",
+        payload: { before: current, after: updatedVacation }
+    });
+
+    // 🔥 reset edit mode
+    window.AppState.editingVacationId = null;
+
+    refreshCalendar?.();
+
+    return updatedVacation;
+}
+
+/* ==========================================
+   ❌ REMOVE
+========================================== */
+
+window.removeVacation = function (id) {
+
+    const vacations = getVacations();
+    const removed = vacations.find(v => v.id == id);
+
+    const updated = vacations.filter(v => v.id != id);
+
+    saveVacations(updated);
+
+    window.HistoryManager?.push({
+        type: "deleteVacation",
+        payload: removed
+    });
+
     refreshCalendar?.();
 };
 
 /* ==========================================
-   🗑 DELETE
+   🗑 DELETE FROM MODAL
 ========================================== */
 
 window.deleteVacationFromModal = function () {
