@@ -58,6 +58,65 @@ window.tryAddGroup = function () {
 };
 
 /* ==========================================
+   🔽 GROUP SELECT
+========================================== */
+
+window.refreshGroupSelect = function () {
+    const select = getEl("employeeGroupSelect");
+    if (!select) return;
+
+    const groups = getGroups?.() || [];
+
+    select.innerHTML = "";
+
+    const defaultOpt = document.createElement("option");
+    defaultOpt.value = "";
+    defaultOpt.textContent = "Ingen grupp";
+    select.appendChild(defaultOpt);
+
+    groups.forEach(g => {
+        const opt = document.createElement("option");
+        opt.value = g.id;
+        opt.textContent = `${g.name} (max ${g.maxConcurrent})`;
+        select.appendChild(opt);
+    });
+};
+
+/* ==========================================
+   📅 EMPLOYEE SELECT (🔥 FIX)
+========================================== */
+
+window.refreshEmployeeSelect = function (filter = "") {
+    const select = getEl("employeeSelect");
+    if (!select) return;
+
+    const employees = getEmployees?.() || [];
+
+    const filtered = employees.filter(e =>
+        e.name?.toLowerCase().includes(filter.toLowerCase())
+    );
+
+    select.innerHTML = "";
+
+    if (!filtered.length) {
+        const opt = document.createElement("option");
+        opt.textContent = "Ingen personal";
+        opt.value = "";
+        select.appendChild(opt);
+        return;
+    }
+
+    filtered.forEach(emp => {
+        const opt = document.createElement("option");
+        opt.value = emp.id;
+        opt.textContent = emp.name;
+        select.appendChild(opt);
+    });
+
+    select.selectedIndex = 0;
+};
+
+/* ==========================================
    👤 EMPLOYEE ADD
 ========================================== */
 
@@ -89,34 +148,9 @@ window.tryAddEmployee = function () {
     setValue("employeeVacationDays", "");
 
     renderEmployeeList?.();
-    refreshEmployeeSelect?.();
+    window.refreshEmployeeSelect?.(); // 🔥 FIX
 
     closeModal?.("employeeModal");
-};
-
-/* ==========================================
-   🔽 GROUP SELECT
-========================================== */
-
-window.refreshGroupSelect = function () {
-    const select = getEl("employeeGroupSelect");
-    if (!select) return;
-
-    const groups = getGroups?.() || [];
-
-    select.innerHTML = "";
-
-    const defaultOpt = document.createElement("option");
-    defaultOpt.value = "";
-    defaultOpt.textContent = "Ingen grupp";
-    select.appendChild(defaultOpt);
-
-    groups.forEach(g => {
-        const opt = document.createElement("option");
-        opt.value = g.id;
-        opt.textContent = `${g.name} (max ${g.maxConcurrent})`;
-        select.appendChild(opt);
-    });
 };
 
 /* ==========================================
@@ -239,7 +273,7 @@ window.openModal = function (id) {
 
     if (id === "vacationModal") {
         setValue("employeeSearch", "");
-        refreshEmployeeSelect?.("");
+        window.refreshEmployeeSelect?.(""); // 🔥 FIX
         updateVacationBalanceUI?.();
     }
 };
@@ -283,7 +317,7 @@ function updateVacationBalanceUI() {
 document.addEventListener("DOMContentLoaded", () => {
 
     getEl("employeeSearch")?.addEventListener("input", e => {
-        refreshEmployeeSelect?.(e.target.value);
+        window.refreshEmployeeSelect?.(e.target.value); // 🔥 FIX
     });
 
     getEl("employeeSelect")?.addEventListener("change", () => {
