@@ -1,74 +1,102 @@
 /* ==========================================
-   🧩 GROUP UI (FINAL PRO MAX)
+   🧩 GROUP UI (PRO MAX++)
+========================================== */
+
+/* ==========================================
+   🧠 HELPERS
+========================================== */
+
+function setWarning(el, msg = "") {
+    if (el) el.textContent = msg;
+}
+
+function resetInput(id) {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+}
+
+/* ==========================================
+   ➕ ADD GROUP (UPGRADED UX)
 ========================================== */
 
 window.tryAddGroup = function () {
-    const name = document.getElementById("groupName")?.value?.trim();
-    const color = document.getElementById("groupColor")?.value;
-    const limit = parseInt(document.getElementById("groupLimit")?.value) || 1;
+    const nameEl = document.getElementById("groupName");
+    const colorEl = document.getElementById("groupColor");
+    const limitEl = document.getElementById("groupLimit");
     const warning = document.getElementById("groupWarning");
 
+    const name = nameEl?.value?.trim();
+    const color = colorEl?.value;
+    const limit = parseInt(limitEl?.value) || 1;
+
     if (!name) {
-        if (warning) warning.textContent = "Ange gruppnamn";
+        setWarning(warning, "Ange gruppnamn");
+        nameEl?.focus();
         return;
     }
 
     addGroup?.(name, color, limit);
 
-    if (warning) warning.textContent = "";
+    setWarning(warning);
 
-    document.getElementById("groupName").value = "";
-    document.getElementById("groupLimit").value = "";
+    resetInput("groupName");
+    resetInput("groupLimit");
 
     closeModal("groupModal");
 };
 
 /* ==========================================
-   🔽 GROUP SELECT
+   🔽 GROUP SELECT (STABIL + SORT)
 ========================================== */
 
 window.refreshGroupSelect = function () {
     const select = document.getElementById("employeeGroupSelect");
     if (!select) return;
 
-    const groups = getGroups?.() || [];
+    const groups = (getGroups?.() || []).sort((a, b) =>
+        a.name.localeCompare(b.name)
+    );
 
     select.innerHTML = "";
 
-    const defaultOpt = document.createElement("option");
-    defaultOpt.value = "";
-    defaultOpt.textContent = "Ingen grupp";
+    const defaultOpt = new Option("Ingen grupp", "");
     select.appendChild(defaultOpt);
 
     groups.forEach(g => {
-        const opt = document.createElement("option");
-        opt.value = g.id;
-        opt.textContent = `${g.name} (max ${g.maxConcurrent})`;
+        const opt = new Option(
+            `${g.name} (max ${g.maxConcurrent})`,
+            g.id
+        );
         select.appendChild(opt);
     });
 };
 
 /* ==========================================
-   👤 EMPLOYEE ADD (🔥 NY: semesterdagar)
+   👤 ADD EMPLOYEE (SMART)
 ========================================== */
 
 window.tryAddEmployee = function () {
-    const name = document.getElementById("employeeName")?.value?.trim();
-    const groupId = document.getElementById("employeeGroupSelect")?.value;
-    const vacationDays = document.getElementById("employeeVacationDays")?.value;
+    const nameEl = document.getElementById("employeeName");
+    const groupEl = document.getElementById("employeeGroupSelect");
+    const daysEl = document.getElementById("employeeVacationDays");
     const warning = document.getElementById("employeeWarning");
 
+    const name = nameEl?.value?.trim();
+    const groupId = groupEl?.value;
+    const vacationDays = parseInt(daysEl?.value) || 25;
+
     if (!name) {
-        if (warning) warning.textContent = "Du måste ange ett namn!";
+        setWarning(warning, "Du måste ange ett namn!");
+        nameEl?.focus();
         return;
     }
 
-    addEmployee?.(name, groupId || null, vacationDays || 25);
+    addEmployee?.(name, groupId || null, vacationDays);
 
-    if (warning) warning.textContent = "";
+    setWarning(warning);
 
-    document.getElementById("employeeName").value = "";
-    document.getElementById("employeeVacationDays").value = "";
+    resetInput("employeeName");
+    resetInput("employeeVacationDays");
 
     renderEmployeeList();
     refreshEmployeeSelect();
@@ -86,7 +114,7 @@ window.getSelectedYear = function () {
 };
 
 /* ==========================================
-   🔄 EMPLOYEE LIST (UI PRO)
+   🔄 EMPLOYEE LIST (OPTIMIZED)
 ========================================== */
 
 window.renderEmployeeList = function () {
@@ -112,37 +140,24 @@ window.renderEmployeeList = function () {
 
         const li = document.createElement("li");
 
-        li.style.cursor = "pointer";
-        li.style.padding = "10px";
-        li.style.borderRadius = "10px";
-        li.style.marginBottom = "8px";
-        li.style.background = "#f9fafb";
+        li.className = "employee-item";
 
         li.innerHTML = `
-            <div style="display:flex; justify-content:space-between;">
+            <div class="emp-row">
                 <div>
                     <strong>${emp.name}</strong>
-                    ${group ? `<small style="color:#6b7280"> (${group.name})</small>` : ""}
+                    ${group ? `<small> (${group.name})</small>` : ""}
                 </div>
 
-                <div style="font-size:12px; color:#6b7280;">
+                <div class="emp-days">
                     ${used} / ${total}
                 </div>
             </div>
 
-            <div style="
-                margin-top:6px;
-                height:6px;
-                background:#e5e7eb;
-                border-radius:999px;
-                overflow:hidden;
-            ">
-                <div style="
-                    width:${percent}%;
-                    height:100%;
-                    background:${color};
-                    transition:0.3s;
-                "></div>
+            <div class="emp-bar">
+                <div class="emp-bar-fill"
+                     style="width:${percent}%; background:${color}">
+                </div>
             </div>
         `;
 
@@ -153,7 +168,7 @@ window.renderEmployeeList = function () {
 };
 
 /* ==========================================
-   ✏️ EDIT EMPLOYEE (🔥 NY: semesterdagar + balans)
+   ✏️ EDIT EMPLOYEE (SMART UI)
 ========================================== */
 
 window.openEditEmployee = function (id) {
@@ -165,15 +180,13 @@ window.openEditEmployee = function (id) {
 
     document.getElementById("editEmployeeName").value = emp.name;
     document.getElementById("editEmployeeId").value = emp.id;
-
-    // 🔥 NYTT
     document.getElementById("editEmployeeVacationDays").value = emp.vacationDays || 25;
 
-    // 🔥 BALANS UI
     const box = document.getElementById("employeeBalanceBox");
+
     if (box && balance) {
         box.innerHTML = `
-            📊 ${balance.used} använda / ${balance.total} totalt  
+            📊 ${balance.used} / ${balance.total}
             <br>💡 Kvar: ${balance.remaining}
         `;
     }
@@ -212,7 +225,7 @@ window.deleteEmployee = function () {
 };
 
 /* ==========================================
-   📅 EMPLOYEE SELECT + SEARCH
+   📅 EMPLOYEE SELECT
 ========================================== */
 
 window.refreshEmployeeSelect = function (filter = "") {
@@ -228,28 +241,21 @@ window.refreshEmployeeSelect = function (filter = "") {
     select.innerHTML = "";
 
     if (!filtered.length) {
-        const opt = document.createElement("option");
-        opt.textContent = "Ingen match";
-        opt.value = "";
-        select.appendChild(opt);
+        select.appendChild(new Option("Ingen match", ""));
         return;
     }
 
     filtered.forEach(emp => {
-        const opt = document.createElement("option");
-        opt.value = emp.id;
-        opt.textContent = emp.name;
-        select.appendChild(opt);
+        select.appendChild(new Option(emp.name, emp.id));
     });
 
     select.selectedIndex = 0;
 
-    // 🔥 visa balans direkt
     updateVacationBalanceUI();
 };
 
 /* ==========================================
-   📊 LIVE BALANS I VACATION MODAL
+   📊 LIVE BALANS
 ========================================== */
 
 function updateVacationBalanceUI() {
@@ -264,13 +270,13 @@ function updateVacationBalanceUI() {
     if (!balance) return;
 
     box.innerHTML = `
-        📊 ${balance.used} / ${balance.total} dagar  
+        📊 ${balance.used} / ${balance.total}
         <br>💡 Kvar: ${balance.remaining}
     `;
 }
 
 /* ==========================================
-   📅 VACATION
+   📅 VACATION (VALIDATION BOOST)
 ========================================== */
 
 window.trySubmitVacation = function () {
@@ -280,16 +286,21 @@ window.trySubmitVacation = function () {
     const warning = document.getElementById("warning");
 
     if (!emp || !start || !end) {
-        if (warning) warning.textContent = "Fyll i alla fält!";
+        setWarning(warning, "Fyll i alla fält!");
+        return;
+    }
+
+    if (end < start) {
+        setWarning(warning, "Slutdatum kan inte vara före startdatum");
         return;
     }
 
     if (!canAddVacation?.(emp, start, end)) {
-        if (warning) warning.textContent = "⚠️ För många semesterdagar!";
+        setWarning(warning, "⚠️ För många semesterdagar!");
         return;
     }
 
-    if (warning) warning.textContent = "";
+    setWarning(warning);
 
     addVacation?.();
 
@@ -297,7 +308,7 @@ window.trySubmitVacation = function () {
 };
 
 /* ==========================================
-   🪟 MODAL
+   🪟 MODAL SYSTEM (SMART)
 ========================================== */
 
 window.openModal = function (id) {
@@ -317,11 +328,12 @@ window.openModal = function (id) {
     }
 
     if (id === "vacationModal") {
-        const search = document.getElementById("employeeSearch");
-        if (search) search.value = "";
-
+        resetInput("employeeSearch");
         refreshEmployeeSelect("");
         updateVacationBalanceUI();
+
+        // 🔥 UX FIX (det du bad om tidigare)
+        document.getElementById("startDate")?.focus();
     }
 };
 
@@ -336,7 +348,7 @@ window.closeModal = function (id) {
 };
 
 /* ==========================================
-   🔍 SEARCH + EVENTS
+   🔍 SEARCH + UX EVENTS
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -349,7 +361,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateVacationBalanceUI();
     });
 
-    document.getElementById("modalOverlay")?.addEventListener("click", () => closeModal());
+    document.getElementById("modalOverlay")?.addEventListener("click", closeModal);
 
     document.addEventListener("keydown", e => {
         if (e.key === "Escape") closeModal();
