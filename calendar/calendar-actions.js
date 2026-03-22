@@ -1,5 +1,5 @@
 /* ==========================================
-   🎛 CALENDAR ACTIONS (PRO MAX VERSION)
+   🎛 CALENDAR ACTIONS (STATE DRIVEN PRO MAX+++)
 ========================================== */
 
 window.calendarActions = {
@@ -21,34 +21,50 @@ window.calendarActions = {
     },
 
     /* ==========================================
-       ⚡ PERFORMANCE CACHE
+       ⚡ CACHE ENGINE (SMART 🔥)
     ========================================== */
 
     _eventCache: {},
+    _cacheVersion: 0,
 
     buildEventCache() {
-        const cache = {};
+        try {
+            const events = this.getEvents();
 
-        this.getEvents().forEach(e => {
-            const start = new Date(e.start);
-            const end = new Date(e.end);
+            // 🔥 enkel cache invalidation
+            const version = events.length;
+            if (version === this._cacheVersion) return;
 
-            let current = new Date(start);
+            const cache = {};
 
-            while (current <= end) {
-                const key = current.toISOString().split("T")[0];
+            events.forEach(e => {
+                const start = new Date(e.start);
+                const end = new Date(e.end);
 
-                if (!cache[key]) cache[key] = [];
-                cache[key].push(e);
+                if (isNaN(start) || isNaN(end)) return;
 
-                current.setDate(current.getDate() + 1);
-            }
-        });
+                let current = new Date(start);
 
-        this._eventCache = cache;
+                while (current <= end) {
+                    const key = current.toISOString().split("T")[0];
+
+                    if (!cache[key]) cache[key] = [];
+                    cache[key].push(e);
+
+                    current.setDate(current.getDate() + 1);
+                }
+            });
+
+            this._eventCache = cache;
+            this._cacheVersion = version;
+
+        } catch (err) {
+            console.warn("⚠️ buildEventCache error:", err);
+        }
     },
 
     getEventsForDate(dateStr) {
+        this.buildEventCache();
         return this._eventCache[dateStr] || [];
     },
 
@@ -61,7 +77,7 @@ window.calendarActions = {
     },
 
     /* ==========================================
-       🎨 COLOR ENGINE (SMART + SAFE)
+       🎨 COLOR ENGINE
     ========================================== */
 
     applyEventColor(info) {
@@ -70,7 +86,6 @@ window.calendarActions = {
             const border = info.event.borderColor || bg;
             const text = info.event.textColor || "#fff";
 
-            // 🔥 tvinga färg (FullCalendar override fix)
             info.el.style.setProperty("background-color", bg, "important");
             info.el.style.setProperty("border-color", border, "important");
             info.el.style.setProperty("color", text, "important");
@@ -81,18 +96,20 @@ window.calendarActions = {
     },
 
     /* ==========================================
-       🌡 HEATMAP ENGINE (🔥 NY!)
+       🌡 HEATMAP ENGINE (SMART 🔥)
     ========================================== */
 
     getHeatColor(count) {
-        if (count === 0) return "transparent";
+        if (count === 0) return "";
 
-        if (count === 1) return "rgba(59,130,246,0.08)";
-        if (count === 2) return "rgba(59,130,246,0.15)";
-        if (count === 3) return "rgba(59,130,246,0.25)";
-        if (count >= 4) return "rgba(239,68,68,0.25)"; // överbelastning
+        // 🔥 mjukare gradient
+        const intensity = Math.min(count / 5, 1);
 
-        return "transparent";
+        if (count >= 4) {
+            return `rgba(239,68,68,${0.15 + intensity * 0.25})`;
+        }
+
+        return `rgba(59,130,246,${0.05 + intensity * 0.2})`;
     },
 
     applyHeatmap(cellEl, count) {
@@ -100,7 +117,12 @@ window.calendarActions = {
 
         const color = this.getHeatColor(count);
 
-        cellEl.style.background = color;
+        // 🔥 reset först (fixar ghost colors)
+        cellEl.style.background = "";
+
+        if (color) {
+            cellEl.style.background = color;
+        }
     },
 
     /* ==========================================
@@ -110,24 +132,30 @@ window.calendarActions = {
     addDayCounter(cellEl, count) {
         if (!cellEl || count <= 0) return;
 
-        // 🔥 undvik duplicering
-        if (cellEl.querySelector(".day-counter")) return;
+        let el = cellEl.querySelector(".day-counter");
 
-        const el = document.createElement("div");
-        el.className = "day-counter";
+        if (!el) {
+            el = document.createElement("div");
+            el.className = "day-counter";
+
+            el.style.position = "absolute";
+            el.style.top = "4px";
+            el.style.right = "6px";
+            el.style.fontSize = "11px";
+            el.style.opacity = "0.7";
+            el.style.fontWeight = "500";
+
+            cellEl.appendChild(el);
+        }
+
         el.innerText = count;
-
-        el.style.position = "absolute";
-        el.style.top = "4px";
-        el.style.right = "6px";
-        el.style.fontSize = "11px";
-        el.style.opacity = "0.6";
-
-        cellEl.appendChild(el);
     },
 
     highlightDay(cellEl, type) {
         if (!cellEl) return;
+
+        // 🔥 reset först
+        cellEl.style.boxShadow = "";
 
         if (type === "overbooked") {
             cellEl.style.boxShadow = "inset 0 0 0 2px #ef4444";
@@ -135,20 +163,16 @@ window.calendarActions = {
     },
 
     /* ==========================================
-       🧠 MAIN PROCESSOR (UPGRADED)
+       🧠 MAIN PROCESSOR (IDEMPOTENT 🔥)
     ========================================== */
 
     processDayCell(cellEl, dateStr) {
         try {
             const count = this.countEventsForDate(dateStr);
 
-            // 🔥 heatmap först
             this.applyHeatmap(cellEl, count);
-
-            // 🔢 counter
             this.addDayCounter(cellEl, count);
 
-            // 🚨 overbooking
             if (this.isOverbooked(dateStr)) {
                 this.highlightDay(cellEl, "overbooked");
             }
