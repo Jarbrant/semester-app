@@ -12,6 +12,57 @@ function setValue(id, value) {
 }
 
 /* ==========================================
+   ⚡ AUTOSAVE STATE (AO-02)
+========================================== */
+
+let lastAutoSave = null;
+
+/* ==========================================
+   ⚡ AUTOSAVE ENGINE (AO-02)
+========================================== */
+
+function autoSaveVacation() {
+
+    const emp = getEl("employeeSelect")?.value;
+    const start = getEl("startDate")?.value;
+    const end = getEl("endDate")?.value;
+
+    if (!emp || !start || !end) return;
+
+    // 🔥 undvik dubletter
+    const key = `${emp}_${start}_${end}`;
+    if (lastAutoSave === key) return;
+
+    if (!canAddVacation?.(emp, start, end)) return;
+
+    lastAutoSave = key;
+
+    console.log("⚡ Autosave");
+
+    addVacation?.();
+    refreshCalendar?.();
+}
+
+/* ==========================================
+   🧠 VALIDATION (AO-02)
+========================================== */
+
+function validateVacationInput() {
+    const emp = getEl("employeeSelect")?.value;
+    const start = getEl("startDate")?.value;
+    const end = getEl("endDate")?.value;
+    const warning = getEl("warning");
+
+    if (!emp || !start || !end) return;
+
+    if (!canAddVacation?.(emp, start, end)) {
+        if (warning) warning.textContent = "⚠️ För många semesterdagar!";
+    } else {
+        if (warning) warning.textContent = "";
+    }
+}
+
+/* ==========================================
    🧠 GLOBAL SUCCESS
 ========================================== */
 
@@ -148,7 +199,7 @@ window.tryAddEmployee = function () {
     setValue("employeeVacationDays", "");
 
     renderEmployeeList?.();
-    window.refreshEmployeeSelect?.(); // 🔥 FIX
+    window.refreshEmployeeSelect?.();
 
     closeModal?.("employeeModal");
 };
@@ -242,7 +293,6 @@ window.trySubmitVacation = function () {
 
     addVacation();
 
-    // 🔥 AO-001 AUTOPATCH
     if (typeof refreshCalendar === "function") {
         refreshCalendar();
     }
@@ -278,7 +328,7 @@ window.openModal = function (id) {
 
     if (id === "vacationModal") {
         setValue("employeeSearch", "");
-        window.refreshEmployeeSelect?.(""); // 🔥 FIX
+        window.refreshEmployeeSelect?.("");
         updateVacationBalanceUI?.();
     }
 };
@@ -322,7 +372,28 @@ function updateVacationBalanceUI() {
 document.addEventListener("DOMContentLoaded", () => {
 
     getEl("employeeSearch")?.addEventListener("input", e => {
-        window.refreshEmployeeSelect?.(e.target.value); // 🔥 FIX
+        window.refreshEmployeeSelect?.(e.target.value);
+    });
+
+    getEl("employeeSelect")?.addEventListener("change", autoSaveVacation);
+    getEl("startDate")?.addEventListener("change", autoSaveVacation);
+    getEl("endDate")?.addEventListener("change", autoSaveVacation);
+
+    getEl("startDate")?.addEventListener("change", validateVacationInput);
+    getEl("endDate")?.addEventListener("change", validateVacationInput);
+
+    // 🔥 smart slutdatum
+    getEl("startDate")?.addEventListener("change", () => {
+        const start = getEl("startDate")?.value;
+        const endEl = getEl("endDate");
+
+        if (!start || !endEl) return;
+
+        if (!endEl.value) {
+            const d = new Date(start);
+            d.setDate(d.getDate() + 5);
+            endEl.value = d.toISOString().split("T")[0];
+        }
     });
 
     getEl("employeeSelect")?.addEventListener("change", () => {
