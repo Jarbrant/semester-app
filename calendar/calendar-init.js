@@ -23,7 +23,7 @@ function getEventSource() {
 }
 
 /* ==========================================
-   🧠 EDIT LOADER (🔥 AO-03 CORE)
+   🧠 EDIT LOADER (🔥 AO-03 FINAL FIX)
 ========================================== */
 
 function loadVacationIntoForm(vacationId) {
@@ -31,10 +31,16 @@ function loadVacationIntoForm(vacationId) {
     const vacations = getVacations?.() || [];
     const vac = vacations.find(v => v.id == vacationId);
 
-    if (!vac) return;
+    if (!vac) {
+        console.warn("⚠️ Kunde inte hitta semester:", vacationId);
+        return;
+    }
 
-    // 🔥 sätt edit mode
+    // 🔥 säkerställ state
+    window.AppState = window.AppState || {};
     window.AppState.editingVacationId = vac.id;
+
+    console.log("✏️ Edit mode:", vac.id);
 
     // 🔥 fyll UI
     const empEl = document.getElementById("employeeSelect");
@@ -151,11 +157,13 @@ window.initCalendar = function () {
             ========================================== */
 
             dateClick(info) {
+
+                // 🔥 säkerställ state
+                window.AppState = window.AppState || {};
+                window.AppState.editingVacationId = null;
+
                 const startInput = document.getElementById("startDate");
                 const endInput = document.getElementById("endDate");
-
-                // 🔥 reset edit mode (NY SKAPNING)
-                window.AppState.editingVacationId = null;
 
                 if (startInput && endInput) {
                     startInput.value = info.dateStr;
@@ -170,14 +178,17 @@ window.initCalendar = function () {
             },
 
             eventClick(info) {
-                if (!info?.event?.id) return;
 
-                const originalId = info.event.id.split("_")[0];
+                const vacId = info.event.extendedProps?.vacationId;
 
-                // 🔥 LOAD EDIT MODE
-                loadVacationIntoForm(originalId);
+                if (!vacId) {
+                    console.warn("⚠️ saknar vacationId");
+                    return;
+                }
 
-                // 🔥 öppna samma modal (inte editModal)
+                // 🔥 edit flow
+                loadVacationIntoForm(vacId);
+
                 openModal?.("vacationModal");
             },
 
