@@ -1,17 +1,16 @@
 /* ==========================================
-   🚀 APP INIT (🔥 PATCHAD PRO VERSION)
+   🚀 APP INIT (🔥 HARDENED PRO VERSION)
 ========================================== */
 
 window.addEventListener("DOMContentLoaded", () => {
 
+    console.log("🧠 Init start...");
+
+    /* ==========================================
+       🔐 USER
+    ========================================== */
+
     try {
-
-        console.log("🧠 Init start...");
-
-        /* ==========================================
-           🔐 USER
-        ========================================== */
-
         let user = null;
 
         if (typeof getCurrentUser === "function") {
@@ -24,38 +23,55 @@ window.addEventListener("DOMContentLoaded", () => {
         }
 
         console.log("✅ User:", user);
+    } catch (err) {
+        console.error("❌ User init error:", err);
+    }
 
-        /* ==========================================
-           📦 LOAD STATE
-        ========================================== */
+    /* ==========================================
+       📦 LOAD STATE
+    ========================================== */
 
+    try {
         if (window.AppState?.load) {
             AppState.load();
             console.log("📦 State loaded");
         }
+    } catch (err) {
+        console.error("❌ State load error:", err);
+    }
 
-        /* ==========================================
-           🔄 UI INIT
-        ========================================== */
+    /* ==========================================
+       🔄 UI INIT
+    ========================================== */
 
+    try {
         window.renderEmployeeList?.();
         window.refreshEmployeeSelect?.();
         window.refreshGroupSelect?.();
+    } catch (err) {
+        console.error("❌ UI init error:", err);
+    }
 
-        /* ==========================================
-           📅 CALENDAR
-        ========================================== */
+    /* ==========================================
+       📅 CALENDAR
+    ========================================== */
 
+    try {
         if (typeof initCalendar === "function") {
             initCalendar();
             console.log("📅 Calendar init OK");
         } else {
             console.error("❌ initCalendar saknas");
         }
+    } catch (err) {
+        console.error("❌ Calendar init crash:", err);
+    }
 
-        /* ==========================================
-           🔘 BUTTONS (🔥 FIX ALLA)
-        ========================================== */
+    /* ==========================================
+       🔘 BUTTONS
+    ========================================== */
+
+    try {
 
         // 👤 Spara personal
         const saveEmployeeBtn = document.getElementById("saveEmployeeBtn");
@@ -77,10 +93,15 @@ window.addEventListener("DOMContentLoaded", () => {
             console.warn("⚠️ saveVacationBtn hittades inte");
         }
 
-        /* ==========================================
-           ↩️ AO-03 UNDO SYSTEM
-        ========================================== */
+    } catch (err) {
+        console.error("❌ Button binding error:", err);
+    }
 
+    /* ==========================================
+       ↩️ AO-03 UNDO SYSTEM (FIXAD)
+    ========================================== */
+
+    try {
         const undoBtn = document.getElementById("undoBtn");
 
         if (undoBtn) {
@@ -88,31 +109,32 @@ window.addEventListener("DOMContentLoaded", () => {
 
                 console.log("↩️ Klick: Undo");
 
-                // 🔥 kör undo
+                // 🔥 undo
                 window.HistoryManager?.undo();
 
-                // 🔥 reset autosave state (kritisk koppling till ui.js)
-                if (typeof window.lastAutoSave !== "undefined") {
-                    window.lastAutoSave = null;
+                // 🔥 korrekt reset via UI (inte window)
+                if (typeof window.handleUndo === "function") {
+                    window.handleUndo(); // använder ui.js logik
                 }
 
-                // 🔥 extra safety refresh (om något missas)
-                window.refreshCalendar?.();
             });
         } else {
             console.warn("⚠️ undoBtn hittades inte");
         }
 
-        /* ==========================================
-           🔍 EXTRA DEBUG (KAN TAS BORT SEN)
-        ========================================== */
-
-        console.log("👤 Employees:", localStorage.getItem("employees"));
-
-        console.log("🚀 App fully initialized");
-
     } catch (err) {
-        console.error("💥 App crash:", err);
+        console.error("❌ Undo binding error:", err);
+    }
+
+    /* ==========================================
+       🔍 DEBUG
+    ========================================== */
+
+    try {
+        console.log("👤 Employees:", localStorage.getItem("employees"));
+        console.log("🚀 App fully initialized");
+    } catch (err) {
+        console.error("❌ Debug log error:", err);
     }
 
 });
