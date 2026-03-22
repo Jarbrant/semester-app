@@ -12,10 +12,11 @@ function setValue(id, value) {
 }
 
 /* ==========================================
-   🪟 MODAL SYSTEM (🔥 SAKNADES)
+   🪟 MODAL SYSTEM (🔥 FIXAD + DATA INIT)
 ========================================== */
 
 window.openModal = function (id) {
+
     const modal = getEl(id);
     const overlay = getEl("modalOverlay");
 
@@ -28,6 +29,18 @@ window.openModal = function (id) {
 
     modal.classList.add("active");
     overlay.style.display = "block";
+
+    // 🔥 KRITISK DATA INIT (FIX)
+    if (id === "employeeModal") {
+        window.refreshGroupSelect?.();
+        window.renderEmployeeList?.();
+    }
+
+    if (id === "vacationModal") {
+        setValue("employeeSearch", "");
+        window.refreshEmployeeSelect?.("");
+        updateVacationBalanceUI?.();
+    }
 };
 
 window.closeModal = function (id) {
@@ -118,7 +131,75 @@ function handleUndo() {
 }
 
 /* ==========================================
-   📅 EMPLOYEE LIST (🔥 FIXAD)
+   🔽 GROUP SELECT
+========================================== */
+
+window.refreshGroupSelect = function () {
+    const select = getEl("employeeGroupSelect");
+    if (!select) return;
+
+    const groups = getGroups?.() || [];
+
+    select.innerHTML = "";
+
+    const defaultOpt = document.createElement("option");
+    defaultOpt.value = "";
+    defaultOpt.textContent = "Ingen grupp";
+    select.appendChild(defaultOpt);
+
+    groups.forEach(g => {
+        const opt = document.createElement("option");
+        opt.value = g.id;
+        opt.textContent = `${g.name} (max ${g.maxConcurrent})`;
+        select.appendChild(opt);
+    });
+};
+
+/* ==========================================
+   📅 EMPLOYEE SELECT
+========================================== */
+
+window.refreshEmployeeSelect = function (filter = "") {
+    const select = getEl("employeeSelect");
+    if (!select) return;
+
+    const employees = getEmployees?.() || [];
+
+    const filtered = employees.filter(e =>
+        e.name?.toLowerCase().includes(filter.toLowerCase())
+    );
+
+    select.innerHTML = "";
+
+    if (!filtered.length) {
+        const opt = document.createElement("option");
+        opt.textContent = "Ingen personal";
+        opt.value = "";
+        select.appendChild(opt);
+        return;
+    }
+
+    filtered.forEach(emp => {
+        const opt = document.createElement("option");
+        opt.value = emp.id;
+        opt.textContent = emp.name;
+        select.appendChild(opt);
+    });
+
+    select.selectedIndex = 0;
+};
+
+/* ==========================================
+   📊 YEAR
+========================================== */
+
+window.getSelectedYear = function () {
+    const el = getEl("yearFilter");
+    return el ? parseInt(el.value) : new Date().getFullYear();
+};
+
+/* ==========================================
+   🔄 EMPLOYEE LIST (🔥 FULL FIX)
 ========================================== */
 
 window.renderEmployeeList = function () {
@@ -152,7 +233,6 @@ window.renderEmployeeList = function () {
             background:#f9fafb;
         `;
 
-        // 🔥 FULL FIX
         li.innerHTML = `
             <div style="display:flex; justify-content:space-between;">
                 <div>
