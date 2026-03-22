@@ -1,102 +1,74 @@
 /* ==========================================
-   🧩 GROUP UI (PRO MAX++)
-========================================== */
-
-/* ==========================================
-   🧠 HELPERS
-========================================== */
-
-function setWarning(el, msg = "") {
-    if (el) el.textContent = msg;
-}
-
-function resetInput(id) {
-    const el = document.getElementById(id);
-    if (el) el.value = "";
-}
-
-/* ==========================================
-   ➕ ADD GROUP (UPGRADED UX)
+   🧩 GROUP UI
 ========================================== */
 
 window.tryAddGroup = function () {
-    const nameEl = document.getElementById("groupName");
-    const colorEl = document.getElementById("groupColor");
-    const limitEl = document.getElementById("groupLimit");
+    const name = document.getElementById("groupName")?.value?.trim();
+    const color = document.getElementById("groupColor")?.value;
+    const limit = parseInt(document.getElementById("groupLimit")?.value) || 1;
     const warning = document.getElementById("groupWarning");
 
-    const name = nameEl?.value?.trim();
-    const color = colorEl?.value;
-    const limit = parseInt(limitEl?.value) || 1;
-
     if (!name) {
-        setWarning(warning, "Ange gruppnamn");
-        nameEl?.focus();
+        if (warning) warning.textContent = "Ange gruppnamn";
         return;
     }
 
     addGroup?.(name, color, limit);
 
-    setWarning(warning);
+    if (warning) warning.textContent = "";
 
-    resetInput("groupName");
-    resetInput("groupLimit");
+    document.getElementById("groupName").value = "";
+    document.getElementById("groupLimit").value = "";
 
     closeModal("groupModal");
 };
 
 /* ==========================================
-   🔽 GROUP SELECT (STABIL + SORT)
+   🔽 GROUP SELECT
 ========================================== */
 
 window.refreshGroupSelect = function () {
     const select = document.getElementById("employeeGroupSelect");
     if (!select) return;
 
-    const groups = (getGroups?.() || []).sort((a, b) =>
-        a.name.localeCompare(b.name)
-    );
+    const groups = getGroups?.() || [];
 
     select.innerHTML = "";
 
-    const defaultOpt = new Option("Ingen grupp", "");
+    const defaultOpt = document.createElement("option");
+    defaultOpt.value = "";
+    defaultOpt.textContent = "Ingen grupp";
     select.appendChild(defaultOpt);
 
     groups.forEach(g => {
-        const opt = new Option(
-            `${g.name} (max ${g.maxConcurrent})`,
-            g.id
-        );
+        const opt = document.createElement("option");
+        opt.value = g.id;
+        opt.textContent = `${g.name} (max ${g.maxConcurrent})`;
         select.appendChild(opt);
     });
 };
 
 /* ==========================================
-   👤 ADD EMPLOYEE (SMART)
+   👤 EMPLOYEE ADD
 ========================================== */
 
 window.tryAddEmployee = function () {
-    const nameEl = document.getElementById("employeeName");
-    const groupEl = document.getElementById("employeeGroupSelect");
-    const daysEl = document.getElementById("employeeVacationDays");
+    const name = document.getElementById("employeeName")?.value?.trim();
+    const groupId = document.getElementById("employeeGroupSelect")?.value;
+    const vacationDays = document.getElementById("employeeVacationDays")?.value;
     const warning = document.getElementById("employeeWarning");
 
-    const name = nameEl?.value?.trim();
-    const groupId = groupEl?.value;
-    const vacationDays = parseInt(daysEl?.value) || 25;
-
     if (!name) {
-        setWarning(warning, "Du måste ange ett namn!");
-        nameEl?.focus();
+        if (warning) warning.textContent = "Du måste ange ett namn!";
         return;
     }
 
-    addEmployee?.(name, groupId || null, vacationDays);
+    addEmployee?.(name, groupId || null, vacationDays || 25);
 
-    setWarning(warning);
+    if (warning) warning.textContent = "";
 
-    resetInput("employeeName");
-    resetInput("employeeVacationDays");
+    document.getElementById("employeeName").value = "";
+    document.getElementById("employeeVacationDays").value = "";
 
     renderEmployeeList();
     refreshEmployeeSelect();
@@ -114,7 +86,7 @@ window.getSelectedYear = function () {
 };
 
 /* ==========================================
-   🔄 EMPLOYEE LIST (OPTIMIZED)
+   🔄 EMPLOYEE LIST
 ========================================== */
 
 window.renderEmployeeList = function () {
@@ -140,24 +112,37 @@ window.renderEmployeeList = function () {
 
         const li = document.createElement("li");
 
-        li.className = "employee-item";
+        li.style.cursor = "pointer";
+        li.style.padding = "10px";
+        li.style.borderRadius = "10px";
+        li.style.marginBottom = "8px";
+        li.style.background = "#f9fafb";
 
         li.innerHTML = `
-            <div class="emp-row">
+            <div style="display:flex; justify-content:space-between;">
                 <div>
                     <strong>${emp.name}</strong>
-                    ${group ? `<small> (${group.name})</small>` : ""}
+                    ${group ? `<small style="color:#6b7280"> (${group.name})</small>` : ""}
                 </div>
 
-                <div class="emp-days">
+                <div style="font-size:12px; color:#6b7280;">
                     ${used} / ${total}
                 </div>
             </div>
 
-            <div class="emp-bar">
-                <div class="emp-bar-fill"
-                     style="width:${percent}%; background:${color}">
-                </div>
+            <div style="
+                margin-top:6px;
+                height:6px;
+                background:#e5e7eb;
+                border-radius:999px;
+                overflow:hidden;
+            ">
+                <div style="
+                    width:${percent}%;
+                    height:100%;
+                    background:${color};
+                    transition:0.3s;
+                "></div>
             </div>
         `;
 
@@ -168,7 +153,7 @@ window.renderEmployeeList = function () {
 };
 
 /* ==========================================
-   ✏️ EDIT EMPLOYEE (SMART UI)
+   ✏️ EDIT EMPLOYEE
 ========================================== */
 
 window.openEditEmployee = function (id) {
@@ -183,10 +168,9 @@ window.openEditEmployee = function (id) {
     document.getElementById("editEmployeeVacationDays").value = emp.vacationDays || 25;
 
     const box = document.getElementById("employeeBalanceBox");
-
     if (box && balance) {
         box.innerHTML = `
-            📊 ${balance.used} / ${balance.total}
+            📊 ${balance.used} använda / ${balance.total} totalt  
             <br>💡 Kvar: ${balance.remaining}
         `;
     }
@@ -225,7 +209,7 @@ window.deleteEmployee = function () {
 };
 
 /* ==========================================
-   📅 EMPLOYEE SELECT
+   📅 EMPLOYEE SELECT + SEARCH
 ========================================== */
 
 window.refreshEmployeeSelect = function (filter = "") {
@@ -241,21 +225,26 @@ window.refreshEmployeeSelect = function (filter = "") {
     select.innerHTML = "";
 
     if (!filtered.length) {
-        select.appendChild(new Option("Ingen match", ""));
+        const opt = document.createElement("option");
+        opt.textContent = "Ingen match";
+        opt.value = "";
+        select.appendChild(opt);
         return;
     }
 
     filtered.forEach(emp => {
-        select.appendChild(new Option(emp.name, emp.id));
+        const opt = document.createElement("option");
+        opt.value = emp.id;
+        opt.textContent = emp.name;
+        select.appendChild(opt);
     });
 
     select.selectedIndex = 0;
-
     updateVacationBalanceUI();
 };
 
 /* ==========================================
-   📊 LIVE BALANS
+   📊 BALANS
 ========================================== */
 
 function updateVacationBalanceUI() {
@@ -270,13 +259,13 @@ function updateVacationBalanceUI() {
     if (!balance) return;
 
     box.innerHTML = `
-        📊 ${balance.used} / ${balance.total}
+        📊 ${balance.used} / ${balance.total} dagar  
         <br>💡 Kvar: ${balance.remaining}
     `;
 }
 
 /* ==========================================
-   📅 VACATION (VALIDATION BOOST)
+   📅 VACATION
 ========================================== */
 
 window.trySubmitVacation = function () {
@@ -286,29 +275,23 @@ window.trySubmitVacation = function () {
     const warning = document.getElementById("warning");
 
     if (!emp || !start || !end) {
-        setWarning(warning, "Fyll i alla fält!");
-        return;
-    }
-
-    if (end < start) {
-        setWarning(warning, "Slutdatum kan inte vara före startdatum");
+        if (warning) warning.textContent = "Fyll i alla fält!";
         return;
     }
 
     if (!canAddVacation?.(emp, start, end)) {
-        setWarning(warning, "⚠️ För många semesterdagar!");
+        if (warning) warning.textContent = "⚠️ För många semesterdagar!";
         return;
     }
 
-    setWarning(warning);
+    if (warning) warning.textContent = "";
 
     addVacation?.();
-
     closeModal("vacationModal");
 };
 
 /* ==========================================
-   🪟 MODAL SYSTEM (SMART)
+   🪟 MODAL
 ========================================== */
 
 window.openModal = function (id) {
@@ -328,12 +311,11 @@ window.openModal = function (id) {
     }
 
     if (id === "vacationModal") {
-        resetInput("employeeSearch");
+        const search = document.getElementById("employeeSearch");
+        if (search) search.value = "";
+
         refreshEmployeeSelect("");
         updateVacationBalanceUI();
-
-        // 🔥 UX FIX (det du bad om tidigare)
-        document.getElementById("startDate")?.focus();
     }
 };
 
@@ -348,7 +330,7 @@ window.closeModal = function (id) {
 };
 
 /* ==========================================
-   🔍 SEARCH + UX EVENTS
+   🔍 EVENTS + FIX DATUM
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -361,7 +343,16 @@ document.addEventListener("DOMContentLoaded", () => {
         updateVacationBalanceUI();
     });
 
-    document.getElementById("modalOverlay")?.addEventListener("click", closeModal);
+    // ✅ FIX: kalender öppnas korrekt på rätt fält
+    document.getElementById("startDate")?.addEventListener("click", function () {
+        this.showPicker?.();
+    });
+
+    document.getElementById("endDate")?.addEventListener("click", function () {
+        this.showPicker?.();
+    });
+
+    document.getElementById("modalOverlay")?.addEventListener("click", () => closeModal());
 
     document.addEventListener("keydown", e => {
         if (e.key === "Escape") closeModal();
