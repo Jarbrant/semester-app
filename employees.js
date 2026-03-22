@@ -1,8 +1,16 @@
 /* ==========================================
-   👤 EMPLOYEES (FINAL PRO MAX + YEAR SYSTEM)
+   👤 EMPLOYEES (STATE DRIVEN PRO MAX)
 ========================================== */
 
 const EMP_KEY = "employees";
+
+/* ==========================================
+   🧠 STATE LAYER (🔥 NYTT)
+========================================== */
+
+window.AppState = window.AppState || {
+    employees: null
+};
 
 /* ==========================================
    🛠 UTIL
@@ -18,15 +26,19 @@ function safeDate(date) {
     return isNaN(d) ? null : d;
 }
 
-function sameDay(a, b) {
-    return a.toISOString().split("T")[0] === b.toISOString().split("T")[0];
+function iterateDays(start, end, callback) {
+    const current = new Date(start);
+    while (current <= end) {
+        callback(new Date(current));
+        current.setDate(current.getDate() + 1);
+    }
 }
 
 /* ==========================================
-   📦 GET / SAVE (ROBUST + MIGRATION SAFE)
+   📦 LOAD / SAVE (STATE FIRST 🔥)
 ========================================== */
 
-window.getEmployees = function () {
+function loadEmployees() {
     try {
         const raw = localStorage.getItem(EMP_KEY);
         if (!raw) return [];
@@ -37,21 +49,37 @@ window.getEmployees = function () {
             id: emp.id,
             name: emp.name || "Okänd",
             group_id: emp.group_id ?? null,
-            vacationDays: toInt(emp.vacationDays, 25)
+            vacationDays: Math.max(1, toInt(emp.vacationDays, 25))
         }));
 
     } catch (err) {
-        console.error("❌ getEmployees error:", err);
+        console.error("❌ loadEmployees error:", err);
         return [];
     }
+}
+
+function persistEmployees() {
+    try {
+        localStorage.setItem(EMP_KEY, JSON.stringify(AppState.employees));
+    } catch (err) {
+        console.error("❌ persistEmployees error:", err);
+    }
+}
+
+/* ==========================================
+   📦 PUBLIC API (CACHE 🔥)
+========================================== */
+
+window.getEmployees = function () {
+    if (!AppState.employees) {
+        AppState.employees = loadEmployees();
+    }
+    return AppState.employees;
 };
 
 window.saveEmployees = function (emps) {
-    try {
-        localStorage.setItem(EMP_KEY, JSON.stringify(emps));
-    } catch (err) {
-        console.error("❌ saveEmployees error:", err);
-    }
+    AppState.employees = emps;
+    persistEmployees();
 };
 
 /* ==========================================
@@ -67,18 +95,17 @@ window.addEmployee = function (name, groupId = null, vacationDays = 25) {
         id: Date.now(),
         name: name.trim(),
         group_id: groupId || null,
-        vacationDays: Math.max(1, toInt(vacationDays, 25)) // 🔥 min 1 dag
+        vacationDays: Math.max(1, toInt(vacationDays, 25))
     };
 
     employees.push(newEmp);
-    saveEmployees(employees);
+    persistEmployees();
 
     console.log("✅ Employee created:", newEmp);
 };
 
 window.updateEmployee = function (id, name, groupId, vacationDays) {
-    const employees = getEmployees();
-    const emp = employees.find(e => e.id == id);
+    const emp = getEmployees().find(e => e.id == id);
     if (!emp) return;
 
     if (name) emp.name = name.trim();
@@ -88,33 +115,20 @@ window.updateEmployee = function (id, name, groupId, vacationDays) {
         emp.vacationDays = Math.max(1, toInt(vacationDays, 25));
     }
 
-    saveEmployees(employees);
+    persistEmployees();
 
     console.log("✏️ Employee updated:", emp);
 };
 
 window.deleteEmployeeById = function (id) {
-    const employees = getEmployees().filter(e => e.id != id);
-    saveEmployees(employees);
+    AppState.employees = getEmployees().filter(e => e.id != id);
+    persistEmployees();
 
     console.log("🗑 Employee deleted:", id);
 };
 
 /* ==========================================
-   📊 CORE: ITERATE DAYS (REUSABLE 🔥)
-========================================== */
-
-function iterateDays(start, end, callback) {
-    const current = new Date(start);
-
-    while (current <= end) {
-        callback(new Date(current));
-        current.setDate(current.getDate() + 1);
-    }
-}
-
-/* ==========================================
-   📊 VACATION DAYS (PER YEAR + SAFE)
+   📊 VACATION DAYS (PER YEAR)
 ========================================== */
 
 window.getUsedVacationDays = function (employeeId, year = null, options = {}) {
@@ -128,7 +142,6 @@ window.getUsedVacationDays = function (employeeId, year = null, options = {}) {
 
         const start = safeDate(v.start);
         const end = safeDate(v.end);
-
         if (!start || !end) return;
 
         iterateDays(start, end, (day) => {
@@ -147,7 +160,7 @@ window.getUsedVacationDays = function (employeeId, year = null, options = {}) {
 };
 
 /* ==========================================
-   🚨 VALIDATION (SMART + CROSS-YEAR SAFE)
+   🚨 VALIDATION (CROSS-YEAR SAFE)
 ========================================== */
 
 window.canAddVacation = function (employeeId, start, end) {
@@ -157,15 +170,14 @@ window.canAddVacation = function (employeeId, start, end) {
     const startDate = safeDate(start);
     const endDate = safeDate(end);
 
-    if (!startDate || !endDate) return false;
-    if (endDate < startDate) return false;
+    if (!startDate || !endDate || endDate < startDate) return false;
 
     const vacations = getVacations?.() || [];
 
-    // 🔥 Räkna dagar per år separat
     const yearlyUsage = {};
+    const newUsage = {};
 
-    // befintliga dagar
+    // existing
     vacations.forEach(v => {
         if (v.employee_id != employeeId) return;
 
@@ -179,15 +191,12 @@ window.canAddVacation = function (employeeId, start, end) {
         });
     });
 
-    // nya dagar
-    const newUsage = {};
-
+    // new
     iterateDays(startDate, endDate, (d) => {
         const y = d.getFullYear();
         newUsage[y] = (newUsage[y] || 0) + 1;
     });
 
-    // 🔥 validera per år
     for (const y in newUsage) {
         const used = yearlyUsage[y] || 0;
         const incoming = newUsage[y];
@@ -201,7 +210,7 @@ window.canAddVacation = function (employeeId, start, end) {
 };
 
 /* ==========================================
-   📊 BALANCE (PER YEAR + SAFE)
+   📊 BALANCE
 ========================================== */
 
 window.getVacationBalance = function (employeeId, year = null) {
