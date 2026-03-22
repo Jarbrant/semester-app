@@ -12,6 +12,27 @@ function setValue(id, value) {
 }
 
 /* ==========================================
+   📊 BALANS UI (🔥 KRITISK FIX)
+========================================== */
+
+function updateVacationBalanceUI() {
+    const empId = getEl("employeeSelect")?.value;
+    const box = getEl("vacationBalanceInfo");
+
+    if (!empId || !box) return;
+
+    const year = getSelectedYear?.();
+    const balance = getVacationBalance?.(empId, year);
+
+    if (!balance) return;
+
+    box.innerHTML = `
+        📊 ${balance.used} / ${balance.total} dagar  
+        <br>💡 Kvar: ${balance.remaining}
+    `;
+}
+
+/* ==========================================
    🪟 MODAL SYSTEM (🔥 EDIT-AWARE)
 ========================================== */
 
@@ -57,8 +78,10 @@ window.closeModal = function (id) {
     const overlay = getEl("modalOverlay");
     if (overlay) overlay.style.display = "none";
 
-    // 🔥 reset edit mode vid stängning
-    window.AppState.editingVacationId = null;
+    // 🔥 reset edit mode
+    if (window.AppState) {
+        window.AppState.editingVacationId = null;
+    }
 };
 
 /* ==========================================
@@ -73,7 +96,6 @@ let lastAutoSave = null;
 
 function autoSaveVacation() {
 
-    // 🔥 blockera autosave vid edit
     if (window.AppState?.editingVacationId) return;
 
     const emp = getEl("employeeSelect")?.value;
@@ -270,7 +292,6 @@ window.renderEmployeeList = function () {
 
 window.trySubmitVacation = function () {
 
-    // 🔥 edit hanteras i addVacation
     addVacation?.();
 
     showSuccess("Semestern sparad", "warning");
