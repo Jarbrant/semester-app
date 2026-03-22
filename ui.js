@@ -49,26 +49,41 @@ window.refreshGroupSelect = function () {
 };
 
 /* ==========================================
-   👤 EMPLOYEE ADD
+   👤 EMPLOYEE ADD (🔥 PATCHAD)
 ========================================== */
 
 window.tryAddEmployee = function () {
-    const name = document.getElementById("employeeName")?.value?.trim();
-    const groupId = document.getElementById("employeeGroupSelect")?.value;
-    const vacationDays = document.getElementById("employeeVacationDays")?.value;
+    const nameInput = document.getElementById("employeeName");
+    const groupSelect = document.getElementById("employeeGroupSelect");
+    const daysInput = document.getElementById("employeeVacationDays");
     const warning = document.getElementById("employeeWarning");
+
+    const name = nameInput?.value?.trim();
+    const groupId = groupSelect?.value;
+    const vacationDays = daysInput?.value || 25;
 
     if (!name) {
         if (warning) warning.textContent = "Du måste ange ett namn!";
         return;
     }
 
-    addEmployee?.(name, groupId || null, vacationDays || 25);
+    addEmployee?.(name, groupId || null, vacationDays);
 
     if (warning) warning.textContent = "";
 
-    document.getElementById("employeeName").value = "";
-    document.getElementById("employeeVacationDays").value = "";
+    // ✅ KVITTO (NYTT)
+    if (warning) {
+        warning.style.color = "#16a34a";
+        warning.textContent = `✅ ${name} sparad (${vacationDays} dagar)`;
+
+        setTimeout(() => {
+            warning.textContent = "";
+            warning.style.color = "";
+        }, 2000);
+    }
+
+    nameInput.value = "";
+    daysInput.value = "";
 
     renderEmployeeList();
     refreshEmployeeSelect();
@@ -343,7 +358,6 @@ document.addEventListener("DOMContentLoaded", () => {
         updateVacationBalanceUI();
     });
 
-    // ✅ FIX: kalender öppnas korrekt på rätt fält
     document.getElementById("startDate")?.addEventListener("click", function () {
         this.showPicker?.();
     });
