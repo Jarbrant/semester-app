@@ -75,9 +75,8 @@
 
         <button class="primary-btn" id="saveEmployeeBtn">Spara</button>
 
-        <!-- 🔍 NY: SÖK -->
+        <!-- 🔍 SÖK -->
         <input type="text" id="employeeListSearch" placeholder="Sök personal..." autocomplete="off">
-
         <ul id="employeeList" class="list"></ul>
     </div>
 </div>
@@ -157,11 +156,11 @@
         <input type="number" id="groupMax" placeholder="Max samtidiga">
 
         <div id="groupColorPicker">
-            <div class="color-dot" data-color="#3b82f6" style="background:#3b82f6"></div>
-            <div class="color-dot" data-color="#ef4444" style="background:#ef4444"></div>
-            <div class="color-dot" data-color="#22c55e" style="background:#22c55e"></div>
-            <div class="color-dot" data-color="#f59e0b" style="background:#f59e0b"></div>
-            <div class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6"></div>
+            <div class="color-dot" data-color="#3b82f6"></div>
+            <div class="color-dot" data-color="#ef4444"></div>
+            <div class="color-dot" data-color="#22c55e"></div>
+            <div class="color-dot" data-color="#f59e0b"></div>
+            <div class="color-dot" data-color="#8b5cf6"></div>
         </div>
 
         <div id="groupPreview">Förhandsvisning</div>
@@ -192,49 +191,43 @@
 
 <script src="app.js" defer></script>
 
-<!-- 🧠 INIT -->
+<!-- 🧠 MINIMAL SAFE INIT -->
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    try {
-        window.AppState?.load();
+if (!window.__UI_INIT_DONE__) {
+    window.__UI_INIT_DONE__ = true;
 
-        const user = localStorage.getItem("currentUser");
-        if (window.UI?.text) {
-            UI.text("currentUserName", user || "Användare");
-        }
+    document.addEventListener("DOMContentLoaded", () => {
+        try {
 
-        UI.get("btnAddVacation")?.addEventListener("click", () => openModal("vacationModal"));
-        UI.get("btnLogout")?.addEventListener("click", logout);
+            const user = localStorage.getItem("currentUser");
+            if (window.UI?.text) {
+                UI.text("currentUserName", user || "Användare");
+            }
 
-        document.querySelectorAll("[data-action]").forEach(el => {
-            el.addEventListener("click", () => {
-                const map = {
-                    employee: "employeeModal",
-                    vacation: "vacationModal",
-                    filter: "filterModal",
-                    group: "groupModal"
-                };
-                openModal(map[el.dataset.action]);
+            UI.get("btnAddVacation")?.addEventListener("click", () => openModal("vacationModal"));
+            UI.get("btnLogout")?.addEventListener("click", logout);
+
+            document.querySelectorAll("[data-action]").forEach(el => {
+                el.addEventListener("click", () => {
+                    const map = {
+                        employee: "employeeModal",
+                        vacation: "vacationModal",
+                        filter: "filterModal",
+                        group: "groupModal"
+                    };
+                    openModal(map[el.dataset.action]);
+                });
             });
-        });
 
-        document.querySelectorAll("[data-close]").forEach(btn => {
-            btn.addEventListener("click", () => closeModal(btn.dataset.close));
-        });
+            document.querySelectorAll("[data-close]").forEach(btn => {
+                btn.addEventListener("click", () => closeModal(btn.dataset.close));
+            });
 
-        // 🔍 SÖK PERSONAL
-        document.getElementById("employeeListSearch")?.addEventListener("input", () => {
-            window.renderEmployeeList?.();
-        });
-
-        requestAnimationFrame(() => {
-            initCalendar?.();
-        });
-
-    } catch (err) {
-        console.error("Init error:", err);
-    }
-});
+        } catch (err) {
+            console.error("Init error:", err);
+        }
+    });
+}
 </script>
 
 </body>
