@@ -188,7 +188,47 @@ window.tryAddEmployee = function () {
 
     closeModal?.("employeeModal");
 };
+/* ==========================================
+   🔍 FILTER EMPLOYEE LIST (NY)
+========================================== */
 
+window.filterEmployeeList = function (query = "") {
+
+    const list = getEl("employeeList");
+    if (!list) return;
+
+    const employees = getEmployees?.() || [];
+    const groups = getGroups?.() || [];
+
+    const q = query.trim().toLowerCase();
+
+    list.innerHTML = "";
+
+    // 🔥 visa alla om inget filter
+    const filtered = q.length < 2
+        ? employees
+        : employees.filter(e =>
+            e.name?.toLowerCase().includes(q)
+        );
+
+    filtered.forEach(emp => {
+
+        const group = groups.find(g => g.id == emp.group_id);
+
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+            • <strong>${emp.name}</strong>
+            ${group ? `(${group.name})` : ""}
+        `;
+
+        li.addEventListener("click", () => {
+            openEditEmployee?.(emp.id);
+        });
+
+        list.appendChild(li);
+    });
+};
 /* ==========================================
    🔽 GROUP SELECT
 ========================================== */
