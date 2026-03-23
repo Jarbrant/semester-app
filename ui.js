@@ -232,7 +232,9 @@ window.renderEmployeeList = function () {
 
     const employees = getEmployees?.() || [];
     const groups = getGroups?.() || [];
-    const year = getSelectedYear();
+    const year = (typeof getSelectedYear === "function")
+    ? getSelectedYear()
+    : new Date().getFullYear();
 
     list.innerHTML = "";
 
