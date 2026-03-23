@@ -139,6 +139,31 @@
     </div>
 </div>
 
+<!-- 🔍 FILTER MODAL -->
+<div id="filterModal" class="modal">
+    <div class="modal-content">
+        <button class="close" data-close="filterModal">×</button>
+
+        <h3>Filter</h3>
+
+        <p class="muted-text">Filterfunktion kommer här</p>
+    </div>
+</div>
+
+<!-- 🧩 GROUP MODAL -->
+<div id="groupModal" class="modal">
+    <div class="modal-content">
+        <button class="close" data-close="groupModal">×</button>
+
+        <h3>Skapa grupp</h3>
+
+        <input type="text" id="groupName" placeholder="Gruppnamn">
+        <input type="number" id="groupMax" placeholder="Max samtidiga" min="1">
+
+        <button class="primary-btn" onclick="createGroup?.()">Spara</button>
+    </div>
+</div>
+
 <!-- 📦 SCRIPTS -->
 <script src="data.js" defer></script>
 <script src="auth.js" defer></script>
@@ -157,14 +182,11 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     try {
-        // 🔥 LOAD STATE (NYTT)
         window.AppState?.load();
 
-        // 👤 USER
         const user = localStorage.getItem("currentUser");
         UI?.text("currentUserName", user || "Användare");
 
-        // 🔘 BUTTONS
         UI.get("btnAddVacation")?.addEventListener("click", () => openModal("vacationModal"));
         UI.get("btnLogout")?.addEventListener("click", logout);
 
@@ -177,26 +199,27 @@ document.addEventListener("DOMContentLoaded", () => {
                     filter: "filterModal",
                     group: "groupModal"
                 };
-                openModal(map[el.dataset.action]);
+
+                const modalId = map[el.dataset.action];
+
+                if (!modalId) {
+                    console.warn("❌ Okänd action:", el.dataset.action);
+                    return;
+                }
+
+                openModal(modalId);
             });
         });
 
-        // ❌ CLOSE BUTTONS (🔥 generisk)
+        // ❌ CLOSE BUTTONS
         document.querySelectorAll("[data-close]").forEach(btn => {
             btn.addEventListener("click", () => {
                 closeModal(btn.dataset.close);
             });
         });
 
-        // 📋 LIST CLICK
         UI.get("vacationListTitle")?.addEventListener("click", () => {
             window.openVacationOverview?.();
-        });
-
-        // 🔍 FILTER
-        UI.get("filter")?.addEventListener("change", () => {
-            refreshCalendar?.();
-            closeModal?.("filterModal");
         });
 
         // 🚀 INIT CALENDAR
