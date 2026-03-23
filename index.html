@@ -146,17 +146,44 @@
     </div>
 </div>
 
-<!-- 🧩 GROUP MODAL -->
+<!-- 🧩 GROUP MODAL (PATCHED) -->
 <div id="groupModal" class="modal">
     <div class="modal-content">
         <button class="close" data-close="groupModal">×</button>
 
         <h3>Skapa grupp</h3>
 
+        <!-- 🧩 NAMN -->
         <input type="text" id="groupName" placeholder="Gruppnamn">
+
+        <!-- 👥 MAX -->
         <input type="number" id="groupMax" placeholder="Max samtidiga">
 
-        <button class="primary-btn" onclick="createGroup?.()">Spara</button>
+        <!-- 🎨 FÄRGVAL -->
+        <label style="margin-top:10px;">Färg</label>
+
+        <div id="groupColorPicker" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+            <div class="color-dot" data-color="#3b82f6" style="background:#3b82f6"></div>
+            <div class="color-dot" data-color="#ef4444" style="background:#ef4444"></div>
+            <div class="color-dot" data-color="#22c55e" style="background:#22c55e"></div>
+            <div class="color-dot" data-color="#f59e0b" style="background:#f59e0b"></div>
+            <div class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6"></div>
+        </div>
+
+        <!-- 👀 PREVIEW -->
+        <div id="groupPreview" style="
+            margin-top:10px;
+            padding:8px;
+            border-radius:8px;
+            background:#3b82f6;
+            color:white;
+            text-align:center;
+        ">
+            Förhandsvisning
+        </div>
+
+        <!-- 🔥 FIX: INGEN onclick -->
+        <button class="primary-btn" id="saveGroupBtn">Spara</button>
     </div>
 </div>
 
