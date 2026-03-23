@@ -33,7 +33,7 @@ function updateVacationBalanceUI() {
 }
 
 /* ==========================================
-   🪟 MODAL SYSTEM (SMART SEARCH FIXED)
+   🪟 MODAL SYSTEM (STABLE)
 ========================================== */
 
 window.openModal = function (id) {
@@ -51,46 +51,24 @@ window.openModal = function (id) {
     modal.classList.add("active");
     overlay.style.display = "block";
 
-    /* ==========================================
-       👤 EMPLOYEE MODAL
-    ========================================== */
-
     if (id === "employeeModal") {
         refreshGroupSelect?.();
         renderEmployeeList?.();
     }
-
-    /* ==========================================
-       📅 VACATION MODAL (🔥 FIXAD)
-    ========================================== */
 
     if (id === "vacationModal") {
 
         const searchInput = getEl("employeeSearch");
 
         if (!window.AppState?.editingVacationId) {
-
-            // 🔥 reset input
             setValue("employeeSearch", "");
-
-            // 🔥 tvinga initial state
-            window.refreshEmployeeSelect?.("");
+            refreshEmployeeSelect("");
         }
 
-        // 🔥 säkerställ att input trigger alltid finns
-        if (searchInput && !searchInput.dataset.bound) {
-
-            searchInput.addEventListener("input", (e) => {
-                window.refreshEmployeeSelect?.(e.target.value);
-            });
-
-            searchInput.dataset.bound = "true";
+        // 🔥 alltid bind EN gång globalt istället (fix duplicering)
+        if (searchInput) {
+            searchInput.focus();
         }
-
-        // 🔥 auto focus för bättre UX
-        setTimeout(() => {
-            searchInput?.focus();
-        }, 50);
 
         updateVacationBalanceUI?.();
     }
@@ -207,7 +185,6 @@ window.tryAddEmployee = function () {
     setValue("employeeVacationDays", "");
 
     renderEmployeeList?.();
-    refreshEmployeeSelect?.();
 
     closeModal?.("employeeModal");
 };
@@ -233,16 +210,13 @@ window.refreshGroupSelect = function () {
 };
 
 /* ==========================================
-   📅 EMPLOYEE SELECT (FINAL FIXED)
+   📅 EMPLOYEE SELECT (FIXED CORE BUG)
 ========================================== */
 
 window.refreshEmployeeSelect = function (filter = "") {
 
     const select = document.getElementById("employeeSelect");
-    if (!select) {
-        console.warn("⚠️ employeeSelect saknas i DOM");
-        return;
-    }
+    if (!select) return;
 
     const employees = getEmployees?.() || [];
 
@@ -250,14 +224,8 @@ window.refreshEmployeeSelect = function (filter = "") {
 
     select.innerHTML = "";
 
-    // 🔥 visa inget innan 2 tecken
     if (query.length < 2) {
-
-        const opt = document.createElement("option");
-        opt.value = "";
-        opt.textContent = "Skriv minst 2 bokstäver...";
-        select.appendChild(opt);
-
+        select.innerHTML = `<option>Skriv minst 2 bokstäver...</option>`;
         return;
     }
 
@@ -265,18 +233,11 @@ window.refreshEmployeeSelect = function (filter = "") {
         e.name?.toLowerCase().includes(query)
     );
 
-    // ❌ ingen träff
     if (!filtered.length) {
-
-        const opt = document.createElement("option");
-        opt.value = "";
-        opt.textContent = "Ingen träff";
-        select.appendChild(opt);
-
+        select.innerHTML = `<option>Ingen träff</option>`;
         return;
     }
 
-    // ✅ resultat
     filtered.forEach(emp => {
         const opt = document.createElement("option");
         opt.value = emp.id;
@@ -288,7 +249,7 @@ window.refreshEmployeeSelect = function (filter = "") {
 };
 
 /* ==========================================
-   🔄 EMPLOYEE LIST (🔥 PATCHED)
+   🔄 EMPLOYEE LIST
 ========================================== */
 
 window.renderEmployeeList = function () {
@@ -297,47 +258,20 @@ window.renderEmployeeList = function () {
 
     const employees = getEmployees?.() || [];
     const groups = getGroups?.() || [];
-    const year = (typeof getSelectedYear === "function")
-    ? getSelectedYear()
-    : new Date().getFullYear();
 
     list.innerHTML = "";
 
     employees.forEach(emp => {
 
         const group = groups.find(g => g.id == emp.group_id);
-        const balance = getVacationBalance?.(emp.id, year);
-
-        const used = balance?.used || 0;
-        const total = balance?.total || emp.vacationDays || 25;
-        const percent = balance?.percent || 0;
-
-        const color = getVacationStatusColor?.(percent) || "#22c55e";
 
         const li = document.createElement("li");
 
-        li.className = "employee-item";
-
         li.innerHTML = `
-            <div class="employee-row">
-                <div class="employee-name">
-                    <strong>${emp.name}</strong>
-                    ${group ? `<small> (${group.name})</small>` : ""}
-                </div>
-
-                <div class="employee-meta">
-                    ${used} / ${total}
-                </div>
-            </div>
-
-            <div class="employee-bar">
-                <div class="employee-bar-fill" style="width:${percent}%; background:${color};"></div>
-            </div>
-
-            <div class="employee-edit-icon">✏️</div>
+            <strong>${emp.name}</strong>
+            ${group ? ` (${group.name})` : ""}
         `;
 
-        /* 🔥 STABIL CLICK */
         li.addEventListener("click", () => {
             openEditEmployee?.(emp.id);
         });
@@ -360,14 +294,18 @@ window.trySubmitVacation = function () {
 };
 
 /* ==========================================
-   🔍 EVENTS
+   🔍 EVENTS (🔥 FIXAD ROOT ORSAK)
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    getEl("employeeSearch")?.addEventListener("input", e => {
-        refreshEmployeeSelect?.(e.target.value);
-    });
+    const search = getEl("employeeSearch");
+
+    if (search) {
+        search.addEventListener("input", e => {
+            refreshEmployeeSelect(e.target.value);
+        });
+    }
 
     getEl("employeeSelect")?.addEventListener("change", autoSaveVacation);
     getEl("startDate")?.addEventListener("change", autoSaveVacation);
@@ -376,14 +314,9 @@ document.addEventListener("DOMContentLoaded", () => {
     getEl("startDate")?.addEventListener("change", validateVacationInput);
     getEl("endDate")?.addEventListener("change", validateVacationInput);
 
-    getEl("undoBtn")?.addEventListener("click", () => {
-        window.HistoryManager?.undo();
-    });
-
     getEl("modalOverlay")?.addEventListener("click", () => closeModal());
 
     document.addEventListener("keydown", e => {
         if (e.key === "Escape") closeModal();
     });
-
 });
