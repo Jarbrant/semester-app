@@ -8,7 +8,7 @@ function getEl(id) {
 
 function setValue(id, value) {
     const el = getEl(id);
-    if (el) el.value = value;
+    if (el) el.value = value ?? "";
 }
 
 /* ==========================================
@@ -16,61 +16,66 @@ function setValue(id, value) {
 ========================================== */
 
 function updateVacationBalanceUI() {
-    const empId = getEl("employeeSelect")?.value;
-    const box = getEl("vacationBalanceInfo");
+    try {
+        const empId = getEl("employeeSelect")?.value;
+        const box = getEl("vacationBalanceInfo");
 
-    if (!empId || !box) return;
+        if (!empId || !box) return;
 
-    const year = getSelectedYear?.();
-    const balance = getVacationBalance?.(empId, year);
+        const year = getSelectedYear?.();
+        const balance = getVacationBalance?.(empId, year);
 
-    if (!balance) return;
+        if (!balance) return;
 
-    box.innerHTML = `
-        📊 ${balance.used} / ${balance.total} dagar  
-        <br>💡 Kvar: ${balance.remaining}
-    `;
+        box.innerHTML = `
+            📊 ${balance.used} / ${balance.total} dagar  
+            <br>💡 Kvar: ${balance.remaining}
+        `;
+    } catch (err) {
+        console.error("❌ updateVacationBalanceUI error:", err);
+    }
 }
 
 /* ==========================================
-   🪟 MODAL SYSTEM (STABLE)
+   🪟 MODAL SYSTEM (STABLE++)
 ========================================== */
 
 window.openModal = function (id) {
+    try {
+        const modal = getEl(id);
+        const overlay = getEl("modalOverlay");
 
-    const modal = getEl(id);
-    const overlay = getEl("modalOverlay");
-
-    if (!modal || !overlay) {
-        console.warn("⚠️ Modal saknas:", id);
-        return;
-    }
-
-    document.querySelectorAll(".modal").forEach(m => m.classList.remove("active"));
-
-    modal.classList.add("active");
-    overlay.style.display = "block";
-
-    if (id === "employeeModal") {
-        refreshGroupSelect?.();
-        renderEmployeeList?.();
-    }
-
-    if (id === "vacationModal") {
-
-        const searchInput = getEl("employeeSearch");
-
-        if (!window.AppState?.editingVacationId) {
-            setValue("employeeSearch", "");
-            refreshEmployeeSelect("");
+        if (!modal || !overlay) {
+            console.warn("⚠️ Modal saknas:", id);
+            return;
         }
 
-        // 🔥 alltid bind EN gång globalt istället (fix duplicering)
-        if (searchInput) {
-            searchInput.focus();
+        document.querySelectorAll(".modal").forEach(m => m.classList.remove("active"));
+
+        modal.classList.add("active");
+        overlay.style.display = "block";
+
+        if (id === "employeeModal") {
+            refreshGroupSelect?.();
+            renderEmployeeList?.();
         }
 
-        updateVacationBalanceUI?.();
+        if (id === "vacationModal") {
+
+            const searchInput = getEl("employeeSearch");
+
+            if (!window.AppState?.editingVacationId) {
+                setValue("employeeSearch", "");
+                refreshEmployeeSelect("");
+            }
+
+            searchInput?.focus();
+
+            updateVacationBalanceUI?.();
+        }
+
+    } catch (err) {
+        console.error("❌ openModal error:", err);
     }
 };
 
@@ -79,48 +84,53 @@ window.openModal = function (id) {
 ========================================== */
 
 window.closeModal = function (id) {
+    try {
+        if (id) {
+            getEl(id)?.classList.remove("active");
+        } else {
+            document.querySelectorAll(".modal").forEach(m => m.classList.remove("active"));
+        }
 
-    if (id) {
-        getEl(id)?.classList.remove("active");
-    } else {
-        document.querySelectorAll(".modal").forEach(m => m.classList.remove("active"));
-    }
+        getEl("modalOverlay")?.style && (getEl("modalOverlay").style.display = "none");
 
-    const overlay = getEl("modalOverlay");
-    if (overlay) overlay.style.display = "none";
+        if (window.AppState) {
+            window.AppState.editingVacationId = null;
+        }
 
-    if (window.AppState) {
-        window.AppState.editingVacationId = null;
+    } catch (err) {
+        console.error("❌ closeModal error:", err);
     }
 };
 
 /* ==========================================
-   ⚡ AUTOSAVE
+   ⚡ AUTOSAVE (SAFE)
 ========================================== */
 
 let lastAutoSave = null;
 
 function autoSaveVacation() {
+    try {
+        if (window.AppState?.editingVacationId) return;
 
-    if (window.AppState?.editingVacationId) return;
+        const emp = getEl("employeeSelect")?.value;
+        const start = getEl("startDate")?.value;
+        const end = getEl("endDate")?.value;
 
-    const emp = getEl("employeeSelect")?.value;
-    const start = getEl("startDate")?.value;
-    const end = getEl("endDate")?.value;
+        if (!emp || !start || !end) return;
 
-    if (!emp || !start || !end) return;
+        const key = `${emp}_${start}_${end}`;
+        if (lastAutoSave === key) return;
 
-    const key = `${emp}_${start}_${end}`;
-    if (lastAutoSave === key) return;
+        if (!canAddVacation?.(emp, start, end)) return;
 
-    if (!canAddVacation?.(emp, start, end)) return;
+        lastAutoSave = key;
 
-    lastAutoSave = key;
+        addVacation?.();
+        refreshCalendar?.();
 
-    console.log("⚡ Autosave");
-
-    addVacation?.();
-    refreshCalendar?.();
+    } catch (err) {
+        console.error("❌ autoSaveVacation error:", err);
+    }
 }
 
 /* ==========================================
@@ -128,17 +138,21 @@ function autoSaveVacation() {
 ========================================== */
 
 function validateVacationInput() {
-    const emp = getEl("employeeSelect")?.value;
-    const start = getEl("startDate")?.value;
-    const end = getEl("endDate")?.value;
-    const warning = getEl("warning");
+    try {
+        const emp = getEl("employeeSelect")?.value;
+        const start = getEl("startDate")?.value;
+        const end = getEl("endDate")?.value;
+        const warning = getEl("warning");
 
-    if (!emp || !start || !end) return;
+        if (!emp || !start || !end) return;
 
-    if (!canAddVacation?.(emp, start, end)) {
-        if (warning) warning.textContent = "⚠️ För många semesterdagar!";
-    } else {
-        if (warning) warning.textContent = "";
+        if (!canAddVacation?.(emp, start, end)) {
+            if (warning) warning.textContent = "⚠️ För många semesterdagar!";
+        } else {
+            if (warning) warning.textContent = "";
+        }
+    } catch (err) {
+        console.error("❌ validateVacationInput error:", err);
     }
 }
 
@@ -164,32 +178,42 @@ function showSuccess(message, targetId = "warning") {
 ========================================== */
 
 window.tryAddEmployee = function () {
+    try {
+        const name = getEl("employeeName")?.value?.trim();
+        const groupId = getEl("employeeGroupSelect")?.value;
+        const vacationDays = getEl("employeeVacationDays")?.value || 25;
+        const warning = getEl("employeeWarning");
 
-    const name = getEl("employeeName")?.value?.trim();
-    const groupId = getEl("employeeGroupSelect")?.value;
-    const vacationDays = getEl("employeeVacationDays")?.value || 25;
-    const warning = getEl("employeeWarning");
+        if (!name) {
+            if (warning) warning.textContent = "Du måste ange ett namn!";
+            return;
+        }
 
-    if (!name) {
-        if (warning) warning.textContent = "Du måste ange ett namn!";
-        return;
+        const ok = addEmployee?.(name, groupId || null, vacationDays);
+
+        if (!ok) {
+            if (warning) warning.textContent = "⚠️ Kunde inte skapa (dubblett?)";
+            return;
+        }
+
+        if (warning) warning.textContent = "";
+
+        showSuccess(`${name} sparad`, "employeeWarning");
+
+        setValue("employeeName", "");
+        setValue("employeeVacationDays", "");
+
+        renderEmployeeList?.();
+
+        closeModal?.("employeeModal");
+
+    } catch (err) {
+        console.error("❌ tryAddEmployee error:", err);
     }
-
-    addEmployee?.(name, groupId || null, vacationDays);
-
-    if (warning) warning.textContent = "";
-
-    showSuccess(`${name} sparad`, "employeeWarning");
-
-    setValue("employeeName", "");
-    setValue("employeeVacationDays", "");
-
-    renderEmployeeList?.();
-
-    closeModal?.("employeeModal");
 };
+
 /* ==========================================
-   🔍 FILTER EMPLOYEE LIST (NY)
+   🔍 FILTER EMPLOYEE LIST (FIXED BEHAVIOR)
 ========================================== */
 
 window.filterEmployeeList = function (query = "") {
@@ -204,15 +228,22 @@ window.filterEmployeeList = function (query = "") {
 
     list.innerHTML = "";
 
-    // 🔥 visa alla om inget filter
-    const filtered = q.length < 2
-        ? employees
-        : employees.filter(e =>
-            e.name?.toLowerCase().includes(q)
-        );
+    // 🔥 NYTT: visa inget om ingen sök
+    if (q.length === 0) {
+        list.innerHTML = `<li class="muted-text">🔍 Skriv för att söka...</li>`;
+        return;
+    }
+
+    const filtered = employees.filter(e =>
+        e.name?.toLowerCase().includes(q)
+    );
+
+    if (!filtered.length) {
+        list.innerHTML = `<li class="muted-text">Ingen träff...</li>`;
+        return;
+    }
 
     filtered.forEach(emp => {
-
         const group = groups.find(g => g.id == emp.group_id);
 
         const li = document.createElement("li");
@@ -229,6 +260,7 @@ window.filterEmployeeList = function (query = "") {
         list.appendChild(li);
     });
 };
+
 /* ==========================================
    🔽 GROUP SELECT
 ========================================== */
@@ -250,16 +282,15 @@ window.refreshGroupSelect = function () {
 };
 
 /* ==========================================
-   📅 EMPLOYEE SELECT (FIXED CORE BUG)
+   📅 EMPLOYEE SELECT
 ========================================== */
 
 window.refreshEmployeeSelect = function (filter = "") {
 
-    const select = document.getElementById("employeeSelect");
+    const select = getEl("employeeSelect");
     if (!select) return;
 
     const employees = getEmployees?.() || [];
-
     const query = (filter || "").trim().toLowerCase();
 
     select.innerHTML = "";
@@ -289,35 +320,15 @@ window.refreshEmployeeSelect = function (filter = "") {
 };
 
 /* ==========================================
-   🔄 EMPLOYEE LIST
+   🔄 EMPLOYEE LIST (SEARCH FIXED 🔥)
 ========================================== */
 
 window.renderEmployeeList = function () {
-    const list = getEl("employeeList");
-    if (!list) return;
 
-    const employees = getEmployees?.() || [];
-    const groups = getGroups?.() || [];
+    const search = getEl("employeeListSearch")?.value || "";
 
-    list.innerHTML = "";
-
-    employees.forEach(emp => {
-
-        const group = groups.find(g => g.id == emp.group_id);
-
-        const li = document.createElement("li");
-
-        li.innerHTML = `
-            <strong>${emp.name}</strong>
-            ${group ? ` (${group.name})` : ""}
-        `;
-
-        li.addEventListener("click", () => {
-            openEditEmployee?.(emp.id);
-        });
-
-        list.appendChild(li);
-    });
+    // 👇 kopplar till filter
+    filterEmployeeList(search);
 };
 
 /* ==========================================
@@ -334,16 +345,24 @@ window.trySubmitVacation = function () {
 };
 
 /* ==========================================
-   🔍 EVENTS (🔥 FIXAD ROOT ORSAK)
+   🔍 EVENTS (FIXED ROOT CAUSE)
 ========================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
 
     const search = getEl("employeeSearch");
+    const employeeListSearch = getEl("employeeListSearch");
 
     if (search) {
         search.addEventListener("input", e => {
             refreshEmployeeSelect(e.target.value);
+        });
+    }
+
+    // 🔥 NY: koppla din feature korrekt
+    if (employeeListSearch) {
+        employeeListSearch.addEventListener("input", e => {
+            filterEmployeeList(e.target.value);
         });
     }
 
