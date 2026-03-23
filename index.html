@@ -28,17 +28,13 @@
     <div class="topbar-center" id="calendarControls"></div>
 
     <div class="topbar-right">
-        <button class="primary-btn" id="btnAddVacation">
-            + Ny semester
-        </button>
+        <button class="primary-btn" id="btnAddVacation">+ Ny semester</button>
 
         <div class="user-box">
             <span id="currentUserName">Användare</span>
         </div>
 
-        <button class="logout-btn" id="btnLogout">
-            Logga ut
-        </button>
+        <button class="logout-btn" id="btnLogout">Logga ut</button>
     </div>
 </header>
 
@@ -70,6 +66,7 @@
     <div class="modal-content">
         <button class="close" data-close="employeeModal">×</button>
         <h3>Lägg till personal</h3>
+
         <p id="employeeWarning" class="warning"></p>
 
         <input type="text" id="employeeName" placeholder="Namn">
@@ -77,6 +74,10 @@
         <input type="number" id="employeeVacationDays" placeholder="Semesterdagar">
 
         <button class="primary-btn" id="saveEmployeeBtn">Spara</button>
+
+        <!-- 🔍 NY: SÖK -->
+        <input type="text" id="employeeListSearch" placeholder="Sök personal..." autocomplete="off">
+
         <ul id="employeeList" class="list"></ul>
     </div>
 </div>
@@ -88,6 +89,7 @@
         <h3>Redigera personal</h3>
 
         <input type="hidden" id="editEmployeeId">
+
         <label>Namn</label>
         <input type="text" id="editEmployeeName">
 
@@ -126,49 +128,35 @@
     </div>
 </div>
 
-<!-- 🔍 FILTER MODAL (FULL VERSION) -->
+<!-- 🔍 FILTER -->
 <div id="filterModal" class="modal">
     <div class="modal-content">
         <button class="close" data-close="filterModal">×</button>
 
         <h3>Filter</h3>
 
-        <label>Person</label>
         <select id="filterEmployee"></select>
-
-        <label>Grupp</label>
         <select id="filterGroup"></select>
 
-        <label>Från</label>
         <input type="date" id="filterFrom">
-
-        <label>Till</label>
         <input type="date" id="filterTo">
 
-        <div style="margin-top:10px;">
-            <button class="primary-btn" id="applyFilterBtn">Applicera</button>
-            <button id="resetFilterBtn">Rensa</button>
-        </div>
+        <button class="primary-btn" id="applyFilterBtn">Applicera</button>
+        <button id="resetFilterBtn">Rensa</button>
     </div>
 </div>
 
-<!-- 🧩 GROUP MODAL (PATCHED) -->
+<!-- 🧩 GROUP -->
 <div id="groupModal" class="modal">
     <div class="modal-content">
         <button class="close" data-close="groupModal">×</button>
 
         <h3>Skapa grupp</h3>
 
-        <!-- 🧩 NAMN -->
         <input type="text" id="groupName" placeholder="Gruppnamn">
-
-        <!-- 👥 MAX -->
         <input type="number" id="groupMax" placeholder="Max samtidiga">
 
-        <!-- 🎨 FÄRGVAL -->
-        <label style="margin-top:10px;">Färg</label>
-
-        <div id="groupColorPicker" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <div id="groupColorPicker">
             <div class="color-dot" data-color="#3b82f6" style="background:#3b82f6"></div>
             <div class="color-dot" data-color="#ef4444" style="background:#ef4444"></div>
             <div class="color-dot" data-color="#22c55e" style="background:#22c55e"></div>
@@ -176,24 +164,13 @@
             <div class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6"></div>
         </div>
 
-        <!-- 👀 PREVIEW -->
-        <div id="groupPreview" style="
-            margin-top:10px;
-            padding:8px;
-            border-radius:8px;
-            background:#3b82f6;
-            color:white;
-            text-align:center;
-        ">
-            Förhandsvisning
-        </div>
+        <div id="groupPreview">Förhandsvisning</div>
 
-        <!-- 🔥 FIX: INGEN onclick -->
         <button class="primary-btn" id="saveGroupBtn">Spara</button>
     </div>
 </div>
 
-<!-- 📦 CORE SCRIPTS -->
+<!-- 📦 SCRIPTS -->
 <script src="data.js" defer></script>
 <script src="auth.js" defer></script>
 <script src="ui.js" defer></script>
@@ -201,20 +178,18 @@
 <script src="employees.js" defer></script>
 <script src="vacations.js" defer></script>
 
-<!-- 📅 CALENDAR -->
 <script src="calendar/calendar-events.js" defer></script>
 <script src="calendar/calendar-actions.js" defer></script>
 <script src="calendar/calendar-init.js" defer></script>
 
-<!-- 🔥 NEW FEATURES -->
 <script src="features/filter-system.js" defer></script>
 <script src="features/filter-ui.js" defer></script>
 <script src="features/calendar-filter-hook.js" defer></script>
 <script src="features/calendar-conflicts.js" defer></script>
-<script src="features/calendar-badges.js" defer></script> 
-<script src="features/group-ui.js" defer></script>  
+<script src="features/calendar-badges.js" defer></script>
+<script src="features/group-ui.js" defer></script>
 <script src="features/employee-edit-ui.js" defer></script>
-    
+
 <script src="app.js" defer></script>
 
 <!-- 🧠 INIT -->
@@ -224,7 +199,9 @@ document.addEventListener("DOMContentLoaded", () => {
         window.AppState?.load();
 
         const user = localStorage.getItem("currentUser");
-        UI?.text("currentUserName", user || "Användare");
+        if (window.UI?.text) {
+            UI.text("currentUserName", user || "Användare");
+        }
 
         UI.get("btnAddVacation")?.addEventListener("click", () => openModal("vacationModal"));
         UI.get("btnLogout")?.addEventListener("click", logout);
@@ -243,6 +220,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         document.querySelectorAll("[data-close]").forEach(btn => {
             btn.addEventListener("click", () => closeModal(btn.dataset.close));
+        });
+
+        // 🔍 SÖK PERSONAL
+        document.getElementById("employeeListSearch")?.addEventListener("input", () => {
+            window.renderEmployeeList?.();
         });
 
         requestAnimationFrame(() => {
