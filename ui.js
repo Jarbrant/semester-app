@@ -33,7 +33,7 @@ function updateVacationBalanceUI() {
 }
 
 /* ==========================================
-   🪟 MODAL SYSTEM (EDIT SAFE)
+   🪟 MODAL SYSTEM
 ========================================== */
 
 window.openModal = function (id) {
@@ -52,15 +52,15 @@ window.openModal = function (id) {
     overlay.style.display = "block";
 
     if (id === "employeeModal") {
-        window.refreshGroupSelect?.();
-        window.renderEmployeeList?.();
+        refreshGroupSelect?.();
+        renderEmployeeList?.();
     }
 
     if (id === "vacationModal") {
 
         if (!window.AppState?.editingVacationId) {
             setValue("employeeSearch", "");
-            window.refreshEmployeeSelect?.("");
+            refreshEmployeeSelect?.("");
         }
 
         updateVacationBalanceUI?.();
@@ -83,14 +83,10 @@ window.closeModal = function (id) {
 };
 
 /* ==========================================
-   ⚡ AUTOSAVE STATE
+   ⚡ AUTOSAVE
 ========================================== */
 
 let lastAutoSave = null;
-
-/* ==========================================
-   ⚡ AUTOSAVE
-========================================== */
 
 function autoSaveVacation() {
 
@@ -152,50 +148,32 @@ function showSuccess(message, targetId = "warning") {
 }
 
 /* ==========================================
-   🧠 UNDO
-========================================== */
-
-function handleUndo() {
-    window.HistoryManager?.undo();
-    lastAutoSave = null;
-}
-
-/* ==========================================
-   👤 EMPLOYEE ADD (🔥 FIX)
+   👤 ADD EMPLOYEE
 ========================================== */
 
 window.tryAddEmployee = function () {
 
-    const nameEl = getEl("employeeName");
-    const groupEl = getEl("employeeGroupSelect");
-    const daysEl = getEl("employeeVacationDays");
+    const name = getEl("employeeName")?.value?.trim();
+    const groupId = getEl("employeeGroupSelect")?.value;
+    const vacationDays = getEl("employeeVacationDays")?.value || 25;
     const warning = getEl("employeeWarning");
-
-    const name = nameEl?.value?.trim();
-    const groupId = groupEl?.value;
-    const vacationDays = daysEl?.value || 25;
 
     if (!name) {
         if (warning) warning.textContent = "Du måste ange ett namn!";
         return;
     }
 
-    if (typeof addEmployee !== "function") {
-        console.error("❌ addEmployee saknas");
-        return;
-    }
-
-    addEmployee(name, groupId || null, vacationDays);
+    addEmployee?.(name, groupId || null, vacationDays);
 
     if (warning) warning.textContent = "";
 
-    showSuccess(`${name} sparad (${vacationDays} dagar)`, "employeeWarning");
+    showSuccess(`${name} sparad`, "employeeWarning");
 
     setValue("employeeName", "");
     setValue("employeeVacationDays", "");
 
     renderEmployeeList?.();
-    window.refreshEmployeeSelect?.();
+    refreshEmployeeSelect?.();
 
     closeModal?.("employeeModal");
 };
@@ -210,12 +188,7 @@ window.refreshGroupSelect = function () {
 
     const groups = getGroups?.() || [];
 
-    select.innerHTML = "";
-
-    const defaultOpt = document.createElement("option");
-    defaultOpt.value = "";
-    defaultOpt.textContent = "Ingen grupp";
-    select.appendChild(defaultOpt);
+    select.innerHTML = `<option value="">Ingen grupp</option>`;
 
     groups.forEach(g => {
         const opt = document.createElement("option");
@@ -241,35 +214,16 @@ window.refreshEmployeeSelect = function (filter = "") {
 
     select.innerHTML = "";
 
-    if (!filtered.length) {
-        const opt = document.createElement("option");
-        opt.textContent = "Ingen personal";
-        opt.value = "";
-        select.appendChild(opt);
-        return;
-    }
-
     filtered.forEach(emp => {
         const opt = document.createElement("option");
         opt.value = emp.id;
         opt.textContent = emp.name;
         select.appendChild(opt);
     });
-
-    select.selectedIndex = 0;
 };
 
 /* ==========================================
-   📊 YEAR
-========================================== */
-
-window.getSelectedYear = function () {
-    const el = getEl("yearFilter");
-    return el ? parseInt(el.value) : new Date().getFullYear();
-};
-
-/* ==========================================
-   🔄 EMPLOYEE LIST
+   🔄 EMPLOYEE LIST (🔥 PATCHED)
 ========================================== */
 
 window.renderEmployeeList = function () {
@@ -295,30 +249,31 @@ window.renderEmployeeList = function () {
 
         const li = document.createElement("li");
 
-        li.style.cssText = `
-            cursor:pointer;
-            padding:10px;
-            border-radius:10px;
-            margin-bottom:8px;
-            background:#f9fafb;
-        `;
+        li.className = "employee-item";
 
         li.innerHTML = `
-            <div style="display:flex; justify-content:space-between;">
-                <div>
+            <div class="employee-row">
+                <div class="employee-name">
                     <strong>${emp.name}</strong>
-                    ${group ? `<small style="color:#6b7280"> (${group.name})</small>` : ""}
+                    ${group ? `<small> (${group.name})</small>` : ""}
                 </div>
-                <div style="font-size:12px; color:#6b7280;">
+
+                <div class="employee-meta">
                     ${used} / ${total}
                 </div>
             </div>
-            <div style="margin-top:6px;height:6px;background:#e5e7eb;border-radius:999px;">
-                <div style="width:${percent}%;height:100%;background:${color};"></div>
+
+            <div class="employee-bar">
+                <div class="employee-bar-fill" style="width:${percent}%; background:${color};"></div>
             </div>
+
+            <div class="employee-edit-icon">✏️</div>
         `;
 
-        li.onclick = () => openEditEmployee?.(emp.id);
+        /* 🔥 STABIL CLICK */
+        li.addEventListener("click", () => {
+            openEditEmployee?.(emp.id);
+        });
 
         list.appendChild(li);
     });
@@ -344,7 +299,7 @@ window.trySubmitVacation = function () {
 document.addEventListener("DOMContentLoaded", () => {
 
     getEl("employeeSearch")?.addEventListener("input", e => {
-        window.refreshEmployeeSelect?.(e.target.value);
+        refreshEmployeeSelect?.(e.target.value);
     });
 
     getEl("employeeSelect")?.addEventListener("change", autoSaveVacation);
@@ -354,24 +309,9 @@ document.addEventListener("DOMContentLoaded", () => {
     getEl("startDate")?.addEventListener("change", validateVacationInput);
     getEl("endDate")?.addEventListener("change", validateVacationInput);
 
-    getEl("startDate")?.addEventListener("change", () => {
-        const start = getEl("startDate")?.value;
-        const endEl = getEl("endDate");
-
-        if (!start || !endEl) return;
-
-        if (!endEl.value) {
-            const d = new Date(start);
-            d.setDate(d.getDate() + 5);
-            endEl.value = d.toISOString().split("T")[0];
-        }
+    getEl("undoBtn")?.addEventListener("click", () => {
+        window.HistoryManager?.undo();
     });
-
-    getEl("employeeSelect")?.addEventListener("change", () => {
-        updateVacationBalanceUI?.();
-    });
-
-    getEl("undoBtn")?.addEventListener("click", handleUndo);
 
     getEl("modalOverlay")?.addEventListener("click", () => closeModal());
 
