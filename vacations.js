@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 VACATIONS (PRODUCTION SAFE - SINGLE SOURCE)
+   📅 VACATIONS (PRODUCTION SAFE - IMPROVED)
 ========================================== */
 
 /* ==========================================
@@ -9,7 +9,7 @@
 window.AppState = window.AppState || {};
 
 if (!Array.isArray(window.AppState.vacations)) {
-    window.AppState.vacations = null; // 🔥 viktigt: null = ej laddad
+    window.AppState.vacations = null;
 }
 
 window.AppState.editingVacationId = null;
@@ -29,8 +29,12 @@ function generateId() {
     return Date.now() + Math.floor(Math.random() * 1000);
 }
 
+function normalizeId(id) {
+    return String(id);
+}
+
 /* ==========================================
-   📦 LOAD / SAVE (ENDA PERSISTENS)
+   📦 LOAD / SAVE
 ========================================== */
 
 function loadVacations() {
@@ -42,7 +46,7 @@ function loadVacations() {
 
         return data.map(v => ({
             id: v.id,
-            employee_id: v.employee_id,
+            employee_id: normalizeId(v.employee_id),
             start: v.start,
             end: v.end
         }));
@@ -63,52 +67,62 @@ function persistVacations() {
 }
 
 /* ==========================================
-   📦 PUBLIC API (GLOBAL)
+   📦 PUBLIC API
 ========================================== */
 
 window.getVacations = function () {
-
-    // 🔥 laddas EN gång korrekt
     if (window.AppState.vacations === null) {
         window.AppState.vacations = loadVacations();
     }
-
     return window.AppState.vacations;
 };
 
 window.saveVacations = function (data) {
-
     if (!Array.isArray(data)) {
         console.error("❌ saveVacations: invalid data");
         return;
     }
 
-    window.AppState.vacations = data;
+    // 🔥 normalisera ID:n
+    window.AppState.vacations = data.map(v => ({
+        ...v,
+        employee_id: normalizeId(v.employee_id)
+    }));
 
     persistVacations();
 };
 
 /* ==========================================
-   🔍 VALIDATION
+   🔍 VALIDATION (FIXED)
 ========================================== */
 
 function hasConflict(empId, start, end, ignoreId = null) {
-    return getVacations().some(v =>
-        v.employee_id == empId &&
-        v.id != ignoreId &&
-        !(end < v.start || start > v.end)
-    );
+
+    const empIdStr = normalizeId(empId);
+
+    return getVacations().some(v => {
+
+        const sameEmployee = normalizeId(v.employee_id) === empIdStr;
+
+        if (!sameEmployee) return false;
+        if (v.id == ignoreId) return false;
+
+        const overlap = !(end < v.start || start > v.end);
+
+        return overlap;
+    });
 }
 
 function groupOverbooked(empId, start, end, ignoreId = null) {
+
     const employees = getEmployees();
     const groups = getGroups();
     const vacations = getVacations();
 
-    const empMap = Object.fromEntries(employees.map(e => [e.id, e]));
+    const empMap = Object.fromEntries(employees.map(e => [normalizeId(e.id), e]));
     const groupMap = Object.fromEntries(groups.map(g => [g.id, g]));
 
-    const emp = empMap[empId];
+    const emp = empMap[normalizeId(empId)];
     if (!emp || !emp.group_id) return false;
 
     const group = groupMap[emp.group_id];
@@ -119,28 +133,44 @@ function groupOverbooked(empId, start, end, ignoreId = null) {
     let count = 0;
 
     vacations.forEach(v => {
+
         if (v.id == ignoreId) return;
 
-        const e = empMap[v.employee_id];
+        const e = empMap[normalizeId(v.employee_id)];
         if (!e || e.group_id != group.id) return;
 
-        if (!(end < v.start || start > v.end)) {
-            count++;
-        }
+        const overlap = !(end < v.start || start > v.end);
+
+        if (overlap) count++;
     });
 
     return count >= max;
 }
 
 function validateVacation(empId, start, end, ignoreId = null) {
+
     const startDate = safeDate(start);
     const endDate = safeDate(end);
 
-    if (!empId || !startDate || !endDate) return "Fyll i alla fält korrekt!";
-    if (endDate < startDate) return "Slutdatum kan inte vara före startdatum";
-    if (hasConflict(empId, start, end, ignoreId)) return "⚠️ Personen har redan semester här!";
-    if (groupOverbooked(empId, start, end, ignoreId)) return "⚠️ För många i gruppen är lediga!";
-    if (!canAddVacation(empId, start, end)) return "⚠️ För många semesterdagar detta år!";
+    if (!empId || !startDate || !endDate) {
+        return "Fyll i alla fält korrekt!";
+    }
+
+    if (endDate < startDate) {
+        return "Slutdatum kan inte vara före startdatum";
+    }
+
+    if (hasConflict(empId, start, end, ignoreId)) {
+        return "⚠️ Personen har redan semester här!";
+    }
+
+    if (groupOverbooked(empId, start, end, ignoreId)) {
+        return "⚠️ För många i gruppen är lediga!";
+    }
+
+    if (!canAddVacation(empId, start, end)) {
+        return "⚠️ För många semesterdagar detta år!";
+    }
 
     return null;
 }
@@ -173,7 +203,7 @@ window.addVacation = function () {
 
     const newVacation = {
         id: generateId(),
-        employee_id: empId,
+        employee_id: normalizeId(empId),
         start,
         end
     };
@@ -212,7 +242,11 @@ function updateVacationFromForm(id, start, end) {
         return;
     }
 
-    const updatedVacation = { ...current, start, end };
+    const updatedVacation = {
+        ...current,
+        start,
+        end
+    };
 
     const updated = vacations.map(v =>
         v.id == id ? updatedVacation : v
@@ -258,6 +292,7 @@ window.removeVacation = function (id) {
 ========================================== */
 
 window.deleteVacationFromModal = function () {
+
     const id = document.getElementById("editVacationId").value;
 
     if (!confirm("Ta bort denna semester?")) return;
