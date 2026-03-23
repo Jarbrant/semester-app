@@ -33,7 +33,7 @@ function updateVacationBalanceUI() {
 }
 
 /* ==========================================
-   🪟 MODAL SYSTEM
+   🪟 MODAL SYSTEM (SMART SEARCH FIXED)
 ========================================== */
 
 window.openModal = function (id) {
@@ -51,23 +51,57 @@ window.openModal = function (id) {
     modal.classList.add("active");
     overlay.style.display = "block";
 
+    /* ==========================================
+       👤 EMPLOYEE MODAL
+    ========================================== */
+
     if (id === "employeeModal") {
         refreshGroupSelect?.();
         renderEmployeeList?.();
     }
 
+    /* ==========================================
+       📅 VACATION MODAL (🔥 FIXAD)
+    ========================================== */
+
     if (id === "vacationModal") {
 
+        const searchInput = getEl("employeeSearch");
+
         if (!window.AppState?.editingVacationId) {
+
+            // 🔥 reset input
             setValue("employeeSearch", "");
-            refreshEmployeeSelect?.("");
+
+            // 🔥 tvinga initial state
+            window.refreshEmployeeSelect?.("");
         }
+
+        // 🔥 säkerställ att input trigger alltid finns
+        if (searchInput && !searchInput.dataset.bound) {
+
+            searchInput.addEventListener("input", (e) => {
+                window.refreshEmployeeSelect?.(e.target.value);
+            });
+
+            searchInput.dataset.bound = "true";
+        }
+
+        // 🔥 auto focus för bättre UX
+        setTimeout(() => {
+            searchInput?.focus();
+        }, 50);
 
         updateVacationBalanceUI?.();
     }
 };
 
+/* ==========================================
+   ❌ CLOSE MODAL
+========================================== */
+
 window.closeModal = function (id) {
+
     if (id) {
         getEl(id)?.classList.remove("active");
     } else {
