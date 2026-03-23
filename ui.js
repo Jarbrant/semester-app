@@ -233,13 +233,16 @@ window.refreshGroupSelect = function () {
 };
 
 /* ==========================================
-   📅 EMPLOYEE SELECT (SMART SEARCH UX)
+   📅 EMPLOYEE SELECT (FINAL FIXED)
 ========================================== */
 
 window.refreshEmployeeSelect = function (filter = "") {
 
-    const select = getEl("employeeSelect");
-    if (!select) return;
+    const select = document.getElementById("employeeSelect");
+    if (!select) {
+        console.warn("⚠️ employeeSelect saknas i DOM");
+        return;
+    }
 
     const employees = getEmployees?.() || [];
 
@@ -281,7 +284,6 @@ window.refreshEmployeeSelect = function (filter = "") {
         select.appendChild(opt);
     });
 
-    // 🔥 auto-select första
     select.selectedIndex = 0;
 };
 
