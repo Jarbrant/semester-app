@@ -1,16 +1,16 @@
 /* ==========================================
-   👤 EMPLOYEES (STATE DRIVEN PRO MAX STABLE)
+   👤 EMPLOYEES (STATE DRIVEN PRO MAX STABLE++)
 ========================================== */
 
 const EMP_KEY = "employees";
 
 /* ==========================================
-   🧠 STATE LAYER (🔥 PATCH)
+   🧠 STATE LAYER (HARDENED)
 ========================================== */
 
 window.AppState = window.AppState || {
     employees: null,
-    _loaded: false // 🔥 NY: säker init
+    _loaded: false
 };
 
 /* ==========================================
@@ -35,8 +35,13 @@ function iterateDays(start, end, callback) {
     }
 }
 
+// 🔥 NY: säker string normalisering
+function normalizeName(name) {
+    return (name || "").trim().toLowerCase();
+}
+
 /* ==========================================
-   📦 LOAD / SAVE (🔥 FIXAD)
+   📦 LOAD / SAVE (HARDENED)
 ========================================== */
 
 function loadEmployees() {
@@ -55,12 +60,14 @@ function loadEmployees() {
             return [];
         }
 
-        const normalized = data.map(emp => ({
-            id: emp.id,
-            name: emp.name || "Okänd",
-            group_id: emp.group_id ?? null,
-            vacationDays: Math.max(1, toInt(emp.vacationDays, 25))
-        }));
+        const normalized = data
+            .filter(Boolean)
+            .map(emp => ({
+                id: emp.id ?? Date.now() + Math.random(),
+                name: emp.name || "Okänd",
+                group_id: emp.group_id ?? null,
+                vacationDays: Math.max(1, toInt(emp.vacationDays, 25))
+            }));
 
         console.log("📦 Employees loaded:", normalized.length);
 
@@ -88,18 +95,16 @@ function persistEmployees() {
 }
 
 /* ==========================================
-   📦 PUBLIC API (🔥 KRITISK FIX)
+   📦 PUBLIC API (SAFE LOAD)
 ========================================== */
 
 window.getEmployees = function () {
-
-    // 🔥 LADDAS EN GÅNG KORREKT
     if (!AppState._loaded) {
         AppState.employees = loadEmployees();
         AppState._loaded = true;
     }
 
-    return AppState.employees || [];
+    return Array.isArray(AppState.employees) ? AppState.employees : [];
 };
 
 window.saveEmployees = function (emps) {
@@ -108,14 +113,14 @@ window.saveEmployees = function (emps) {
         return;
     }
 
-    AppState.employees = emps;
-    AppState._loaded = true; // 🔥 viktigt
+    AppState.employees = emps.filter(Boolean);
+    AppState._loaded = true;
 
     persistEmployees();
 };
 
 /* ==========================================
-   ➕ ADD EMPLOYEE
+   ➕ ADD EMPLOYEE (NO DUPLICATES)
 ========================================== */
 
 window.addEmployee = function (name, groupId = null, vacationDays = 25) {
@@ -136,8 +141,18 @@ window.addEmployee = function (name, groupId = null, vacationDays = 25) {
 
     const employees = [...getEmployees()];
 
+    // 🔥 DUPLICATE SKYDD
+    const exists = employees.some(e =>
+        normalizeName(e.name) === normalizeName(cleanName)
+    );
+
+    if (exists) {
+        console.warn("⚠️ Duplicate employee:", cleanName);
+        return false;
+    }
+
     const newEmp = {
-        id: Date.now(),
+        id: Date.now() + Math.floor(Math.random() * 1000),
         name: cleanName,
         group_id: groupId || null,
         vacationDays: Math.max(1, toInt(vacationDays, 25))
@@ -153,7 +168,7 @@ window.addEmployee = function (name, groupId = null, vacationDays = 25) {
 };
 
 /* ==========================================
-   ✏️ UPDATE
+   ✏️ UPDATE (SAFE)
 ========================================== */
 
 window.updateEmployee = function (id, name, groupId, vacationDays) {
@@ -186,7 +201,7 @@ window.updateEmployee = function (id, name, groupId, vacationDays) {
 };
 
 /* ==========================================
-   🗑 DELETE
+   🗑 DELETE (SAFE)
 ========================================== */
 
 window.deleteEmployeeById = function (id) {
@@ -198,13 +213,13 @@ window.deleteEmployeeById = function (id) {
 };
 
 /* ==========================================
-   📊 VACATION DAYS
+   📊 VACATION DAYS (SAFE)
 ========================================== */
 
 window.getUsedVacationDays = function (employeeId, year = null, options = {}) {
     const { workdaysOnly = false } = options;
 
-    const vacations = getVacations?.() || [];
+    const vacations = (typeof getVacations === "function") ? getVacations() : [];
     let total = 0;
 
     vacations.forEach(v => {
@@ -230,7 +245,7 @@ window.getUsedVacationDays = function (employeeId, year = null, options = {}) {
 };
 
 /* ==========================================
-   🚨 VALIDATION
+   🚨 VALIDATION (SAFE)
 ========================================== */
 
 window.canAddVacation = function (employeeId, start, end) {
@@ -242,7 +257,7 @@ window.canAddVacation = function (employeeId, start, end) {
 
     if (!startDate || !endDate || endDate < startDate) return false;
 
-    const vacations = getVacations?.() || [];
+    const vacations = (typeof getVacations === "function") ? getVacations() : [];
 
     const yearlyUsage = {};
     const newUsage = {};
@@ -278,7 +293,7 @@ window.canAddVacation = function (employeeId, start, end) {
 };
 
 /* ==========================================
-   📊 BALANCE
+   📊 BALANCE (SAFE)
 ========================================== */
 
 window.getVacationBalance = function (employeeId, year = null) {
