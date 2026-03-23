@@ -199,27 +199,56 @@ window.refreshGroupSelect = function () {
 };
 
 /* ==========================================
-   📅 EMPLOYEE SELECT
+   📅 EMPLOYEE SELECT (SMART SEARCH UX)
 ========================================== */
 
 window.refreshEmployeeSelect = function (filter = "") {
+
     const select = getEl("employeeSelect");
     if (!select) return;
 
     const employees = getEmployees?.() || [];
 
-    const filtered = employees.filter(e =>
-        e.name?.toLowerCase().includes(filter.toLowerCase())
-    );
+    const query = (filter || "").trim().toLowerCase();
 
     select.innerHTML = "";
 
+    // 🔥 visa inget innan 2 tecken
+    if (query.length < 2) {
+
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Skriv minst 2 bokstäver...";
+        select.appendChild(opt);
+
+        return;
+    }
+
+    const filtered = employees.filter(e =>
+        e.name?.toLowerCase().includes(query)
+    );
+
+    // ❌ ingen träff
+    if (!filtered.length) {
+
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Ingen träff";
+        select.appendChild(opt);
+
+        return;
+    }
+
+    // ✅ resultat
     filtered.forEach(emp => {
         const opt = document.createElement("option");
         opt.value = emp.id;
         opt.textContent = emp.name;
         select.appendChild(opt);
     });
+
+    // 🔥 auto-select första
+    select.selectedIndex = 0;
 };
 
 /* ==========================================
