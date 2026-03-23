@@ -1,144 +1,167 @@
 /* ==========================================
-   🚀 APP INIT (🔥 HARDENED PRO MAX VERSION)
+   🚀 APP INIT (HARDENED PRO MAX STABLE++)
 ========================================== */
 
-window.addEventListener("DOMContentLoaded", () => {
+// 🔥 SKYDD: kör bara init en gång
+if (!window.__APP_INIT_DONE__) {
 
-    console.log("🧠 Init start...");
+    window.__APP_INIT_DONE__ = true;
 
-    /* ==========================================
-       🔐 USER
-    ========================================== */
+    window.addEventListener("DOMContentLoaded", () => {
 
-    try {
-        let user = null;
+        console.log("🧠 Init start...");
 
-        if (typeof getCurrentUser === "function") {
-            user = getCurrentUser();
+        /* ==========================================
+           🔐 USER
+        ========================================== */
+
+        try {
+            let user = null;
+
+            if (typeof getCurrentUser === "function") {
+                user = getCurrentUser();
+            }
+
+            if (!user && typeof login === "function") {
+                login("Admin", "admin");
+                user = "Admin";
+            }
+
+            console.log("✅ User:", user);
+
+        } catch (err) {
+            console.error("❌ User init error:", err);
         }
 
-        if (!user && typeof login === "function") {
-            login("Admin", "admin");
-            user = "Admin";
+        /* ==========================================
+           📦 LOAD STATE (SAFE ORDER)
+        ========================================== */
+
+        try {
+            // 🔥 säkerställ att employees laddas först
+            if (typeof getEmployees === "function") {
+                getEmployees();
+            }
+
+            // 🔥 ladda vacations efter employees
+            if (typeof getVacations === "function") {
+                getVacations();
+            }
+
+            // 🔥 optional AppState.load (om finns)
+            if (window.AppState?.load) {
+                AppState.load();
+                console.log("📦 AppState.load executed");
+            }
+
+            console.log("📦 State ready");
+
+        } catch (err) {
+            console.error("❌ State load error:", err);
         }
 
-        console.log("✅ User:", user);
-    } catch (err) {
-        console.error("❌ User init error:", err);
-    }
+        /* ==========================================
+           🔄 UI INIT (SAFE)
+        ========================================== */
 
-    /* ==========================================
-       📦 LOAD STATE (🔥 KRITISK FIX)
-    ========================================== */
-
-    try {
-        if (window.AppState?.load) {
-            AppState.load();
-            console.log("📦 State loaded");
-        }
-
-        // 🔥 FORCE LOAD vacations (FIXAR DIN BUGG)
-        window.getVacations?.();
-
-    } catch (err) {
-        console.error("❌ State load error:", err);
-    }
-
-    /* ==========================================
-       🔄 UI INIT
-    ========================================== */
-
-    try {
-        window.renderEmployeeList?.();
-        window.refreshEmployeeSelect?.();
-        window.refreshGroupSelect?.();
-    } catch (err) {
-        console.error("❌ UI init error:", err);
-    }
-
-    /* ==========================================
-       📅 CALENDAR (🔥 EFTER STATE)
-    ========================================== */
-
-    try {
-        if (typeof initCalendar === "function") {
-            initCalendar();
-            console.log("📅 Calendar init OK");
-        } else {
-            console.error("❌ initCalendar saknas");
-        }
-    } catch (err) {
-        console.error("❌ Calendar init crash:", err);
-    }
-
-    /* ==========================================
-       🔘 BUTTONS
-    ========================================== */
-
-    try {
-
-        // 👤 Spara personal
-        const saveEmployeeBtn = document.getElementById("saveEmployeeBtn");
-        if (saveEmployeeBtn) {
-            saveEmployeeBtn.addEventListener("click", () => {
-                console.log("🔥 Klick: Spara personal");
-                window.tryAddEmployee?.();
+        try {
+            requestAnimationFrame(() => {
+                window.renderEmployeeList?.();
+                window.refreshEmployeeSelect?.("");
+                window.refreshGroupSelect?.();
             });
+        } catch (err) {
+            console.error("❌ UI init error:", err);
         }
 
-        // 📅 Spara semester
-        const saveVacationBtn = document.getElementById("saveVacationBtn");
-        if (saveVacationBtn) {
-            saveVacationBtn.addEventListener("click", () => {
-                console.log("🔥 Klick: Spara semester");
-                window.trySubmitVacation?.();
-            });
-        } else {
-            console.warn("⚠️ saveVacationBtn hittades inte");
+        /* ==========================================
+           📅 CALENDAR (AFTER STATE)
+        ========================================== */
+
+        try {
+            if (typeof initCalendar === "function") {
+                initCalendar();
+                console.log("📅 Calendar init OK");
+            } else {
+                console.warn("⚠️ initCalendar saknas");
+            }
+        } catch (err) {
+            console.error("❌ Calendar init crash:", err);
         }
 
-    } catch (err) {
-        console.error("❌ Button binding error:", err);
-    }
+        /* ==========================================
+           🔘 BUTTONS (NO DUPLICATE BIND)
+        ========================================== */
 
-    /* ==========================================
-       ↩️ AO-03 UNDO SYSTEM (🔥 FIXAD)
-    ========================================== */
+        try {
 
-    try {
-        const undoBtn = document.getElementById("undoBtn");
+            const saveEmployeeBtn = document.getElementById("saveEmployeeBtn");
 
-        if (undoBtn) {
-            undoBtn.addEventListener("click", () => {
+            if (saveEmployeeBtn && !saveEmployeeBtn.dataset.bound) {
+                saveEmployeeBtn.dataset.bound = "true";
 
-                console.log("↩️ Klick: Undo");
+                saveEmployeeBtn.addEventListener("click", () => {
+                    window.tryAddEmployee?.();
+                });
+            }
 
-                // 🔥 ENDAST UI handler (inte dubbelkörning)
-                if (typeof window.handleUndo === "function") {
-                    window.handleUndo();
-                } else {
-                    window.HistoryManager?.undo();
-                }
+            const saveVacationBtn = document.getElementById("saveVacationBtn");
 
-            });
-        } else {
-            console.warn("⚠️ undoBtn hittades inte");
+            if (saveVacationBtn && !saveVacationBtn.dataset.bound) {
+                saveVacationBtn.dataset.bound = "true";
+
+                saveVacationBtn.addEventListener("click", () => {
+                    window.trySubmitVacation?.();
+                });
+            }
+
+        } catch (err) {
+            console.error("❌ Button binding error:", err);
         }
 
-    } catch (err) {
-        console.error("❌ Undo binding error:", err);
-    }
+        /* ==========================================
+           ↩️ UNDO SYSTEM (SAFE)
+        ========================================== */
 
-    /* ==========================================
-       🔍 DEBUG
-    ========================================== */
+        try {
+            const undoBtn = document.getElementById("undoBtn");
 
-    try {
-        console.log("👤 Employees:", localStorage.getItem("employees"));
-        console.log("📅 Vacations:", localStorage.getItem("vacations"));
-        console.log("🚀 App fully initialized");
-    } catch (err) {
-        console.error("❌ Debug log error:", err);
-    }
+            if (undoBtn && !undoBtn.dataset.bound) {
 
-});
+                undoBtn.dataset.bound = "true";
+
+                undoBtn.addEventListener("click", () => {
+
+                    if (typeof window.handleUndo === "function") {
+                        window.handleUndo();
+                    } else {
+                        window.HistoryManager?.undo();
+                    }
+
+                });
+
+            }
+
+        } catch (err) {
+            console.error("❌ Undo binding error:", err);
+        }
+
+        /* ==========================================
+           🔍 DEBUG (SAFE PARSE)
+        ========================================== */
+
+        try {
+            const employees = JSON.parse(localStorage.getItem("employees") || "[]");
+            const vacations = JSON.parse(localStorage.getItem("vacations") || "[]");
+
+            console.log("👤 Employees:", employees.length);
+            console.log("📅 Vacations:", vacations.length);
+            console.log("🚀 App fully initialized");
+
+        } catch (err) {
+            console.error("❌ Debug log error:", err);
+        }
+
+    });
+
+}
