@@ -338,7 +338,32 @@ main {
     background: white;
     box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
 }
+/* ==========================================
+   🎨 GROUP COLOR PICKER (NEW)
+========================================== */
 
+.color-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.color-dot:hover {
+    transform: scale(1.15);
+}
+
+.color-dot.active {
+    border: 2px solid #111827;
+    transform: scale(1.15);
+}
+
+/* preview box smooth animation */
+#groupPreview {
+    transition: background 0.25s ease;
+}
 /* ==========================================
    📱 RESPONSIVE
 ========================================== */
