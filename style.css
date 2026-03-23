@@ -365,6 +365,34 @@ main {
     transition: background 0.25s ease;
 }
 /* ==========================================
+   👤 EMPLOYEE LIST CLICKABLE (NEW)
+========================================== */
+
+#employeeList li {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+#employeeList li:hover {
+    background: #f1f5f9;
+    transform: translateX(4px);
+}
+
+/* ✏️ edit hint icon */
+#employeeList li::after {
+    content: "✏️";
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    opacity: 0.4;
+    font-size: 12px;
+}
+
+#employeeList li:hover::after {
+    opacity: 1;
+}
+/* ==========================================
    📱 RESPONSIVE
 ========================================== */
 
