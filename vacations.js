@@ -1,5 +1,5 @@
 /* ==========================================
-   📅 VACATIONS (STATE DRIVEN PRO MAX FIXED)
+   📅 VACATIONS (PRODUCTION SAFE - SINGLE SOURCE)
 ========================================== */
 
 /* ==========================================
@@ -7,9 +7,11 @@
 ========================================== */
 
 window.AppState = window.AppState || {};
-window.AppState.vacations = window.AppState.vacations || null;
 
-// 🔥 NY: edit mode state
+if (!Array.isArray(window.AppState.vacations)) {
+    window.AppState.vacations = null; // 🔥 viktigt: null = ej laddad
+}
+
 window.AppState.editingVacationId = null;
 
 const VAC_KEY = "vacations";
@@ -28,7 +30,7 @@ function generateId() {
 }
 
 /* ==========================================
-   📦 LOAD / SAVE
+   📦 LOAD / SAVE (ENDA PERSISTENS)
 ========================================== */
 
 function loadVacations() {
@@ -54,25 +56,35 @@ function loadVacations() {
 function persistVacations() {
     try {
         localStorage.setItem(VAC_KEY, JSON.stringify(window.AppState.vacations));
-        console.log("💾 vacations saved:", window.AppState.vacations);
+        console.log("💾 vacations saved:", window.AppState.vacations.length);
     } catch (err) {
         console.error("❌ persistVacations error:", err);
     }
 }
 
 /* ==========================================
-   📦 PUBLIC API
+   📦 PUBLIC API (GLOBAL)
 ========================================== */
 
 window.getVacations = function () {
-    if (!window.AppState.vacations) {
+
+    // 🔥 laddas EN gång korrekt
+    if (window.AppState.vacations === null) {
         window.AppState.vacations = loadVacations();
     }
+
     return window.AppState.vacations;
 };
 
 window.saveVacations = function (data) {
+
+    if (!Array.isArray(data)) {
+        console.error("❌ saveVacations: invalid data");
+        return;
+    }
+
     window.AppState.vacations = data;
+
     persistVacations();
 };
 
@@ -134,7 +146,7 @@ function validateVacation(empId, start, end, ignoreId = null) {
 }
 
 /* ==========================================
-   ➕ ADD / EDIT (🔥 FIXAD)
+   ➕ ADD
 ========================================== */
 
 window.addVacation = function () {
@@ -146,7 +158,6 @@ window.addVacation = function () {
 
     const editingId = window.AppState.editingVacationId;
 
-    // 🔥 EDIT FLOW
     if (editingId) {
         return updateVacationFromForm(editingId, start, end);
     }
@@ -184,7 +195,7 @@ window.addVacation = function () {
 };
 
 /* ==========================================
-   ✏️ UPDATE (🔥 NY CORE)
+   ✏️ UPDATE
 ========================================== */
 
 function updateVacationFromForm(id, start, end) {
@@ -214,7 +225,6 @@ function updateVacationFromForm(id, start, end) {
         payload: { before: current, after: updatedVacation }
     });
 
-    // 🔥 reset edit mode
     window.AppState.editingVacationId = null;
 
     refreshCalendar?.();
