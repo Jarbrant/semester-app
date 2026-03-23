@@ -1,5 +1,5 @@
 /* ==========================================
-   💾 DATA LAGER (SAFE + SYNC)
+   💾 DATA LAGER (SYNC MED AppState)
 ========================================== */
 
 function safeParse(key, fallback = []) {
@@ -13,19 +13,17 @@ function safeParse(key, fallback = []) {
 }
 
 /* ==========================================
-   👤 EMPLOYEES (🔥 SYNC MED AppState)
+   👤 EMPLOYEES
 ========================================== */
 
 function getEmployees() {
 
-    // 🔥 PRIORITERA AppState
     if (window.AppState?.employees) {
         return window.AppState.employees;
     }
 
     const data = safeParse("employees", []);
 
-    // 🔥 SYNC tillbaka till state
     if (window.AppState) {
         window.AppState.employees = data;
     }
@@ -40,7 +38,6 @@ function saveEmployees(data) {
         return;
     }
 
-    // 🔥 SYNC state
     if (window.AppState) {
         window.AppState.employees = data;
     }
@@ -51,10 +48,15 @@ function saveEmployees(data) {
 }
 
 /* ==========================================
-   📅 VACATIONS
+   📅 VACATIONS (🔥 ROUTAS TILL AppState)
 ========================================== */
 
 function getVacations() {
+
+    if (window.getVacations) {
+        return window.getVacations();
+    }
+
     return safeParse("vacations", []);
 }
 
@@ -65,7 +67,11 @@ function saveVacations(data) {
         return;
     }
 
+    if (window.saveVacations) {
+        return window.saveVacations(data);
+    }
+
     localStorage.setItem("vacations", JSON.stringify(data));
 
-    console.log("💾 Vacations saved:", data.length);
+    console.log("💾 Vacations saved (fallback):", data.length);
 }
