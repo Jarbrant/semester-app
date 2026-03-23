@@ -44,21 +44,10 @@
 
 <!-- 🎯 ACTIONS -->
 <section class="actions">
-    <div class="action-card" data-action="employee">
-        👥 Lägg till personal
-    </div>
-
-    <div class="action-card" data-action="vacation">
-        📅 Lägg till semester
-    </div>
-
-    <div class="action-card" data-action="filter">
-        🔍 Filter
-    </div>
-
-    <div class="action-card" data-action="group">
-        🧩 Skapa grupp
-    </div>
+    <div class="action-card" data-action="employee">👥 Lägg till personal</div>
+    <div class="action-card" data-action="vacation">📅 Lägg till semester</div>
+    <div class="action-card" data-action="filter">🔍 Filter</div>
+    <div class="action-card" data-action="group">🧩 Skapa grupp</div>
 </section>
 
 <!-- 📅 KALENDER -->
@@ -69,9 +58,7 @@
 <!-- 📋 LISTA -->
 <section class="card">
     <h3 id="vacationListTitle">📋 Semesterlista</h3>
-
     <div id="vacationSummary" class="muted-text"></div>
-
     <ul id="vacationList"></ul>
 </section>
 
@@ -82,17 +69,14 @@
 <div id="employeeModal" class="modal">
     <div class="modal-content">
         <button class="close" data-close="employeeModal">×</button>
-
         <h3>Lägg till personal</h3>
-
         <p id="employeeWarning" class="warning"></p>
 
-        <input type="text" id="employeeName" placeholder="Namn" autocomplete="off">
+        <input type="text" id="employeeName" placeholder="Namn">
         <select id="employeeGroupSelect"></select>
-        <input type="number" id="employeeVacationDays" placeholder="Semesterdagar" min="1">
+        <input type="number" id="employeeVacationDays" placeholder="Semesterdagar">
 
         <button class="primary-btn" id="saveEmployeeBtn">Spara</button>
-
         <ul id="employeeList" class="list"></ul>
     </div>
 </div>
@@ -101,7 +85,6 @@
 <div id="editEmployeeModal" class="modal">
     <div class="modal-content">
         <button class="close" data-close="editEmployeeModal">×</button>
-
         <h3>Redigera personal</h3>
 
         <input type="hidden" id="editEmployeeId">
@@ -115,17 +98,16 @@
     </div>
 </div>
 
-<!-- 📅 ADD VACATION -->
+<!-- 📅 VACATION -->
 <div id="vacationModal" class="modal">
     <div class="modal-content">
         <button class="close" data-close="vacationModal">×</button>
-
         <h3>Lägg till semester</h3>
 
-        <input type="text" id="employeeSearch" placeholder="Sök person..." autocomplete="off">
+        <input type="text" id="employeeSearch" placeholder="Sök person...">
         <select id="employeeSelect"></select>
 
-        <div id="vacationBalanceInfo" class="muted-text"></div>
+        <div id="vacationBalanceInfo"></div>
 
         <label>Start</label>
         <input type="date" id="startDate">
@@ -134,19 +116,33 @@
         <input type="date" id="endDate">
 
         <button class="primary-btn" id="saveVacationBtn">Spara</button>
-
-        <p id="warning" class="warning"></p>
+        <p id="warning"></p>
     </div>
 </div>
 
-<!-- 🔍 FILTER MODAL -->
+<!-- 🔍 FILTER MODAL (FULL VERSION) -->
 <div id="filterModal" class="modal">
     <div class="modal-content">
         <button class="close" data-close="filterModal">×</button>
 
         <h3>Filter</h3>
 
-        <p class="muted-text">Filterfunktion kommer här</p>
+        <label>Person</label>
+        <select id="filterEmployee"></select>
+
+        <label>Grupp</label>
+        <select id="filterGroup"></select>
+
+        <label>Från</label>
+        <input type="date" id="filterFrom">
+
+        <label>Till</label>
+        <input type="date" id="filterTo">
+
+        <div style="margin-top:10px;">
+            <button class="primary-btn" id="applyFilterBtn">Applicera</button>
+            <button id="resetFilterBtn">Rensa</button>
+        </div>
     </div>
 </div>
 
@@ -158,13 +154,13 @@
         <h3>Skapa grupp</h3>
 
         <input type="text" id="groupName" placeholder="Gruppnamn">
-        <input type="number" id="groupMax" placeholder="Max samtidiga" min="1">
+        <input type="number" id="groupMax" placeholder="Max samtidiga">
 
         <button class="primary-btn" onclick="createGroup?.()">Spara</button>
     </div>
 </div>
 
-<!-- 📦 SCRIPTS -->
+<!-- 📦 CORE SCRIPTS -->
 <script src="data.js" defer></script>
 <script src="auth.js" defer></script>
 <script src="ui.js" defer></script>
@@ -172,9 +168,14 @@
 <script src="employees.js" defer></script>
 <script src="vacations.js" defer></script>
 
+<!-- 📅 CALENDAR -->
 <script src="calendar/calendar-events.js" defer></script>
 <script src="calendar/calendar-actions.js" defer></script>
 <script src="calendar/calendar-init.js" defer></script>
+
+<!-- 🔥 NEW FEATURES -->
+<script src="features/filter-system.js" defer></script>
+<script src="features/filter-ui.js" defer></script>
 
 <script src="app.js" defer></script>
 
@@ -190,7 +191,6 @@ document.addEventListener("DOMContentLoaded", () => {
         UI.get("btnAddVacation")?.addEventListener("click", () => openModal("vacationModal"));
         UI.get("btnLogout")?.addEventListener("click", logout);
 
-        // 🎯 ACTION CARDS
         document.querySelectorAll("[data-action]").forEach(el => {
             el.addEventListener("click", () => {
                 const map = {
@@ -199,30 +199,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     filter: "filterModal",
                     group: "groupModal"
                 };
-
-                const modalId = map[el.dataset.action];
-
-                if (!modalId) {
-                    console.warn("❌ Okänd action:", el.dataset.action);
-                    return;
-                }
-
-                openModal(modalId);
+                openModal(map[el.dataset.action]);
             });
         });
 
-        // ❌ CLOSE BUTTONS
         document.querySelectorAll("[data-close]").forEach(btn => {
-            btn.addEventListener("click", () => {
-                closeModal(btn.dataset.close);
-            });
+            btn.addEventListener("click", () => closeModal(btn.dataset.close));
         });
 
-        UI.get("vacationListTitle")?.addEventListener("click", () => {
-            window.openVacationOverview?.();
-        });
-
-        // 🚀 INIT CALENDAR
         requestAnimationFrame(() => {
             initCalendar?.();
         });
