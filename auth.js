@@ -1,25 +1,37 @@
 /* ==========================================
-   🔐 AUTH (ENKEL ROLLHANTERING)
+   🔐 AUTH SYSTEM (SEMI PRO)
 ========================================== */
 
-// 🔹 Hämta användare
-function getCurrentUser() {
-    return JSON.parse(localStorage.getItem("user"));
-}
+window.login = function (username, password) {
 
-// 🔹 Logga in (demo)
-window.login = function(name, role) {
-    localStorage.setItem("user", JSON.stringify({ name, role }));
+    const employees = getEmployees();
+
+    const user = employees.find(e =>
+        e.login?.username === username &&
+        e.login?.password === password
+    );
+
+    if (!user) {
+        alert("Fel användarnamn eller lösenord");
+        return false;
+    }
+
+    localStorage.setItem("currentUser", user.id);
+
+    return true;
 };
 
-// 🔹 Logga ut
-window.logout = function() {
-    localStorage.removeItem("user");
+window.logout = function () {
+    localStorage.removeItem("currentUser");
     location.reload();
 };
 
-// 🔹 Kolla admin
-function isAdmin() {
+window.getCurrentUser = function () {
+    const id = localStorage.getItem("currentUser");
+    return getEmployees().find(e => e.id == id);
+};
+
+window.isAdmin = function () {
     const user = getCurrentUser();
-    return user && user.role === "admin";
-}
+    return user?.login?.role === "admin";
+};
