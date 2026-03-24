@@ -19,6 +19,19 @@
 
 <body>
 
+<!-- 🔐 LOGIN -->
+<div id="loginScreen" style="display:none; padding:40px; text-align:center;">
+    <h2>🔐 Logga in</h2>
+
+    <input id="loginUser" placeholder="Username"><br><br>
+    <input id="loginPass" type="password" placeholder="Password"><br><br>
+
+    <button id="loginBtn">Logga in</button>
+</div>
+
+<!-- 🚀 APP -->
+<div id="appRoot" style="display:none;">
+
 <!-- 🔝 TOPBAR -->
 <header class="topbar">
     <div class="topbar-left">
@@ -75,7 +88,6 @@
 
         <button class="primary-btn" id="saveEmployeeBtn">Spara</button>
 
-        <!-- 🔍 SÖK -->
         <input type="text" id="employeeListSearch" placeholder="Sök personal..." autocomplete="off">
         <ul id="employeeList" class="list"></ul>
     </div>
@@ -127,47 +139,7 @@
     </div>
 </div>
 
-<!-- 🔍 FILTER -->
-<div id="filterModal" class="modal">
-    <div class="modal-content">
-        <button class="close" data-close="filterModal">×</button>
-
-        <h3>Filter</h3>
-
-        <select id="filterEmployee"></select>
-        <select id="filterGroup"></select>
-
-        <input type="date" id="filterFrom">
-        <input type="date" id="filterTo">
-
-        <button class="primary-btn" id="applyFilterBtn">Applicera</button>
-        <button id="resetFilterBtn">Rensa</button>
-    </div>
-</div>
-
-<!-- 🧩 GROUP -->
-<div id="groupModal" class="modal">
-    <div class="modal-content">
-        <button class="close" data-close="groupModal">×</button>
-
-        <h3>Skapa grupp</h3>
-
-        <input type="text" id="groupName" placeholder="Gruppnamn">
-        <input type="number" id="groupMax" placeholder="Max samtidiga">
-
-        <div id="groupColorPicker">
-            <div class="color-dot" data-color="#3b82f6"></div>
-            <div class="color-dot" data-color="#ef4444"></div>
-            <div class="color-dot" data-color="#22c55e"></div>
-            <div class="color-dot" data-color="#f59e0b"></div>
-            <div class="color-dot" data-color="#8b5cf6"></div>
-        </div>
-
-        <div id="groupPreview">Förhandsvisning</div>
-
-        <button class="primary-btn" id="saveGroupBtn">Spara</button>
-    </div>
-</div>
+</div> <!-- END appRoot -->
 
 <!-- 📦 SCRIPTS -->
 <script src="data.js" defer></script>
@@ -191,43 +163,46 @@
 
 <script src="app.js" defer></script>
 
-<!-- 🧠 MINIMAL SAFE INIT -->
+<!-- 🧠 INIT -->
 <script>
-if (!window.__UI_INIT_DONE__) {
-    window.__UI_INIT_DONE__ = true;
+document.addEventListener("DOMContentLoaded", () => {
 
-    document.addEventListener("DOMContentLoaded", () => {
-        try {
+    const loginScreen = document.getElementById("loginScreen");
+    const app = document.getElementById("appRoot");
 
-            const user = localStorage.getItem("currentUser");
-            if (window.UI?.text) {
-                UI.text("currentUserName", user || "Användare");
-            }
+    const userId = localStorage.getItem("currentUser");
 
-            UI.get("btnAddVacation")?.addEventListener("click", () => openModal("vacationModal"));
-            UI.get("btnLogout")?.addEventListener("click", logout);
+    // 🔐 LOGIN MODE
+    if (!userId) {
+        loginScreen.style.display = "block";
+        app.style.display = "none";
+    } else {
+        loginScreen.style.display = "none";
+        app.style.display = "block";
 
-            document.querySelectorAll("[data-action]").forEach(el => {
-                el.addEventListener("click", () => {
-                    const map = {
-                        employee: "employeeModal",
-                        vacation: "vacationModal",
-                        filter: "filterModal",
-                        group: "groupModal"
-                    };
-                    openModal(map[el.dataset.action]);
-                });
-            });
+        const user = window.getCurrentUser?.();
 
-            document.querySelectorAll("[data-close]").forEach(btn => {
-                btn.addEventListener("click", () => closeModal(btn.dataset.close));
-            });
+        if (user && document.getElementById("currentUserName")) {
+            document.getElementById("currentUserName").textContent = user.name || "Användare";
+        }
+    }
 
-        } catch (err) {
-            console.error("Init error:", err);
+    // 🔑 LOGIN
+    document.getElementById("loginBtn")?.addEventListener("click", () => {
+        const u = document.getElementById("loginUser").value;
+        const p = document.getElementById("loginPass").value;
+
+        if (window.login?.(u, p)) {
+            location.reload();
         }
     });
-}
+
+    // 🚪 LOGOUT
+    document.getElementById("btnLogout")?.addEventListener("click", () => {
+        window.logout?.();
+    });
+
+});
 </script>
 
 </body>
